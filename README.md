@@ -192,6 +192,19 @@ struct DetailView: View {
 }
 ```
 
+Destination object is also being injected into it's direct views through @Environment as `\.destination`. This allows you to retrieve `routeType` and `presentationType`.
+If for example `DetailView` from above is being shown as `fullScreenCover`, while also being a `root` of a `FlowCoordinatable`, the values would read as
+
+```swift
+@Environment(\.destination) private var destination
+...
+content
+    .onAppear {
+        print(destination.routeType) // DestinationType.root -- the route type within the current stack
+        print(destination.presentationType) // DestinationType.fullScreenCover -- the route type withing the global stack
+    }
+```
+
 ## Macro Attributes
 
 ### @Scaffoldable
@@ -203,7 +216,7 @@ Generates the `Destinations` enum for your coordinator. Applied to coordinator c
 Excludes a method from destination generation.
 
 ```swift
-@Flow @Observable
+@Scaffoldable @Observable
 final class ExampleCoordinator: FlowCoordinatable {
     var stack = FlowStack<ExampleCoordinator>(root: .home)
     
