@@ -12,7 +12,6 @@ import Observation
 public protocol TabCoordinatable: Coordinatable where ViewType == TabCoordinatableView {
     var tabItems: TabItems<Self> { get }
     var anyTabItems: any AnyTabItems { get }
-    var presentedAs: PresentationType? { get set }
 }
 
 @MainActor
