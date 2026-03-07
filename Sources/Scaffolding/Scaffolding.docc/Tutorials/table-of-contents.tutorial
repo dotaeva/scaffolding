@@ -1,0 +1,16 @@
+@Tutorials(name: "Scaffolding") {
+    @Intro(title: "Getting Started with Scaffolding") {
+        Learn how to use Scaffolding to build type-safe, coordinator-driven
+        navigation in SwiftUI — with minimal boilerplate and zero manual
+        destination enums.
+    }
+
+    @Chapter(name: "Your First Scaffolding Project") {
+        Create a three-screen app with push navigation and sheet presentation.
+        Learn the fundamentals of coordinators, routes, and the `@Scaffoldable`
+        macro.
+
+        @Image(source: "scaffolding-chapter-hero")
+        @TutorialReference(tutorial: "doc:YourFirstScaffoldingProject")
+    }
+}

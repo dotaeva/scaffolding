@@ -8,18 +8,37 @@
 import SwiftUI
 import os.log
 
+/// The core protocol that all coordinators conform to.
+///
+/// `Coordinatable` provides the shared surface every coordinator type
+/// (``FlowCoordinatable``, ``TabCoordinatable``, ``RootCoordinatable``)
+/// builds upon: an associated `Destinations` enum, identity, parent
+/// tracking, and the ability to produce a SwiftUI view.
+///
+/// You do not conform to `Coordinatable` directly — use one of the
+/// three specialized protocols instead.
 @MainActor
 public protocol Coordinatable: Identifiable {
     associatedtype Destinations: Destinationable where Destinations.Owner == Self
     associatedtype ViewType: View
     associatedtype CustomizeContentView: View
-    
+
     var _dataId: ObjectIdentifier { get }
     var parent: (any Coordinatable)? { get }
     var hasLayerNavigationCoordinatable: Bool { get }
     func view() -> ViewType
     func setHasLayerNavigationCoordinatable(_ value: Bool)
     func setParent(_ value: any Coordinatable)
+
+    /// Wraps the coordinator's content view with additional modifiers.
+    ///
+    /// Override this method to apply shared modifiers — such as toolbars,
+    /// overlays, or environment values — to every screen the coordinator
+    /// presents.
+    ///
+    /// - Parameter view: The type-erased content view produced by the
+    ///   coordinator.
+    /// - Returns: A modified view.
     func customize(_ view: AnyView) -> CustomizeContentView
 }
 
@@ -28,37 +47,43 @@ public extension Coordinatable {
     func customize(_ view: AnyView) -> some View {
         view
     }
-    
+
+    /// Dismisses this coordinator from its parent's navigation hierarchy.
+    ///
+    /// If the coordinator is the root of a ``FlowCoordinatable`` stack, the
+    /// entire flow is dismissed. If it lives inside a stack as a pushed
+    /// destination, only that destination is removed. Tab children cannot
+    /// be dismissed and will log a warning instead.
     func dismissCoordinator() {
         let logger = Logger(subsystem: "Scaffolding", category: "Dismissal")
-        
+
         if let parent = parent as? (any TabCoordinatable) {
             logger.critical("Scaffolding: The coordinator you're trying to dismiss is a TabView child, it will not be dismissed.")
             return
         }
-        
+
         if let parent = parent as? (any RootCoordinatable) {
             parent.parent?.dismissCoordinator()
             return
         }
-        
+
         if let parent = parent as? (any FlowCoordinatable) {
             let selfId = AnyHashable(self.id)
-            
+
             if let root = parent.anyStack.root,
                let rootCoordinatable = root.coordinatable?.id,
                AnyHashable(rootCoordinatable) == selfId {
                 parent.dismissCoordinator()
                 return
             }
-            
+
             parent.anyStack.destinations.removeAll(where: {
                 guard let coordinatableId = $0.coordinatable?.id else { return false }
                 return AnyHashable(coordinatableId) == selfId
             })
         }
     }
-    
+
     func resolveMeta(_ meta: any DestinationMeta) -> Destinations.Meta? {
         return meta as? Self.Destinations.Meta
     }
@@ -71,11 +96,20 @@ extension Coordinatable {
     }
 }
 
+/// A type that bridges between a coordinator's `Destinations` enum and the
+/// concrete ``Destination`` value used at runtime.
+///
+/// The ``Scaffoldable()`` macro generates a conforming type automatically —
+/// you do not need to implement this protocol yourself.
 @MainActor
 public protocol Destinationable {
     associatedtype Meta: DestinationMeta
     associatedtype Owner
-    
+
+    /// Metadata that identifies the destination case without its
+    /// associated values.
     var meta: Meta { get }
+
+    /// Creates a ``Destination`` for the given coordinator instance.
     @MainActor func value(for instance: Owner) -> Destination
 }

@@ -1,0 +1,219 @@
+@Tutorial(time: 25) {
+    @Intro(title: "Your First Scaffolding Project") {
+        Build a three-screen iOS app with push navigation and sheet presentation
+        using Scaffolding's coordinator pattern.
+
+        You will create a coordinator, define views, wire up navigation between
+        a list screen and a detail screen, and present a settings screen as
+        a modal sheet — all with just a few lines of code.
+
+        @Image(source: "01-home-list", alt: "The finished Planets app showing a list of planets with a gear icon in the toolbar.")
+    }
+
+    @Section(title: "Set Up the Project") {
+        @ContentAndMedia {
+            Create a new Xcode project and add Scaffolding as a Swift Package
+            dependency. By the end of this section you will have a blank app
+            ready for coordinator-driven navigation.
+        }
+
+        @Steps {
+            @Step {
+                Create a new iOS App project in Xcode. Choose **SwiftUI** for
+                the interface and name it **ScaffoldingDemo**.
+
+                @Code(name: "ScaffoldingDemoApp.swift", file: "01-app-initial.swift")
+            }
+
+            @Step {
+                Add the Scaffolding package: go to **File > Add Package Dependencies**, enter `https://github.com/dotaeva/scaffolding.git`, select the latest version, and add the **Scaffolding** library to your app target.
+            }
+
+            @Step {
+                Open `ScaffoldingDemoApp.swift`. This is where you will wire up
+                the coordinator at the end of the tutorial. For now it displays
+                a placeholder.
+
+                @Code(name: "ScaffoldingDemoApp.swift", file: "01-app-initial.swift")
+            }
+        }
+    }
+
+    @Section(title: "Create Your Coordinator") {
+        @ContentAndMedia {
+            Define a ``FlowCoordinatable`` coordinator that manages navigation
+            between three screens: **Home**, **Detail**, and **Settings**.
+
+            The ``Scaffoldable()`` macro inspects the functions you write and
+            generates a type-safe `Destinations` enum at compile time. Each
+            function becomes a destination — no manual enums needed.
+        }
+
+        @Steps {
+            @Step {
+                Create a new Swift file called **AppCoordinator.swift**. Import
+                `Scaffolding` and `SwiftUI`, then define an empty coordinator
+                class marked with `@Scaffoldable @Observable` that conforms to
+                `FlowCoordinatable`.
+
+                The `FlowStack` is initialized with `.home` as the root — this
+                refers to the enum case the macro will generate from the function
+                you add next.
+
+                > This file will not compile yet. Continue to the next step to
+                add the `home()` function.
+
+                @Code(name: "AppCoordinator.swift", file: "02-coordinator-empty.swift")
+            }
+
+            @Step {
+                Add a `home()` function that returns `some View`. This becomes
+                the root destination of the navigation stack. The macro generates
+                a `.home` enum case from this function name.
+
+                @Code(name: "AppCoordinator.swift", file: "02-coordinator-with-home.swift")
+            }
+
+            @Step {
+                Add a `detail(title:)` function that accepts a `String` parameter
+                and returns `some View`. The macro generates a
+                `.detail(title:)` enum case with the matching parameter.
+
+                @Code(name: "AppCoordinator.swift", file: "02-coordinator-with-detail.swift")
+            }
+
+            @Step {
+                Add a `settings()` function that returns `some View`. You now
+                have three routes defined. The macro generates `.home`,
+                `.detail(title:)`, and `.settings` — all automatically.
+
+                @Code(name: "AppCoordinator.swift", file: "02-coordinator-with-settings.swift")
+            }
+        }
+    }
+
+    @Section(title: "Build the Views") {
+        @ContentAndMedia {
+            Create the three SwiftUI views that the coordinator returns.
+            Each view accesses the coordinator through the SwiftUI environment
+            using `@Environment(AppCoordinator.self)`.
+
+            Scaffolding automatically injects coordinators into the
+            environment for all their child views.
+        }
+
+        @Steps {
+            @Step {
+                Create **HomeView.swift**. Use `@Environment(AppCoordinator.self)`
+                to access the coordinator. For now, display a welcome message.
+
+                @Code(name: "HomeView.swift", file: "03-home-view.swift")
+            }
+
+            @Step {
+                Create **DetailView.swift**. It receives a `title` string and
+                displays it. The coordinator is available here too through the
+                environment.
+
+                @Code(name: "DetailView.swift", file: "03-detail-view.swift")
+            }
+
+            @Step {
+                Create **SettingsView.swift**. This view will be presented as a
+                sheet later. It includes a **Done** button that calls
+                `dismissCoordinator()` to dismiss itself.
+
+                Notice the inner `NavigationStack` — sheets presented by
+                Scaffolding get their own navigation context, so you can add
+                a toolbar and title.
+
+                @Code(name: "SettingsView.swift", file: "03-settings-view.swift")
+            }
+        }
+    }
+
+    @Section(title: "Add Push Navigation") {
+        @ContentAndMedia {
+            Wire up navigation between screens. Call `route(to:)` on the
+            coordinator to push a destination onto the navigation stack,
+            and `pop()` to go back programmatically.
+
+            @Image(source: "02-detail-screen", alt: "The detail screen showing the title Earth with a Go Back button.")
+        }
+
+        @Steps {
+            @Step {
+                Update **HomeView** to show a list of planets. When the user taps
+                an item, call `coordinator.route(to: .detail(title: item))` to
+                push the detail screen with the selected title.
+
+                @Code(name: "HomeView.swift", file: "04-home-view-navigation.swift")
+            }
+
+            @Step {
+                Update **DetailView** to include a **Go Back** button. Call
+                `coordinator.pop()` to remove the current view from the stack.
+
+                > The system back button in the navigation bar already works
+                automatically — this custom button is just to demonstrate the
+                programmatic API.
+
+                @Code(name: "DetailView.swift", file: "04-detail-view-navigation.swift")
+            }
+        }
+    }
+
+    @Section(title: "Present a Sheet") {
+        @ContentAndMedia {
+            Present the settings screen as a modal sheet. In Scaffolding,
+            the presentation style is decided at the **call site**, not in the
+            coordinator definition — the same route can be pushed or
+            presented as a sheet depending on context.
+
+            @Image(source: "03-settings-sheet", alt: "The settings screen presented as a modal sheet with a Done button.")
+        }
+
+        @Steps {
+            @Step {
+                Update the coordinator so its functions return the actual views
+                instead of `Text` placeholders. The route definitions themselves
+                do not change — only the return values.
+
+                @Code(name: "AppCoordinator.swift", file: "05-coordinator-final.swift")
+            }
+
+            @Step {
+                Add a toolbar button to **HomeView** that presents settings as
+                a sheet. Pass `as: .sheet` to `route(to:)`. You can also use
+                `.fullScreenCover` for a full-screen modal.
+
+                @Code(name: "HomeView.swift", file: "05-home-view-sheet.swift")
+            }
+        }
+    }
+
+    @Section(title: "Wire Up the App") {
+        @ContentAndMedia {
+            Connect the coordinator to the app entry point and run your project.
+            Call `coordinator.view()` to render the coordinator's navigation
+            hierarchy as a SwiftUI view.
+        }
+
+        @Steps {
+            @Step {
+                Update **ScaffoldingDemoApp.swift** to create an `AppCoordinator`
+                instance and call `coordinator.view()` inside the `WindowGroup`.
+
+                @Code(name: "ScaffoldingDemoApp.swift", file: "06-app-final.swift")
+            }
+
+            @Step {
+                **Build and run.** You should see a list of planets. Tap one to
+                push the detail screen. Tap the gear icon in the toolbar to
+                present settings as a sheet. Tap **Done** to dismiss it.
+
+                Congratulations — you have built your first Scaffolding app!
+            }
+        }
+    }
+}
