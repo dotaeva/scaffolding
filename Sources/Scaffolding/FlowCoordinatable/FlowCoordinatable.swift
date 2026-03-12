@@ -153,6 +153,9 @@ private extension FlowCoordinatable {
 
                 if destination.pushType == .push {
                     traverseCoordinatable(destination.coordinatable) { nestedFlow in
+                        if let rootDest = nestedFlow.anyStack.root {
+                            traverseRoots(rootDest.coordinatable)
+                        }
                         flattenRecursively(nestedFlow.anyStack.destinations)
                     }
                 }
@@ -214,6 +217,9 @@ private extension FlowCoordinatable {
 
                             if originalDestination.pushType == .push {
                                 traverseCoordinatable(originalDestination.coordinatable) { nestedFlow in
+                                    if let rootDest = nestedFlow.anyStack.root {
+                                        traverseAndReconstructRoots(rootDest.coordinatable)
+                                    }
                                     let reconstructedNested = reconstructRecursively(for: nestedFlow)
                                     nestedFlow.anyStack.destinations = reconstructedNested
                                 }
@@ -227,7 +233,30 @@ private extension FlowCoordinatable {
                     traverseCoordinatable(originalDestination.coordinatable) { nestedFlow in
                         var nestedDestinationIds = Set<UUID>()
 
+                        @MainActor func collectFromRoots(_ coordinatable: (any Coordinatable)?) {
+                            guard let coordinatable = coordinatable else { return }
+                            if let flowCoord = coordinatable as? any FlowCoordinatable {
+                                if flowCoord.hasLayerNavigationCoordinatable {
+                                    if let rootDest = flowCoord.anyStack.root {
+                                        collectFromRoots(rootDest.coordinatable)
+                                    }
+                                    collectNestedIds(from: flowCoord)
+                                }
+                            } else if let tabCoordinator = coordinatable as? any TabCoordinatable {
+                                if let selectedTabId = tabCoordinator.anyTabItems.selectedTab,
+                                   let selectedTab = tabCoordinator.anyTabItems.tabs.first(where: { $0.id == selectedTabId }) {
+                                    collectFromRoots(selectedTab.coordinatable)
+                                }
+                            } else if let rootCoordinator = coordinatable as? any RootCoordinatable,
+                                      let rootDestination = rootCoordinator.anyRoot.root {
+                                collectFromRoots(rootDestination.coordinatable)
+                            }
+                        }
+
                         @MainActor func collectNestedIds(from flow: any FlowCoordinatable) {
+                            if let rootDest = flow.anyStack.root {
+                                collectFromRoots(rootDest.coordinatable)
+                            }
                             for dest in flow.anyStack.destinations {
                                 if dest.pushType != .sheet && dest.pushType != .fullScreenCover {
                                     nestedDestinationIds.insert(dest.id)
@@ -257,6 +286,9 @@ private extension FlowCoordinatable {
 
                         if nestedCount > 0 {
                             hasNestedDestinations = true
+                            if let rootDest = nestedFlow.anyStack.root {
+                                traverseAndReconstructRoots(rootDest.coordinatable)
+                            }
                             let reconstructedNested = reconstructRecursively(for: nestedFlow)
                             nestedFlow.anyStack.destinations = reconstructedNested
                         } else {
