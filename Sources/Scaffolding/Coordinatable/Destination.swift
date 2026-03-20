@@ -94,6 +94,7 @@ public extension EnvironmentValues {
 /// presenting, or switching roots.
 @MainActor
 public struct Destination: Identifiable {
+    @MainActor
     class CoordinatableCache {
         private let coordinatableFactory: () -> any Coordinatable
         private let viewFactory: (() -> AnyView)?

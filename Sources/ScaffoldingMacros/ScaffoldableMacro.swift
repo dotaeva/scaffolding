@@ -154,7 +154,7 @@ public struct ScaffoldableMacro: MemberMacro {
         }
         
         // (some View, some View, TabRole)
-        if let match = typeString.range(of: #"\(some View,\s*some View,\s*TabRole\)"#, options: .regularExpression) {
+        if typeString.range(of: #"\(some View,\s*some View,\s*TabRole\)"#, options: .regularExpression) != nil {
             return .viewViewTabRoleTuple
         }
         

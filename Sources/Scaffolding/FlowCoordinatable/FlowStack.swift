@@ -165,9 +165,8 @@ extension FlowStack {
          withAnimation(animation ?? self.animation) {
              var mutableRoot = root
              mutableRoot.coordinatable?.setHasLayerNavigationCoordinatable(true)
-             mutableRoot.coordinatable?.setParent(coordinator)
 
-             if let coordinator = coordinator {
+             if let coordinator {
                  mutableRoot.coordinatable?.setParent(coordinator)
              }
 

@@ -57,7 +57,7 @@ public extension Coordinatable {
     func dismissCoordinator() {
         let logger = Logger(subsystem: "Scaffolding", category: "Dismissal")
 
-        if let parent = parent as? (any TabCoordinatable) {
+        if parent is (any TabCoordinatable) {
             logger.critical("Scaffolding: The coordinator you're trying to dismiss is a TabView child, it will not be dismissed.")
             return
         }

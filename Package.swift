@@ -33,5 +33,9 @@ let package = Package(
         // Library that exposes a macro as part of its API, which is used in client programs.
         .target(name: "Scaffolding", dependencies: ["ScaffoldingMacros"]),
 
+        .testTarget(
+            name: "ScaffoldingTests",
+            dependencies: ["Scaffolding"]
+        ),
     ]
 )
