@@ -71,6 +71,7 @@ public class FlowStack<Coordinator: FlowCoordinatable>: AnyFlowStack {
             var rootDest = rootDestination.value(for: coordinator)
 
             rootDest.coordinatable?.setHasLayerNavigationCoordinatable(true)
+            rootDest.coordinatable?.setParent(coordinator)
 
             if let presentedAs = presentedAs {
                 rootDest.setPushType(presentedAs)
@@ -164,6 +165,7 @@ extension FlowStack {
          withAnimation(animation ?? self.animation) {
              var mutableRoot = root
              mutableRoot.coordinatable?.setHasLayerNavigationCoordinatable(true)
+             mutableRoot.coordinatable?.setParent(coordinator)
 
              if let presentedAs = presentedAs, mutableRoot.pushType == nil {
                  mutableRoot.setPushType(presentedAs)
