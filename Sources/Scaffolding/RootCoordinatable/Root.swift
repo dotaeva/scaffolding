@@ -63,6 +63,7 @@ public class Root<Coordinator: RootCoordinatable>: AnyRoot {
                 var rootDest = rootDestination.value(for: coordinator)
 
                 rootDest.coordinatable?.setHasLayerNavigationCoordinatable(self.hasLayerNavigationCoordinator)
+                rootDest.coordinatable?.setParent(coordinator)
 
                 if let presentedAs = presentedAs {
                     rootDest.setPushType(presentedAs)
