@@ -35,7 +35,7 @@ public class Root<Coordinator: RootCoordinatable>: AnyRoot {
     /// The current root destination.
     public var root: Destination?
     /// The parent coordinator, if any.
-    public var parent: (any Coordinatable)?
+    public weak var parent: (any Coordinatable)?
     /// Whether a parent flow coordinator provides the navigation layer.
     public var hasLayerNavigationCoordinator: Bool = false
     /// The default animation used for root transitions.

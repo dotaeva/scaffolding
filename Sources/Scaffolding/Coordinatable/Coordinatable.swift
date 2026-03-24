@@ -18,7 +18,7 @@ import os.log
 /// You do not conform to `Coordinatable` directly — use one of the
 /// three specialized protocols instead.
 @MainActor
-public protocol Coordinatable: Identifiable {
+public protocol Coordinatable: AnyObject, Identifiable {
     associatedtype Destinations: Destinationable where Destinations.Owner == Self
     associatedtype ViewType: View
     associatedtype CustomizeContentView: View
@@ -64,6 +64,11 @@ public extension Coordinatable {
 
         if let parent = parent as? (any RootCoordinatable) {
             parent.parent?.dismissCoordinator()
+            // Fallback: if parent.parent was nil or could not dismiss,
+            // clean up own pushed destinations to avoid stale navigation state.
+            if let selfFlow = self as? any FlowCoordinatable {
+                selfFlow.anyStack.destinations.removeAll()
+            }
             return
         }
 
@@ -74,13 +79,23 @@ public extension Coordinatable {
                let rootCoordinatable = root.coordinatable?.id,
                AnyHashable(rootCoordinatable) == selfId {
                 parent.dismissCoordinator()
+                // Fallback: clean up own destinations in case the parent
+                // could not be dismissed (e.g. parent chain hits a tab child).
+                if let selfFlow = self as? any FlowCoordinatable {
+                    selfFlow.anyStack.destinations.removeAll()
+                }
                 return
             }
 
-            parent.anyStack.destinations.removeAll(where: {
+            // Remove this coordinator and all destinations pushed after it.
+            // Using removeSubrange ensures plain-view destinations on top
+            // are also removed (they have no coordinatable to match by ID).
+            if let selfIndex = parent.anyStack.destinations.firstIndex(where: {
                 guard let coordinatableId = $0.coordinatable?.id else { return false }
                 return AnyHashable(coordinatableId) == selfId
-            })
+            }) {
+                parent.anyStack.destinations.removeSubrange(selfIndex...)
+            }
         }
     }
 

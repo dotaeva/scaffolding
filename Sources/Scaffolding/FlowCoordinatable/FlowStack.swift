@@ -38,7 +38,7 @@ public class FlowStack<Coordinator: FlowCoordinatable>: AnyFlowStack {
     /// The root destination displayed at the bottom of the stack.
     public var root: Destination?
     /// The parent coordinator that owns this flow, if any.
-    public var parent: (any Coordinatable)?
+    public weak var parent: (any Coordinatable)?
     /// Whether a parent flow coordinator provides the `NavigationStack`.
     public var hasLayerNavigationCoordinator: Bool = false
     /// The default animation used for root transitions.
