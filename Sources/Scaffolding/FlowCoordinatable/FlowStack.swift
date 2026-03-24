@@ -38,7 +38,7 @@ public class FlowStack<Coordinator: FlowCoordinatable>: AnyFlowStack {
     /// The root destination displayed at the bottom of the stack.
     public var root: Destination?
     /// The parent coordinator that owns this flow, if any.
-    public var parent: (any Coordinatable)?
+    public weak var parent: (any Coordinatable)?
     /// Whether a parent flow coordinator provides the `NavigationStack`.
     public var hasLayerNavigationCoordinator: Bool = false
     /// The default animation used for root transitions.
@@ -163,6 +163,13 @@ extension FlowStack {
 
     func setRoot(root: Destination, animation: Animation?) {
          withAnimation(animation ?? self.animation) {
+             // Clear pushed destinations before replacing the root.
+             // Destinations were pushed relative to the old root and are
+             // invalid once the root changes. Clearing them first ensures
+             // the NavigationStack path is empty before the root view
+             // switches, preventing a stale navigation bar.
+             destinations.removeAll()
+
              var mutableRoot = root
              mutableRoot.coordinatable?.setHasLayerNavigationCoordinatable(true)
 

@@ -37,7 +37,7 @@ public protocol AnyTabItems: AnyObject, CoordinatableData where Coordinator: Tab
 @Observable
 public class TabItems<Coordinator: TabCoordinatable>: AnyTabItems {
     /// The parent coordinator that owns this tab coordinator, if any.
-    public var parent: (any Coordinatable)?
+    public weak var parent: (any Coordinatable)?
     /// Whether a parent flow coordinator provides the navigation layer.
     public var hasLayerNavigationCoordinator: Bool = false
     /// The presentation type when this coordinator was presented modally.

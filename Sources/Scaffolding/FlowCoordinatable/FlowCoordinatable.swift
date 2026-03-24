@@ -226,79 +226,6 @@ private extension FlowCoordinatable {
                             }
                         }
                     }
-                } else if originalDestination.pushType == .push {
-                    var hasNestedDestinations = false
-                    let savedFlatIndex = flatIndex
-
-                    traverseCoordinatable(originalDestination.coordinatable) { nestedFlow in
-                        var nestedDestinationIds = Set<UUID>()
-
-                        @MainActor func collectFromRoots(_ coordinatable: (any Coordinatable)?) {
-                            guard let coordinatable = coordinatable else { return }
-                            if let flowCoord = coordinatable as? any FlowCoordinatable {
-                                if flowCoord.hasLayerNavigationCoordinatable {
-                                    if let rootDest = flowCoord.anyStack.root {
-                                        collectFromRoots(rootDest.coordinatable)
-                                    }
-                                    collectNestedIds(from: flowCoord)
-                                }
-                            } else if let tabCoordinator = coordinatable as? any TabCoordinatable {
-                                if let selectedTabId = tabCoordinator.anyTabItems.selectedTab,
-                                   let selectedTab = tabCoordinator.anyTabItems.tabs.first(where: { $0.id == selectedTabId }) {
-                                    collectFromRoots(selectedTab.coordinatable)
-                                }
-                            } else if let rootCoordinator = coordinatable as? any RootCoordinatable,
-                                      let rootDestination = rootCoordinator.anyRoot.root {
-                                collectFromRoots(rootDestination.coordinatable)
-                            }
-                        }
-
-                        @MainActor func collectNestedIds(from flow: any FlowCoordinatable) {
-                            if let rootDest = flow.anyStack.root {
-                                collectFromRoots(rootDest.coordinatable)
-                            }
-                            for dest in flow.anyStack.destinations {
-                                if dest.pushType != .sheet && dest.pushType != .fullScreenCover {
-                                    nestedDestinationIds.insert(dest.id)
-
-                                    if dest.pushType == .push {
-                                        traverseCoordinatable(dest.coordinatable) { innerFlow in
-                                            collectNestedIds(from: innerFlow)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        collectNestedIds(from: nestedFlow)
-
-                        var tempIndex = savedFlatIndex
-                        var nestedCount = 0
-
-                        while tempIndex < flattenedDestinations.count {
-                            if nestedDestinationIds.contains(flattenedDestinations[tempIndex].id) {
-                                nestedCount += 1
-                                tempIndex += 1
-                            } else {
-                                break
-                            }
-                        }
-
-                        if nestedCount > 0 {
-                            hasNestedDestinations = true
-                            if let rootDest = nestedFlow.anyStack.root {
-                                traverseAndReconstructRoots(rootDest.coordinatable)
-                            }
-                            let reconstructedNested = reconstructRecursively(for: nestedFlow)
-                            nestedFlow.anyStack.destinations = reconstructedNested
-                        } else {
-                            nestedFlow.anyStack.destinations = []
-                        }
-                    }
-
-                    if hasNestedDestinations {
-                        newDestinations.append(originalDestination)
-                    }
                 } else {
                     newDestinations.append(originalDestination)
                 }
@@ -618,6 +545,10 @@ public struct FlowCoordinatableView: CoordinatableView {
             view
                 .navigationDestination(for: Destination.self, destination: wrappedView)
         }
+        // Reset the NavigationStack identity when the root changes so that
+        // SwiftUI drops any stale internal navigation state (e.g. lingering
+        // navigation bar from a previous root's deep push hierarchy).
+        .id(_coordinator.anyStack.root?.id)
         .applySheets(from: _coordinator, modalContent: wrappedView)
         .applyFullScreenCovers(from: _coordinator, modalContent: wrappedView)
     }
