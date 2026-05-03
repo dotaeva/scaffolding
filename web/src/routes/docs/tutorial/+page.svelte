@@ -3,6 +3,21 @@
   import CodeBlock from '$lib/CodeBlock.svelte';
   import ScrollProgress from '$lib/ScrollProgress.svelte';
   import FlowSim from '$lib/FlowSim.svelte';
+  import {
+    CODE_APP_INITIAL,
+    CODE_COORD_EMPTY,
+    CODE_COORD_HOME,
+    CODE_COORD_DETAIL,
+    CODE_COORD_SETTINGS,
+    CODE_HOME_VIEW,
+    CODE_DETAIL_VIEW,
+    CODE_SETTINGS_VIEW,
+    CODE_HOME_NAV,
+    CODE_DETAIL_NAV,
+    CODE_COORD_FINAL,
+    CODE_HOME_SHEET,
+    CODE_APP_FINAL
+  } from '$lib/code/tutorial.js';
 
   const SECTIONS = [
     { id: 'setup',       label: 'Set up' },
@@ -12,153 +27,6 @@
     { id: 'sheet',       label: 'Sheet' },
     { id: 'wire',        label: 'Wire up' }
   ];
-
-  const CODE_APP_INITIAL = `import SwiftUI
-
-@main
-struct ScaffoldingDemoApp: App {
-    var body: some Scene {
-        WindowGroup {
-            Text("Coming soon")
-        }
-    }
-}`;
-
-  const CODE_COORD_EMPTY = `import SwiftUI
-import Scaffolding
-
-@MainActor @Observable @Scaffoldable
-final class AppCoordinator: @MainActor FlowCoordinatable {
-    var stack = FlowStack<AppCoordinator>(root: .home)
-}`;
-
-  const CODE_COORD_HOME = `@MainActor @Observable @Scaffoldable
-final class AppCoordinator: @MainActor FlowCoordinatable {
-    var stack = FlowStack<AppCoordinator>(root: .home)
-
-    func home() -> some View { Text("Home") }
-}`;
-
-  const CODE_COORD_DETAIL = `@MainActor @Observable @Scaffoldable
-final class AppCoordinator: @MainActor FlowCoordinatable {
-    var stack = FlowStack<AppCoordinator>(root: .home)
-
-    func home()              -> some View { Text("Home") }
-    func detail(title: String) -> some View { Text(title) }
-}`;
-
-  const CODE_COORD_SETTINGS = `@MainActor @Observable @Scaffoldable
-final class AppCoordinator: @MainActor FlowCoordinatable {
-    var stack = FlowStack<AppCoordinator>(root: .home)
-
-    func home()                -> some View { Text("Home") }
-    func detail(title: String) -> some View { Text(title) }
-    func settings()            -> some View { Text("Settings") }
-}`;
-
-  const CODE_HOME_VIEW = `import SwiftUI
-import Scaffolding
-
-struct HomeView: View {
-    @Environment(AppCoordinator.self) private var coordinator
-
-    var body: some View {
-        Text("Hello, \\(String(describing: coordinator))")
-    }
-}`;
-
-  const CODE_DETAIL_VIEW = `struct DetailView: View {
-    let title: String
-    var body: some View { Text(title).font(.title) }
-}`;
-
-  const CODE_SETTINGS_VIEW = `struct SettingsView: View {
-    @Environment(AppCoordinator.self) private var coordinator
-
-    var body: some View {
-        Form {
-            Button("Done") {
-                coordinator.dismissCoordinator()
-            }
-        }
-        .navigationTitle("Settings")
-    }
-}`;
-
-  const CODE_HOME_NAV = `struct HomeView: View {
-    @Environment(AppCoordinator.self) private var coordinator
-    let items = ["Mercury", "Venus", "Earth", "Mars"]
-
-    var body: some View {
-        List(items, id: \\.self) { item in
-            Button {
-                coordinator.route(to: .detail(title: item))
-            } label: {
-                Label(item, systemImage: "globe")
-            }
-        }
-        .navigationTitle("Planets")
-    }
-}`;
-
-  const CODE_DETAIL_NAV = `struct DetailView: View {
-    @Environment(AppCoordinator.self) private var coordinator
-    let title: String
-
-    var body: some View {
-        VStack {
-            Text(title).font(.title)
-            Button("Go Back") { coordinator.pop() }
-        }
-    }
-}`;
-
-  const CODE_COORD_FINAL = `@MainActor @Observable @Scaffoldable
-final class AppCoordinator: @MainActor FlowCoordinatable {
-    var stack = FlowStack<AppCoordinator>(root: .home)
-
-    func home()                -> some View { HomeView() }
-    func detail(title: String) -> some View { DetailView(title: title) }
-    func settings()            -> some View {
-        NavigationStack { SettingsView() }
-    }
-}`;
-
-  const CODE_HOME_SHEET = `struct HomeView: View {
-    @Environment(AppCoordinator.self) private var coordinator
-    let items = ["Mercury", "Venus", "Earth", "Mars"]
-
-    var body: some View {
-        List(items, id: \\.self) { item in
-            Button {
-                coordinator.route(to: .detail(title: item))
-            } label: { Label(item, systemImage: "globe") }
-        }
-        .navigationTitle("Planets")
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    coordinator.present(.settings, as: .sheet)
-                } label: {
-                    Image(systemName: "gear")
-                }
-            }
-        }
-    }
-}`;
-
-  const CODE_APP_FINAL = `import SwiftUI
-
-@main
-struct ScaffoldingDemoApp: App {
-    @State private var coordinator = AppCoordinator()
-
-    var body: some Scene {
-        WindowGroup {
-            coordinator.view
-        }
-    }
-}`;
 </script>
 
 <ScrollProgress sections={SECTIONS} />

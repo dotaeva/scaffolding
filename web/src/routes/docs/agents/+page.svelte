@@ -3,6 +3,34 @@
   import CodeBlock from '$lib/CodeBlock.svelte';
   import ScrollProgress from '$lib/ScrollProgress.svelte';
   import { GITHUB_URL } from '$lib/links.js';
+  import Caveat from '$lib/docs/Caveat.svelte';
+  import RuleList from '$lib/docs/RuleList.svelte';
+  import Rule from '$lib/docs/Rule.svelte';
+  import {
+    CODE_NESTED_BAD,
+    CODE_DECISION_TREE,
+    CODE_ANATOMY,
+    CODE_CONCRETE_VS_EXISTENTIAL,
+    CODE_IGNORED,
+    CODE_HIERARCHY,
+    CODE_RESULT_PRESENTER,
+    CODE_RESULT_PRESENTED,
+    CODE_PATTERN_SHEET_FLOW,
+    CODE_PATTERN_NATIVE_SHEET,
+    CODE_PATTERN_AUTH,
+    CODE_PATTERN_TAB,
+    CODE_DEEPLINK,
+    CODE_DEEPLINK_URL,
+    CODE_PREVIEW_BAD,
+    CODE_PREVIEW_OK,
+    CODE_ADAPTIVE_BAR,
+    CODE_MISTAKE_NESTED,
+    CODE_MISTAKE_CONCRETE,
+    CODE_MISTAKE_VIEW_STATE,
+    CODE_MISTAKE_OLD_API,
+    CODE_MISTAKE_NAVLINK,
+    CODE_MISTAKE_DISMISS
+  } from '$lib/code/agents.js';
 
   // Copy-as-markdown action. The full AGENTS.md is mirrored at
   // /static/AGENTS.md so it's served untouched alongside the site —
@@ -39,277 +67,6 @@
     { id: 'tldr',         label: 'TL;DR' }
   ];
 
-  // ── Code samples (mirror AGENTS.md verbatim where it shows code) ─────
-
-  const CODE_NESTED_BAD = `// ❌ Wrong — nested NavigationStack breaks routing.
-func detail(item: Item) -> some View {
-    NavigationStack {       // ← don't.
-        DetailRoot(item: item)
-    }
-}
-
-// ✅ Right — child FlowCoordinator gets its own NavigationStack at the
-//    coordinator boundary, where SwiftUI handles it correctly.
-func detail(item: Item) -> any Coordinatable {
-    DetailCoordinator(item: item)
-}`;
-
-  const CODE_DECISION_TREE = `Is it a push/pop on the current stack?
-├─ Yes → coordinator.route(to: .someDestination)
-│
-└─ No, it's a modal.
-   │
-   Is the modal a single screen — confirmation, info dialog,
-   simple form, picker?
-   │
-   ├─ Yes → SwiftUI native: .sheet(item:) / .fullScreenCover(item:)
-   │
-   └─ No, the modal contains its own navigation flow
-      (multiple steps, push, dismiss-with-result, etc.).
-      │
-      → coordinator.present(.flow, as: .sheet)
-        (returns a child coordinator from the route function)`;
-
-  const CODE_ANATOMY = `@MainActor @Observable @Scaffoldable
-final class HomeCoordinator: @MainActor FlowCoordinatable {
-    // Required: the observable container that owns the stack.
-    var stack = FlowStack<HomeCoordinator>(root: .home)
-
-    // Routes — each becomes a \`Destinations\` enum case.
-    func home()             -> some View         { HomeView() }
-    func detail(item: Item) -> some View         { DetailView(item: item) }
-    func settings()         -> any Coordinatable { SettingsCoordinator() }
-
-    // Optional helpers (regular methods, not auto-generated).
-    func openDetail(_ item: Item) {
-        route(to: .detail(item: item))
-    }
-}`;
-
-  const CODE_CONCRETE_VS_EXISTENTIAL = `// ❌ Won't be picked up — concrete type.
-func login() -> LoginCoordinator { LoginCoordinator() }
-
-// ✅ Existential — macro generates a \`.login\` case.
-func login() -> any Coordinatable { LoginCoordinator() }`;
-
-  const CODE_IGNORED = `@ScaffoldingIgnored
-func customize(_ view: AnyView) -> some View {
-    view
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar { /* shared toolbar */ }
-}`;
-
-  const CODE_HIERARCHY = `AppCoordinator (Root)
-├── LoginCoordinator (Flow)              ← unauthenticated
-└── MainTabCoordinator (Tab)             ← authenticated
-    ├── HomeCoordinator (Flow)
-    │   └── DetailView (push) + SettingsCoordinator (modal)
-    └── ProfileCoordinator (Flow)
-        └── EditProfileView (push)`;
-
-  const CODE_RESULT_PRESENTER = `// AppCoordinator
-func login(onComplete: @escaping @MainActor (AuthToken) -> Void) -> any Coordinatable {
-    LoginCoordinator(onComplete: onComplete)
-}
-
-func startLogin() {
-    present(.login(onComplete: { [weak self] token in
-        self?.session = token
-    }), as: .sheet)
-}`;
-
-  const CODE_RESULT_PRESENTED = `func submit() {
-    onComplete(AuthToken(...))    // deliver result
-    dismissCoordinator()          // dismiss self
-}`;
-
-  const CODE_PATTERN_SHEET_FLOW = `@MainActor @Observable @Scaffoldable
-final class HomeCoordinator: @MainActor FlowCoordinatable {
-    var stack = FlowStack<HomeCoordinator>(root: .home)
-
-    func home() -> some View { HomeView() }
-    func detail(item: Item) -> some View { DetailView(item: item) }
-    func settings() -> any Coordinatable { SettingsCoordinator() }
-
-    func openSettings() {
-        present(.settings, as: .sheet)
-    }
-}`;
-
-  const CODE_PATTERN_NATIVE_SHEET = `// Coordinator: no \`.confirmation\` route — that's an internal view detail.
-@MainActor @Observable @Scaffoldable
-final class HomeCoordinator: @MainActor FlowCoordinatable {
-    var stack = FlowStack<HomeCoordinator>(root: .home)
-    func home() -> some View { HomeView() }
-}
-
-// View: native sheet + local \`@State\`. The confirmation isn't a flow,
-// it's a single screen — keep it native.
-struct HomeView: View {
-    @Environment(HomeCoordinator.self) private var coordinator
-    @State private var pendingDelete: Item?
-
-    var body: some View {
-        List(items) { item in
-            Button(item.name) { pendingDelete = item }
-        }
-        .sheet(item: $pendingDelete) { item in
-            ConfirmDeleteSheet(item: item) {
-                /* perform delete */
-            }
-        }
-    }
-}`;
-
-  const CODE_PATTERN_AUTH = `@MainActor @Observable @Scaffoldable
-final class AppCoordinator: @MainActor RootCoordinatable {
-    var root = Root<AppCoordinator>(root: .unauthenticated)
-
-    func unauthenticated() -> any Coordinatable { LoginCoordinator() }
-    func authenticated()   -> any Coordinatable { MainTabCoordinator() }
-
-    func signIn()  { setRoot(.authenticated) }
-    func signOut() { setRoot(.unauthenticated) }
-}`;
-
-  const CODE_PATTERN_TAB = `@MainActor @Observable @Scaffoldable
-final class MainTabCoordinator: @MainActor TabCoordinatable {
-    var tabItems = TabItems<MainTabCoordinator>(tabs: [.home, .profile])
-
-    func home() -> (any Coordinatable, some View) {
-        (HomeCoordinator(), Label("Home", systemImage: "house"))
-    }
-    func profile() -> (any Coordinatable, some View) {
-        (ProfileCoordinator(), Label("Profile", systemImage: "person"))
-    }
-}`;
-
-  const CODE_DEEPLINK = `@Scaffoldable @Observable
-final class AppCoordinator: @MainActor RootCoordinatable {
-    var root = Root<AppCoordinator>(root: .unauthenticated)
-
-    func unauthenticated() -> any Coordinatable { LoginCoordinator() }
-    func authenticated()   -> any Coordinatable { MainTabCoordinator() }
-
-    /// Land on the user's profile from a URL / push / quick action.
-    /// Each \`<T: Coordinatable>\` overload hands the next step a typed
-    /// reference to the freshly-resolved child.
-    func openProfile(userId: Int) {
-        setRoot(.authenticated) { (tab: MainTabCoordinator) in
-            tab.selectFirstTab(.profile) { (profile: ProfileCoordinator) in
-                profile.route(to: .userDetail(id: userId))
-            }
-        }
-    }
-}`;
-
-  const CODE_DEEPLINK_URL = `WindowGroup {
-    coordinator.view
-        .onOpenURL { url in
-            if let userId = parseUserURL(url) {
-                coordinator.openProfile(userId: userId)
-            }
-        }
-}`;
-
-  const CODE_PREVIEW_BAD = `// ❌ The macro doesn't synthesise an initial-route initialiser.
-//    There's no \`init(initialRoute:)\` to seed a non-default starting
-//    case from a preview.
-#Preview {
-    HomeCoordinator(initialRoute: .detail(item: planet)).view
-}`;
-
-  const CODE_PREVIEW_OK = `// ✅ Preview the coordinator at its actual root...
-#Preview("Coordinator · root") {
-    HomeCoordinator().view
-}
-
-// ✅ ...or render the leaf view directly and inject what it reads
-//    from the environment.
-#Preview("DetailView · pushed") {
-    DetailView(item: .earth)
-        .environment(HomeCoordinator())   // satisfies @Environment(HomeCoordinator.self)
-}`;
-
-  const CODE_ADAPTIVE_BAR = `import SwiftUI
-import Scaffolding
-
-/// Reusable top bar that adapts to how the current screen was reached.
-/// Reads the routing metadata Scaffolding injects automatically into
-/// every materialised destination via \`\\.destination\`.
-struct AdaptiveTopBar: View {
-    let title: String
-
-    @Environment(\\.destination) private var destination
-    @Environment(\\.dismiss)     private var dismiss
-
-    var body: some View {
-        HStack {
-            switch destination.routeType {
-            case .push:
-                Button { dismiss() } label: { Image(systemName: "chevron.left") }
-            case .sheet, .fullScreenCover:
-                Button("Close") { dismiss() }
-            case .root:
-                Color.clear.frame(width: 24)
-            }
-            Spacer()
-            Text(title).font(.headline)
-            Spacer()
-            Color.clear.frame(width: 24, height: 1)
-        }
-        .padding(.horizontal, 16)
-        .frame(height: 44)
-    }
-}`;
-
-  const CODE_MISTAKE_NESTED = `// ❌ Breaks \`route(to:)\` from the parent flow.
-func detail(item: Item) -> some View {
-    NavigationStack {
-        DetailScreen(item: item)
-    }
-}`;
-
-  const CODE_MISTAKE_CONCRETE = `// ❌ Macro skips this — it doesn't recognise concrete types as routes.
-func login() -> LoginCoordinator { LoginCoordinator() }`;
-
-  const CODE_MISTAKE_VIEW_STATE = `// ❌ Defeats the point of coordinators.
-struct HomeView: View {
-    @State private var pushedDetail: Item?
-    @State private var showSettings = false
-
-    var body: some View {
-        NavigationStack {
-            List(...)
-                .navigationDestination(item: $pushedDetail) { ... }
-                .sheet(isPresented: $showSettings) { ... }
-        }
-    }
-}`;
-
-  const CODE_MISTAKE_OLD_API = `// ❌ Old, no longer exists.
-coordinator.route(to: .settings, as: .sheet)
-
-// ✅ Correct.
-coordinator.present(.settings, as: .sheet)`;
-
-  const CODE_MISTAKE_NAVLINK = `// ❌ Couples the row to navigation; breaks under modular coordinators.
-NavigationLink(value: planet) { Label(planet.name, ...) }
-
-// ✅ Plain Button + coordinator call.
-Button {
-    coordinator.route(to: .detail(item: planet))
-} label: {
-    Label(planet.name, ...)
-}`;
-
-  const CODE_MISTAKE_DISMISS = `// ❌ Dismisses the entire coordinator, not just the current screen.
-struct DetailView: View {
-    @Environment(HomeCoordinator.self) private var coordinator
-    var body: some View {
-        Button("Back") { coordinator.dismissCoordinator() }
-    }
-}`;
 </script>
 
 <ScrollProgress sections={SECTIONS} />
@@ -402,24 +159,21 @@ struct DetailView: View {
         to the outer one, and <code>route(to:)</code> stops doing what
         you expect.
       </p>
-      <aside class="caveat" role="note">
-        <span class="caveat-tag">Never</span>
-        <div class="caveat-body">
-          <p>
-            <strong>Never put a <code>NavigationStack</code> inside any
-            view returned by a <code>FlowCoordinatable</code> route
-            function.</strong>
-            Not in the root view, not in a pushed detail view, not in a
-            customise wrapper.
-          </p>
-          <p>
-            The same applies to anything that wraps SwiftUI's stack:
-            <code>NavigationView</code>, <code>NavigationSplitView</code>,
-            custom containers that hold a <code>NavigationPath</code>.
-            They all conflict.
-          </p>
-        </div>
-      </aside>
+      <Caveat tag="Never">
+        <p>
+          <strong>Never put a <code>NavigationStack</code> inside any
+          view returned by a <code>FlowCoordinatable</code> route
+          function.</strong>
+          Not in the root view, not in a pushed detail view, not in a
+          customise wrapper.
+        </p>
+        <p>
+          The same applies to anything that wraps SwiftUI's stack:
+          <code>NavigationView</code>, <code>NavigationSplitView</code>,
+          custom containers that hold a <code>NavigationPath</code>.
+          They all conflict.
+        </p>
+      </Caveat>
       <p>If a screen needs its own navigation hierarchy, give it a child coordinator:</p>
       <CodeBlock code={CODE_NESTED_BAD} label="Detail · child coordinator instead of nested stack" />
     </section>
@@ -547,40 +301,19 @@ struct DetailView: View {
       </p>
 
       <h3>Views never own navigation state</h3>
-      <ul class="rules">
-        <li>
-          <span class="rule-tag bad">Don't</span>
-          <span class="rule-body">A view holds <code>@State path: [SomeType]</code>.</span>
-        </li>
-        <li>
-          <span class="rule-tag bad">Don't</span>
-          <span class="rule-body">A view holds <code>@State isPresented = false</code> for a sheet that's part of the flow.</span>
-        </li>
-        <li>
-          <span class="rule-tag bad">Don't</span>
-          <span class="rule-body">A view receives <code>@Binding path: [SomeType]</code> to pop.</span>
-        </li>
-        <li>
-          <span class="rule-tag good">Do</span>
-          <span class="rule-body">A view reads its coordinator from <code>@Environment</code> and calls <code>coordinator.route(to:)</code>, <code>coordinator.pop()</code>, <code>coordinator.present(_:as:)</code> etc.</span>
-        </li>
-      </ul>
+      <RuleList>
+        <Rule tag="Don't" tone="bad">A view holds <code>@State path: [SomeType]</code>.</Rule>
+        <Rule tag="Don't" tone="bad">A view holds <code>@State isPresented = false</code> for a sheet that's part of the flow.</Rule>
+        <Rule tag="Don't" tone="bad">A view receives <code>@Binding path: [SomeType]</code> to pop.</Rule>
+        <Rule tag="Do" tone="good">A view reads its coordinator from <code>@Environment</code> and calls <code>coordinator.route(to:)</code>, <code>coordinator.pop()</code>, <code>coordinator.present(_:as:)</code> etc.</Rule>
+      </RuleList>
 
       <h3>Coordinators don't know how their views render</h3>
-      <ul class="rules">
-        <li>
-          <span class="rule-tag bad">Don't</span>
-          <span class="rule-body">A coordinator imports SwiftUI just to construct a <code>NavigationStack</code>.</span>
-        </li>
-        <li>
-          <span class="rule-tag bad">Don't</span>
-          <span class="rule-body">A coordinator reads <code>@Environment</code> (it's not a View).</span>
-        </li>
-        <li>
-          <span class="rule-tag good">Do</span>
-          <span class="rule-body">A coordinator's job is route declaration + state mutation. The macro and the framework wire the views to the stack.</span>
-        </li>
-      </ul>
+      <RuleList>
+        <Rule tag="Don't" tone="bad">A coordinator imports SwiftUI just to construct a <code>NavigationStack</code>.</Rule>
+        <Rule tag="Don't" tone="bad">A coordinator reads <code>@Environment</code> (it's not a View).</Rule>
+        <Rule tag="Do" tone="good">A coordinator's job is route declaration + state mutation. The macro and the framework wire the views to the stack.</Rule>
+      </RuleList>
 
       <h3>Modules expose coordinators, not views</h3>
       <p>In a multi-module app, the right unit of import is the coordinator type:</p>
@@ -656,34 +389,25 @@ appRoot.setRoot(.home(home))`} label="Cross-module composition" />
       <CodeBlock code={CODE_DEEPLINK}     label="AppCoordinator · openProfile(userId:)" />
       <CodeBlock code={CODE_DEEPLINK_URL} label="MyApp · onOpenURL" />
 
-      <ul class="rules">
-        <li>
-          <span class="rule-tag good">Do</span>
-          <span class="rule-body">
-            Pick the concrete coordinator type that matches the
-            route's return signature for <code>T</code>. The closure
-            only fires if the cast succeeds.
-          </span>
-        </li>
-        <li>
-          <span class="rule-tag bad">Don't</span>
-          <span class="rule-body">
-            Store handles to child coordinators outside the chain.
-            The typed overloads exist so you don't have to — they
-            hand you the right reference at the right time.
-          </span>
-        </li>
-        <li>
-          <span class="rule-tag bad">Don't</span>
-          <span class="rule-body">
-            Deep-link in pieces from a view. Deep-linking belongs on
-            the coordinator (or on whatever orchestrator owns the
-            URL/push entry point), and views call into it. A view
-            that dispatches multiple <code>route(to:)</code> /
-            <code>setRoot(_:)</code> calls in sequence is a smell.
-          </span>
-        </li>
-      </ul>
+      <RuleList>
+        <Rule tag="Do" tone="good">
+          Pick the concrete coordinator type that matches the
+          route's return signature for <code>T</code>. The closure
+          only fires if the cast succeeds.
+        </Rule>
+        <Rule tag="Don't" tone="bad">
+          Store handles to child coordinators outside the chain.
+          The typed overloads exist so you don't have to — they
+          hand you the right reference at the right time.
+        </Rule>
+        <Rule tag="Don't" tone="bad">
+          Deep-link in pieces from a view. Deep-linking belongs on
+          the coordinator (or on whatever orchestrator owns the
+          URL/push entry point), and views call into it. A view
+          that dispatches multiple <code>route(to:)</code> /
+          <code>setRoot(_:)</code> calls in sequence is a smell.
+        </Rule>
+      </RuleList>
     </section>
 
     <section id="previews" class="sec">
@@ -696,54 +420,42 @@ appRoot.setRoot(.home(home))`} label="Cross-module composition" />
         rules — they save the user from chasing phantom bugs.
       </p>
 
-      <ul class="rules">
-        <li>
-          <span class="rule-tag bad">Don't</span>
-          <span class="rule-body">
-            Generate <code>HomeCoordinator(initialRoute: .detail)</code>.
-            The macro doesn't emit an init that takes a starting
-            destination — there's nothing to call.
-          </span>
-        </li>
-        <li>
-          <span class="rule-tag good">Do</span>
-          <span class="rule-body">
-            Preview the coordinator at its real root
-            (<code>HomeCoordinator().view</code>), or render the leaf
-            view directly and inject the coordinator it reads.
-          </span>
-        </li>
-      </ul>
+      <RuleList>
+        <Rule tag="Don't" tone="bad">
+          Generate <code>HomeCoordinator(initialRoute: .detail)</code>.
+          The macro doesn't emit an init that takes a starting
+          destination — there's nothing to call.
+        </Rule>
+        <Rule tag="Do" tone="good">
+          Preview the coordinator at its real root
+          (<code>HomeCoordinator().view</code>), or render the leaf
+          view directly and inject the coordinator it reads.
+        </Rule>
+      </RuleList>
 
       <CodeBlock code={CODE_PREVIEW_BAD} label="Won't compile" />
       <CodeBlock code={CODE_PREVIEW_OK}  label="Two patterns that do work" />
 
-      <ul class="rules">
-        <li>
-          <span class="rule-tag good">Do</span>
-          <span class="rule-body">
-            For any view that declares
-            <code>@Environment(SomeCoordinator.self)</code>, attach
-            <code>.environment(SomeCoordinator())</code> in the
-            preview. Without it, the lookup falls back to a default
-            (or crashes on Swift 6).
-          </span>
-        </li>
-        <li>
-          <span class="rule-tag bad">Don't</span>
-          <span class="rule-body">
-            Make rendering decisions that depend on
-            <code>destination.routeType</code> /
-            <code>destination.presentationType</code> /
-            <code>destination.meta</code> showing the runtime value in
-            previews. The destination env value is set when
-            Scaffolding materialises a route — a preview that renders
-            a leaf view gets the default
-            (<code>.root</code>), regardless of how the screen would
-            be reached at runtime.
-          </span>
-        </li>
-      </ul>
+      <RuleList>
+        <Rule tag="Do" tone="good">
+          For any view that declares
+          <code>@Environment(SomeCoordinator.self)</code>, attach
+          <code>.environment(SomeCoordinator())</code> in the
+          preview. Without it, the lookup falls back to a default
+          (or crashes on Swift 6).
+        </Rule>
+        <Rule tag="Don't" tone="bad">
+          Make rendering decisions that depend on
+          <code>destination.routeType</code> /
+          <code>destination.presentationType</code> /
+          <code>destination.meta</code> showing the runtime value in
+          previews. The destination env value is set when
+          Scaffolding materialises a route — a preview that renders
+          a leaf view gets the default
+          (<code>.root</code>), regardless of how the screen would
+          be reached at runtime.
+        </Rule>
+      </RuleList>
 
       <h3>Adaptive bars from <code>\.destination</code></h3>
       <p>
@@ -1206,113 +918,8 @@ appRoot.setRoot(.home(home))`} label="Cross-module composition" />
   }
   .bullets li strong { color: var(--fg); font-weight: 500; }
 
-  /* ── Rules list (do/don't) ─────────────────────────────────────────── */
-
-  .rules {
-    margin: 0.5rem 0 1.25rem;
-    padding: 0;
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 0.55rem;
-  }
-
-  .rules li {
-    display: grid;
-    grid-template-columns: 70px 1fr;
-    gap: 0.85rem;
-    align-items: center;
-    padding: 0.6rem 0.85rem;
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    background: var(--surface);
-  }
-
-  @media (max-width: 540px) {
-    .rules li {
-      grid-template-columns: 1fr;
-      gap: 0.4rem;
-    }
-  }
-
-  .rule-tag {
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    padding: 0.18rem 0.5rem;
-    border-radius: 999px;
-    line-height: 1;
-    justify-self: start;
-    align-self: center;
-    border: 1px solid currentColor;
-    background: color-mix(in srgb, currentColor 8%, transparent);
-  }
-  .rule-tag.bad  { color: var(--syn-kw); }
-  .rule-tag.good { color: var(--syn-ty); }
-
-  .rule-body {
-    font-size: 13.5px;
-    line-height: 1.6;
-    color: color-mix(in srgb, var(--fg) 78%, transparent);
-  }
-  .rule-body code {
-    font-family: var(--font-mono);
-    font-size: 0.92em;
-    color: var(--fg);
-    background: var(--surface-2);
-    border: 1px solid var(--line-soft);
-    padding: 0.05em 0.35em;
-    border-radius: 3px;
-  }
-
-  /* ── Caveat callout ────────────────────────────────────────────────── */
-
-  .caveat {
-    display: grid;
-    grid-template-columns: 90px 1fr;
-    gap: 1rem;
-    padding: 0.95rem 1.05rem;
-    margin: 1rem 0 0.5rem;
-    border: 1px solid color-mix(in srgb, var(--syn-kw) 35%, transparent);
-    border-radius: 6px;
-    background: color-mix(in srgb, var(--syn-kw) 5%, transparent);
-  }
-  @media (max-width: 540px) {
-    .caveat { grid-template-columns: 1fr; gap: 0.4rem; }
-  }
-  .caveat-tag {
-    align-self: start;
-    justify-self: start;
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--syn-kw);
-    padding: 0.2rem 0.55rem;
-    border-radius: 999px;
-    border: 1px solid currentColor;
-    background: color-mix(in srgb, var(--syn-kw) 8%, transparent);
-    line-height: 1;
-    margin-top: 0.1rem;
-  }
-  .caveat-body p {
-    margin: 0 0 0.55rem;
-    font-size: 13.5px;
-    line-height: 1.65;
-    color: color-mix(in srgb, var(--fg) 80%, transparent);
-  }
-  .caveat-body p:last-child { margin-bottom: 0; }
-  .caveat-body p strong { color: var(--fg); font-weight: 500; }
-  .caveat-body code {
-    font-family: var(--font-mono);
-    font-size: 0.92em;
-    color: var(--fg);
-    background: color-mix(in srgb, var(--syn-kw) 8%, transparent);
-    border: 1px solid color-mix(in srgb, var(--syn-kw) 25%, transparent);
-    padding: 0.05em 0.35em;
-    border-radius: 3px;
-  }
+  /* Rule lists / Caveat callouts now live in $lib/docs/RuleList.svelte,
+     $lib/docs/Rule.svelte, and $lib/docs/Caveat.svelte. */
 
   /* ── Mistakes — numbered cards ─────────────────────────────────────── */
 

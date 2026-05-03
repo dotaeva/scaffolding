@@ -4,6 +4,21 @@
   import FlowSim from '$lib/FlowSim.svelte';
   import TabSim from '$lib/TabSim.svelte';
   import RootSim from '$lib/RootSim.svelte';
+  import {
+    CODE_COORDINATABLE,
+    CODE_FLOW_PROTOCOL,
+    CODE_TAB_PROTOCOL,
+    CODE_ROOT_PROTOCOL,
+    CODE_FLOWSTACK,
+    CODE_ROOTC,
+    CODE_TABITEMS,
+    CODE_DESTINATION,
+    CODE_DEST_TYPES,
+    CODE_DESTINATIONABLE,
+    CODE_SCAFFOLDABLE,
+    CODE_SCAFFOLDING_TRACKED,
+    CODE_SCAFFOLDING_IGNORED
+  } from '$lib/code/api.js';
 
   // Per-symbol scroll stops — each symbol is its own anchor in the
   // ScrollProgress rail, so the reader can land on a specific protocol /
@@ -24,107 +39,6 @@
     { id: 'scaffolding-ignored', label: '@Ignored' }
   ];
 
-  // ── Code samples ───────────────────────────────────────────────────
-
-  const CODE_COORDINATABLE = `@MainActor
-public protocol Coordinatable: AnyObject, Identifiable {
-    associatedtype Destinations: Destinationable
-        where Destinations.Owner == Self
-    associatedtype ViewType: View
-
-    var parent: (any Coordinatable)? { get }
-    func view() -> ViewType
-    func customize(_ view: AnyView) -> CustomizeContentView
-}`;
-
-  const CODE_FLOW_PROTOCOL = `@MainActor
-public protocol FlowCoordinatable: Coordinatable
-    where ViewType == FlowCoordinatableView {
-
-    var stack: FlowStack<Self> { get }
-}`;
-
-  const CODE_TAB_PROTOCOL = `@MainActor
-public protocol TabCoordinatable: Coordinatable
-    where ViewType == TabCoordinatableView {
-
-    var tabItems: TabItems<Self> { get }
-}`;
-
-  const CODE_ROOT_PROTOCOL = `@MainActor
-public protocol RootCoordinatable: Coordinatable
-    where ViewType == RootCoordinatableView {
-
-    var root: Root<Self> { get }
-}`;
-
-  const CODE_FLOWSTACK = `@MainActor @Observable
-public final class FlowStack<Coordinator: FlowCoordinatable> {
-    public var root: Destination?
-    public var destinations: [Destination] = []   // pushes + modals
-    public var animation: Animation? = .default
-    public var presentedAs: PresentationType?
-    public weak var parent: (any Coordinatable)?
-}`;
-
-  const CODE_ROOTC = `@MainActor @Observable
-public final class Root<Coordinator: RootCoordinatable> {
-    public var root: Destination?
-    public var animation: Animation? = .default
-    public var presentedAs: PresentationType?
-    public var modals: [Destination] = []
-}`;
-
-  const CODE_TABITEMS = `@MainActor @Observable
-public final class TabItems<Coordinator: TabCoordinatable> {
-    public var tabs: [Destination] = []
-    public var selectedTab: UUID? = nil
-    public var tabBarVisibility: Visibility = .automatic
-    public var modals: [Destination] = []
-}`;
-
-  const CODE_DESTINATION = `public struct Destination: Identifiable, Hashable {
-    public var id: UUID
-    public var routeType: DestinationType
-    public var presentationType: DestinationType
-    public let meta: any DestinationMeta
-}`;
-
-  const CODE_DEST_TYPES = `public enum DestinationType {
-    case root, push, sheet, fullScreenCover
-}
-
-public enum PresentationType {
-    case push, sheet, fullScreenCover
-}
-
-public enum ModalPresentationType {
-    case sheet, fullScreenCover
-}`;
-
-  const CODE_DESTINATIONABLE = `@MainActor
-public protocol Destinationable {
-    associatedtype Meta: DestinationMeta
-    associatedtype Owner
-
-    var meta: Meta { get }
-    func value(for instance: Owner) -> Destination
-}
-
-@MainActor
-public protocol DestinationMeta: Equatable { }`;
-
-  const CODE_SCAFFOLDABLE = `@attached(member, names: named(Destinations), named(_injectsCoordinator))
-public macro Scaffoldable(injectsCoordinator: Bool = true)
-    = #externalMacro(module: "ScaffoldingMacros", type: "ScaffoldableMacro")`;
-
-  const CODE_SCAFFOLDING_TRACKED = `@attached(peer)
-public macro ScaffoldingTracked()
-    = #externalMacro(module: "ScaffoldingMacros", type: "ScaffoldingTrackedMacro")`;
-
-  const CODE_SCAFFOLDING_IGNORED = `@attached(peer)
-public macro ScaffoldingIgnored()
-    = #externalMacro(module: "ScaffoldingMacros", type: "ScaffoldingIgnoredMacro")`;
 </script>
 
 <ScrollProgress sections={SECTIONS} />
