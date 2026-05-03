@@ -1,18 +1,32 @@
 <script>
   /**
-   * Landing-page Playground — a working iPhone-shaped simulator paired
-   * with a state read-out, an action panel, and a console. The four
-   * sub-components share a single `PlaygroundState` instance so the
-   * phone taps and the action panel mutate exactly the same state, and
-   * the read-out / console reflect both transparently.
+   * Landing-page Playground. Two modes, swappable via the tab strip:
+   *
+   *   • Demo  — a working iPhone-shaped simulator wired to a fixed
+   *             Scaffolding hierarchy (App / Tab / Home / Profile /
+   *             modal). The action panel mirrors what's callable from
+   *             the current coordinator at any given moment.
+   *
+   *   • Build — a live flow editor. The user composes their own
+   *             FlowCoordinator from primitives (screens + actions);
+   *             the phone re-renders their flow on every change.
+   *
+   * Both modes share the same top-level layout (header, sticky-phone
+   * column, info column on the right) so switching tabs only changes
+   * the contents of those columns, not the outer shape.
    */
   import { PlaygroundState } from '$lib/playground/state.svelte.js';
+  import { BuilderState } from '$lib/playground/builder.svelte.js';
   import PhoneScreen from '$lib/playground/PhoneScreen.svelte';
   import StateReadout from '$lib/playground/StateReadout.svelte';
   import ActionPanel from '$lib/playground/ActionPanel.svelte';
   import Console from '$lib/playground/Console.svelte';
+  import BuilderPhone from '$lib/playground/BuilderPhone.svelte';
+  import BuilderPanel from '$lib/playground/BuilderPanel.svelte';
 
-  const state = new PlaygroundState();
+  let mode = $state('demo');                  // 'demo' | 'build'
+  const demoState = new PlaygroundState();
+  const buildState = new BuilderState();
 </script>
 
 <section class="play hold" id="play" aria-label="Scaffolding playground">
@@ -24,18 +38,52 @@
         The phone is a working prototype — tap rows, tabs, the gear, the back
         chevron. The action panel mirrors what's callable from the
         <em>current</em> coordinator: <strong>only valid Scaffolding functions
-        appear at any given moment</strong>.
+        appear at any given moment</strong>. Or switch to <strong>Build</strong>
+        and assemble your own flow from primitives.
       </p>
+
+      <div class="mode-tabs" role="tablist" aria-label="Playground mode">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'demo'}
+          class:active={mode === 'demo'}
+          onclick={() => (mode = 'demo')}
+        >
+          <span class="mode-name">Demo</span>
+          <span class="mode-sub">canned scenario</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'build'}
+          class:active={mode === 'build'}
+          onclick={() => (mode = 'build')}
+        >
+          <span class="mode-name">Build</span>
+          <span class="mode-sub">your own flow</span>
+        </button>
+      </div>
     </header>
 
-    <div class="grid">
-      <PhoneScreen {state} />
-      <div class="info-col">
-        <StateReadout {state} />
-        <ActionPanel {state} />
-        <Console {state} />
+    {#if mode === 'demo'}
+      <div class="grid">
+        <PhoneScreen state={demoState} />
+        <div class="info-col">
+          <StateReadout state={demoState} />
+          <ActionPanel state={demoState} />
+          <Console state={demoState} />
+        </div>
       </div>
-    </div>
+    {:else}
+      <div class="grid">
+        <BuilderPhone state={buildState} />
+        <div class="info-col">
+          <BuilderPanel state={buildState} />
+          <Console state={buildState} />
+        </div>
+      </div>
+    {/if}
   </div>
 </section>
 
@@ -50,10 +98,6 @@
     margin: 0 auto;
     padding: 0 clamp(1.25rem, 4vw, 3rem);
   }
-
-  /* Cap the inner container so its right edge clears the
-     ScrollProgress rail (~210 px) when the rail shows its full
-     labels at ≥ 1340 viewport. */
   @media (min-width: 1340px) {
     .play-inner {
       max-width: min(1280px, calc(100vw - 440px));
@@ -93,11 +137,67 @@
   .note em { font-style: italic; color: var(--fg); }
   .note strong { color: var(--fg); font-weight: 500; }
 
+  /* ── Mode tabs (Demo / Build) ────────────────────────────────────── */
+
+  .mode-tabs {
+    display: inline-flex;
+    margin-top: 0.4rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg);
+    align-self: flex-start;
+  }
+
+  .mode-tabs button {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+    padding: 0.55rem 1rem;
+    background: transparent;
+    border: 0;
+    border-right: 1px solid var(--line);
+    font: inherit;
+    cursor: pointer;
+    color: var(--muted);
+    transition: color 140ms ease, background-color 140ms ease;
+    text-align: left;
+    min-width: 0;
+  }
+  .mode-tabs button:last-child { border-right: 0; }
+
+  .mode-tabs button:hover {
+    color: var(--fg);
+    background: color-mix(in srgb, var(--fg) 4%, transparent);
+  }
+  .mode-tabs button.active {
+    color: var(--fg);
+    background: color-mix(in srgb, var(--fg) 7%, transparent);
+  }
+  .mode-tabs button:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--fg) 50%, transparent);
+  }
+
+  .mode-name {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .mode-sub {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--dim);
+  }
+  .mode-tabs button.active .mode-sub { color: var(--muted); }
+
+  /* ── Two-column grid (phone-col + info-col) ──────────────────────── */
+
   .grid {
     display: grid;
-    /* Phone column auto-sizes to whatever the phone needs (capped by
-       both viewport width and viewport height — see PhoneScreen.svelte's
-       .phone rule). The right column flexes to fill the remainder. */
     grid-template-columns: minmax(0, auto) minmax(360px, 1fr);
     gap: clamp(2rem, 4vw, 3rem);
     align-items: start;
