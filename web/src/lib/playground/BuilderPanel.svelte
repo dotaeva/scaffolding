@@ -9,12 +9,13 @@
    *     target screen for routing-flavoured kinds
    *   • remove actions
    *
-   * @prop state BuilderState — the same instance the phone preview
-   *             reads, so edits propagate live.
+   * @prop flow BuilderState — the same instance the phone preview
+   *            reads, so edits propagate live. Renamed from `state` so
+   *            the local `$state` rune isn't shadowed.
    */
   import { ACTION_KINDS } from '$lib/playground/builder.svelte.js';
 
-  let { state } = $props();
+  let { flow } = $props();
 
   // Per-screen "pending action" — the user picks a kind and (for the
   // routing kinds) a target before clicking "Add".
@@ -23,7 +24,7 @@
 
   function defaultTarget(screenId) {
     // First screen that isn't this one.
-    return state.screens.find((s) => s.id !== screenId)?.id ?? null;
+    return flow.screens.find((s) => s.id !== screenId)?.id ?? null;
   }
 
   function addAction(screenId) {
@@ -31,7 +32,7 @@
     const needsTarget = kind === 'push' || kind === 'sheet' || kind === 'cover';
     const target = needsTarget ? (pendingTarget[screenId] ?? defaultTarget(screenId)) : null;
     if (needsTarget && !target) return;
-    state.addAction(screenId, kind, target);
+    flow.addAction(screenId, kind, target);
     // Reset pending so the next add starts cleanly.
     pendingKind = { ...pendingKind, [screenId]: undefined };
     pendingTarget = { ...pendingTarget, [screenId]: undefined };
@@ -41,7 +42,7 @@
 <section class="builder" aria-label="Flow builder">
   <header class="builder-head">
     <h3>Build your flow</h3>
-    <button type="button" class="reset" onclick={state.resetBuilder}>↻ Reset</button>
+    <button type="button" class="reset" onclick={flow.resetBuilder}>↻ Reset</button>
   </header>
 
   <p class="hint">
@@ -51,31 +52,31 @@
   </p>
 
   <ul class="screens">
-    {#each state.screens as screen (screen.id)}
-      <li class="screen" class:is-root={screen.id === state.rootScreenId}>
+    {#each flow.screens as screen (screen.id)}
+      <li class="screen" class:is-root={screen.id === flow.rootScreenId}>
         <header class="screen-head">
           <input
             class="name-input"
             type="text"
             value={screen.name}
-            oninput={(e) => state.renameScreen(screen.id, e.currentTarget.value.trim())}
+            oninput={(e) => flow.renameScreen(screen.id, e.currentTarget.value.trim())}
             aria-label="Screen name"
             spellcheck="false"
           />
           <div class="screen-tools">
-            {#if screen.id === state.rootScreenId}
+            {#if screen.id === flow.rootScreenId}
               <span class="root-pill" title="Root of the FlowStack">root</span>
             {:else}
               <button
                 type="button"
                 class="tool"
-                onclick={() => state.setRootScreen(screen.id)}
+                onclick={() => flow.setRootScreen(screen.id)}
                 title="Make this the root of the flow"
               >set root</button>
               <button
                 type="button"
                 class="tool danger"
-                onclick={() => state.removeScreen(screen.id)}
+                onclick={() => flow.removeScreen(screen.id)}
                 title="Delete this screen"
               >×</button>
             {/if}
@@ -91,10 +92,10 @@
                   <select
                     class="target-select"
                     value={action.target ?? ''}
-                    onchange={(e) => state.setActionTarget(screen.id, action.id, e.currentTarget.value)}
+                    onchange={(e) => flow.setActionTarget(screen.id, action.id, e.currentTarget.value)}
                     aria-label="Action target"
                   >
-                    {#each state.screens.filter((s) => s.id !== screen.id) as t (t.id)}
+                    {#each flow.screens.filter((s) => s.id !== screen.id) as t (t.id)}
                       <option value={t.id}>{t.name}</option>
                     {/each}
                   </select>
@@ -102,7 +103,7 @@
                 <button
                   type="button"
                   class="action-remove"
-                  onclick={() => state.removeAction(screen.id, action.id)}
+                  onclick={() => flow.removeAction(screen.id, action.id)}
                   aria-label="Remove action"
                 >×</button>
               </li>
@@ -128,7 +129,7 @@
               onchange={(e) => (pendingTarget = { ...pendingTarget, [screen.id]: e.currentTarget.value })}
               aria-label="New action target"
             >
-              {#each state.screens.filter((s) => s.id !== screen.id) as t (t.id)}
+              {#each flow.screens.filter((s) => s.id !== screen.id) as t (t.id)}
                 <option value={t.id}>{t.name}</option>
               {/each}
             </select>
@@ -137,14 +138,14 @@
             type="button"
             class="add-btn"
             onclick={() => addAction(screen.id)}
-            disabled={state.screens.length < 2 && needsTarget(pendingKind[screen.id] ?? 'push')}
+            disabled={flow.screens.length < 2 && needsTarget(pendingKind[screen.id] ?? 'push')}
           >+ action</button>
         </div>
       </li>
     {/each}
   </ul>
 
-  <button type="button" class="add-screen" onclick={state.addScreen}>+ add screen</button>
+  <button type="button" class="add-screen" onclick={flow.addScreen}>+ add screen</button>
 </section>
 
 <script module>

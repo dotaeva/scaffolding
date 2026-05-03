@@ -77,9 +77,9 @@
       </div>
     {:else}
       <div class="grid">
-        <BuilderPhone state={buildState} />
+        <BuilderPhone flow={buildState} />
         <div class="info-col">
-          <BuilderPanel state={buildState} />
+          <BuilderPanel flow={buildState} />
           <Console state={buildState} />
         </div>
       </div>

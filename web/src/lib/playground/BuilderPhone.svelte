@@ -7,12 +7,13 @@
    * chrome shape as the demo's PhoneScreen so the two tabs feel
    * consistent.
    *
-   * @prop state BuilderState.
+   * @prop flow BuilderState (renamed from `state` to match BuilderPanel
+   *            and avoid shadowing the `$state` rune in either file).
    */
   import { fly, fade } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
 
-  let { state } = $props();
+  let { flow } = $props();
 
   /** Short Swift-call label rendered on each in-phone action button. */
   function actionLabel(action, screens) {
@@ -39,8 +40,8 @@
           </div>
           <div class="content">
             <div class="stack-region">
-              {#each state.pushedInstances as inst, i (inst.id)}
-                {@const screen = state.screenFor(inst)}
+              {#each flow.pushedInstances as inst, i (inst.id)}
+                {@const screen = flow.screenFor(inst)}
                 <div
                   class="screen"
                   style="z-index: {i + 1};"
@@ -53,7 +54,7 @@
                         <button
                           type="button"
                           class="back"
-                          onclick={() => state.invokeAction({ kind: 'pop' })}
+                          onclick={() => flow.invokeAction({ kind: 'pop' })}
                         >‹ Back</button>
                       {/if}
                       <h4>{screen?.name ?? '?'}</h4>
@@ -70,9 +71,9 @@
                                 type="button"
                                 class="row"
                                 data-kind={action.kind}
-                                onclick={() => state.invokeAction(action)}
+                                onclick={() => flow.invokeAction(action)}
                               >
-                                <code>{actionLabel(action, state.screens)}</code>
+                                <code>{actionLabel(action, flow.screens)}</code>
                               </button>
                             </li>
                           {/each}
@@ -86,24 +87,24 @@
           </div>
         </div>
 
-        {#if state.modalInstance}
-          {@const modalScreen = state.screenFor(state.modalInstance)}
-          {#if state.modalInstance.pushType === 'sheet'}
+        {#if flow.modalInstance}
+          {@const modalScreen = flow.screenFor(flow.modalInstance)}
+          {#if flow.modalInstance.pushType === 'sheet'}
             <button
               type="button"
               class="backdrop"
               aria-label="Dismiss sheet"
-              onclick={() => state.invokeAction({ kind: 'dismiss' })}
+              onclick={() => flow.invokeAction({ kind: 'dismiss' })}
               in:fade={{ duration: 220 }}
               out:fade={{ duration: 180 }}
             ></button>
           {/if}
           <div
-            class="modal {state.modalInstance.pushType}"
+            class="modal {flow.modalInstance.pushType}"
             in:fly={{ y: 700, duration: 360, easing: cubicOut }}
             out:fly={{ y: 700, duration: 260, easing: cubicOut }}
           >
-            {#if state.modalInstance.pushType === 'sheet'}
+            {#if flow.modalInstance.pushType === 'sheet'}
               <span class="grabber" aria-hidden="true"></span>
             {/if}
             <div class="screen-content">
@@ -112,7 +113,7 @@
                 <button
                   type="button"
                   class="text-btn"
-                  onclick={() => state.invokeAction({ kind: 'dismiss' })}
+                  onclick={() => flow.invokeAction({ kind: 'dismiss' })}
                 >Done</button>
               </header>
               {#if modalScreen}
@@ -126,9 +127,9 @@
                           type="button"
                           class="row"
                           data-kind={action.kind}
-                          onclick={() => state.invokeAction(action)}
+                          onclick={() => flow.invokeAction(action)}
                         >
-                          <code>{actionLabel(action, state.screens)}</code>
+                          <code>{actionLabel(action, flow.screens)}</code>
                         </button>
                       </li>
                     {/each}
