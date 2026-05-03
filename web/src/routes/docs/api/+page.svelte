@@ -636,53 +636,27 @@
 </main>
 
 <style>
-  /* ── Page chrome ──────────────────────────────────────────────────── */
+  /* Shared docs chrome (.docs / .article / .hero / .lede etc.) lives in
+     `$lib/styles/docs.css`. The API page tweaks a few of those values
+     and adds symbol-specific chrome (.sym, .sym-head, .pill, …). */
 
   .docs {
-    position: relative;
-    z-index: 1;
-    padding: clamp(2.5rem, 6vw, 4rem) 0 clamp(3rem, 6vw, 4rem);
+    /* Slightly smaller top padding than the prose pages so the dense
+       symbol list starts higher. */
+    padding-top: clamp(2.5rem, 6vw, 4rem);
   }
-
-  .article {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 0 clamp(1.25rem, 3.5vw, 2rem);
-  }
-
-  /* ── Hero ─────────────────────────────────────────────────────────── */
 
   .hero {
-    border-bottom: 1px solid var(--line-soft);
-    padding-bottom: clamp(2rem, 5vw, 3rem);
     margin-bottom: clamp(2.5rem, 6vw, 4rem);
-    display: flex;
-    flex-direction: column;
     gap: 0.85rem;
   }
-  .eyebrow {
-    margin: 0;
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
   .hero h1 {
-    margin: 0;
-    font-family: var(--font-mono);
     font-size: clamp(1.75rem, 4vw, 2.5rem);
-    font-weight: 500;
-    line-height: 1.05;
-    letter-spacing: -0.025em;
-    color: var(--fg);
   }
   .lede {
-    margin: 0;
     font-size: 14.5px;
-    line-height: 1.65;
-    color: color-mix(in srgb, var(--fg) 75%, transparent);
-    max-width: 60ch;
   }
+
   .toc-flat {
     display: flex;
     flex-wrap: wrap;

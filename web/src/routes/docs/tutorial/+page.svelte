@@ -197,61 +197,14 @@
 </main>
 
 <style>
-  .docs {
-    position: relative;
-    z-index: 1;
-    padding: clamp(2.5rem, 6vw, 4rem) 0 clamp(3rem, 6vw, 4rem);
-  }
+  /* Shared docs chrome lives in `$lib/styles/docs.css`. Tutorial-specific
+     overrides + the sim-side layout are below. */
 
-  .article {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 0 clamp(1.25rem, 3.5vw, 2rem);
-  }
-
-  .hero {
-    border-bottom: 1px solid var(--line-soft);
-    padding-bottom: clamp(2rem, 5vw, 3rem);
-    margin-bottom: clamp(2rem, 5vw, 3rem);
-    display: flex;
-    flex-direction: column;
-    gap: 0.85rem;
-  }
-  .eyebrow {
-    margin: 0;
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  .hero h1 {
-    margin: 0;
-    font-family: var(--font-mono);
-    font-size: clamp(1.75rem, 4vw, 2.5rem);
-    font-weight: 500;
-    line-height: 1.1;
-    letter-spacing: -0.025em;
-    color: var(--fg);
-  }
-  .lede {
-    margin: 0;
-    font-size: 14.5px;
-    line-height: 1.65;
-    color: color-mix(in srgb, var(--fg) 75%, transparent);
-    max-width: 60ch;
-  }
-
-  .sec {
-    margin: 0 0 clamp(4rem, 8vw, 6rem);
-    padding-top: clamp(2.5rem, 5vw, 4rem);
-    border-top: 1px solid var(--line-soft);
-    scroll-margin-top: 5.5rem;
-  }
-  .sec:first-of-type {
-    margin-top: 0;
-    padding-top: 0;
-    border-top: 0;
-  }
+  .docs { padding-top: clamp(2.5rem, 6vw, 4rem); }
+  .hero { gap: 0.85rem; }
+  .hero h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); line-height: 1.1; }
+  .lede { font-size: 14.5px; }
+  .sec { scroll-margin-top: 5.5rem; }
 
   /* Sim-side: prose on the left, simulator on the right.
      Threshold matches the ScrollProgress full-label breakpoint so the
@@ -280,13 +233,9 @@
       margin-top: 0.75rem;
     }
   }
+  /* The tutorial's section heading is inline-flex so the step number
+     sits on the same baseline as the `<h2>` label. */
   .sec h2 {
-    margin: 0 0 1rem;
-    font-family: var(--font-mono);
-    font-size: clamp(1.2rem, 2.4vw, 1.55rem);
-    font-weight: 500;
-    letter-spacing: -0.015em;
-    color: var(--fg);
     display: flex;
     align-items: baseline;
     gap: 0.85rem;
@@ -297,65 +246,16 @@
     color: var(--dim);
     flex-shrink: 0;
   }
-  .sec p {
-    margin: 0 0 1rem;
-    font-size: 14px;
-    line-height: 1.7;
-    color: color-mix(in srgb, var(--fg) 78%, transparent);
-  }
+
+  /* Tutorial uses a quoted-style "sub" — leave the global rule in place
+     and add the left border. */
   .sec p.sub {
-    color: color-mix(in srgb, var(--fg) 60%, transparent);
-    font-size: 13.5px;
     border-left: 2px solid var(--line);
     padding-left: 0.85rem;
   }
-  .sec p strong {
-    color: var(--fg);
-    font-weight: 500;
-  }
-  .sec p em {
-    color: var(--fg);
-    font-style: italic;
-  }
+
+  /* CodeBlock spacing inside tutorial sections is a touch tighter. */
   .sec :global(.block) {
     margin: 0.75rem 0 1rem;
-  }
-
-  .sec code,
-  .lede code {
-    font-family: var(--font-mono);
-    font-size: 0.92em;
-    color: var(--fg);
-    background: var(--surface-2);
-    border: 1px solid var(--line-soft);
-    padding: 0.05em 0.4em;
-    border-radius: 3px;
-  }
-
-  .next {
-    margin-top: clamp(2rem, 5vw, 3rem);
-    padding-top: clamp(2rem, 5vw, 3rem);
-    border-top: 1px solid var(--line-soft);
-  }
-  .next h2 {
-    margin: 0 0 0.75rem;
-    font-family: var(--font-mono);
-    font-size: clamp(1.05rem, 1.8vw, 1.25rem);
-    font-weight: 500;
-    color: var(--fg);
-  }
-  .next p {
-    font-size: 14px;
-    line-height: 1.7;
-    color: color-mix(in srgb, var(--fg) 78%, transparent);
-  }
-  .next a {
-    color: var(--fg);
-    text-decoration: none;
-    border-bottom: 1px solid color-mix(in srgb, var(--fg) 30%, transparent);
-    transition: border-color 140ms ease;
-  }
-  .next a:hover {
-    border-bottom-color: var(--fg);
   }
 </style>

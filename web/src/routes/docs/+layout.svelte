@@ -1,6 +1,7 @@
 <script>
   import { base } from '$app/paths';
   import { page } from '$app/state';
+  import '$lib/styles/docs.css';
 
   let { children } = $props();
 

@@ -6,6 +6,7 @@
   import Caveat from '$lib/docs/Caveat.svelte';
   import RuleList from '$lib/docs/RuleList.svelte';
   import Rule from '$lib/docs/Rule.svelte';
+  import MistakeCard from '$lib/docs/MistakeCard.svelte';
   import {
     CODE_NESTED_BAD,
     CODE_DECISION_TREE,
@@ -477,66 +478,48 @@ appRoot.setRoot(.home(home))`} label="Cross-module composition" />
     <section id="mistakes" class="sec">
       <h2>Common mistakes — what NOT to generate</h2>
 
-      <div class="mistake">
-        <header class="mistake-head">
-          <span class="mistake-num">01</span>
-          <h3>Wrapping a destination view in <code>NavigationStack</code></h3>
-        </header>
+      <MistakeCard num="01">
+        {#snippet title()}Wrapping a destination view in <code>NavigationStack</code>{/snippet}
         <CodeBlock code={CODE_MISTAKE_NESTED} label="Anti-pattern · nested NavigationStack" />
         <p class="sub">
           Drop the <code>NavigationStack</code>. The parent flow already
           provides one.
         </p>
-      </div>
+      </MistakeCard>
 
-      <div class="mistake">
-        <header class="mistake-head">
-          <span class="mistake-num">02</span>
-          <h3>Concrete coordinator return types</h3>
-        </header>
+      <MistakeCard num="02">
+        {#snippet title()}Concrete coordinator return types{/snippet}
         <CodeBlock code={CODE_MISTAKE_CONCRETE} label="Anti-pattern · concrete return type" />
         <p class="sub">Use <code>any Coordinatable</code>.</p>
-      </div>
+      </MistakeCard>
 
-      <div class="mistake">
-        <header class="mistake-head">
-          <span class="mistake-num">03</span>
-          <h3>Holding navigation state in a view</h3>
-        </header>
+      <MistakeCard num="03">
+        {#snippet title()}Holding navigation state in a view{/snippet}
         <CodeBlock code={CODE_MISTAKE_VIEW_STATE} label="Anti-pattern · view-owned state" />
         <p class="sub">
           Move pushes to the coordinator
           (<code>coordinator.route(to: .detail(item:))</code>). Keep the
           sheet only if it's a true single-screen view-only modal.
         </p>
-      </div>
+      </MistakeCard>
 
-      <div class="mistake">
-        <header class="mistake-head">
-          <span class="mistake-num">04</span>
-          <h3><code>route(to:as:)</code> (old API)</h3>
-        </header>
+      <MistakeCard num="04">
+        {#snippet title()}<code>route(to:as:)</code> (old API){/snippet}
         <p>
           That API was split. Push uses <code>route(to:)</code>. Modals
           use <code>present(_:as:)</code>. There is no <code>as:</code>
           parameter on <code>route</code> anymore.
         </p>
         <CodeBlock code={CODE_MISTAKE_OLD_API} label="Anti-pattern · old combined API" />
-      </div>
+      </MistakeCard>
 
-      <div class="mistake">
-        <header class="mistake-head">
-          <span class="mistake-num">05</span>
-          <h3>Reaching for <code>NavigationLink</code> to push</h3>
-        </header>
+      <MistakeCard num="05">
+        {#snippet title()}Reaching for <code>NavigationLink</code> to push{/snippet}
         <CodeBlock code={CODE_MISTAKE_NAVLINK} label="Anti-pattern · NavigationLink coupling" />
-      </div>
+      </MistakeCard>
 
-      <div class="mistake">
-        <header class="mistake-head">
-          <span class="mistake-num">06</span>
-          <h3>Calling <code>dismissCoordinator()</code> to close a single screen</h3>
-        </header>
+      <MistakeCard num="06">
+        {#snippet title()}Calling <code>dismissCoordinator()</code> to close a single screen{/snippet}
         <CodeBlock code={CODE_MISTAKE_DISMISS} label="Anti-pattern · misusing dismissCoordinator" />
         <p class="sub">
           Use <code>coordinator.pop()</code> — or SwiftUI's
@@ -545,7 +528,7 @@ appRoot.setRoot(.home(home))`} label="Cross-module composition" />
           <code>dismissCoordinator()</code> for "close the whole
           sub-flow" cases.
         </p>
-      </div>
+      </MistakeCard>
     </section>
 
     <section id="compat" class="sec">
@@ -625,72 +608,9 @@ appRoot.setRoot(.home(home))`} label="Cross-module composition" />
 </main>
 
 <style>
-  .docs {
-    position: relative;
-    z-index: 1;
-    padding: clamp(3rem, 8vw, 5rem) 0 clamp(3rem, 6vw, 4rem);
-  }
+  /* Shared docs chrome lives in `$lib/styles/docs.css`. Below: agent-specific bits. */
 
-  .article {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 0 clamp(1.25rem, 3.5vw, 2rem);
-  }
-
-  /* ── Hero ──────────────────────────────────────────────────────────── */
-
-  .hero {
-    border-bottom: 1px solid var(--line-soft);
-    padding-bottom: clamp(2rem, 5vw, 3rem);
-    margin-bottom: clamp(2rem, 5vw, 3rem);
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .eyebrow {
-    margin: 0;
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  .hero h1 {
-    margin: 0;
-    font-family: var(--font-mono);
-    font-size: clamp(2rem, 5vw, 3rem);
-    font-weight: 500;
-    line-height: 1.05;
-    letter-spacing: -0.025em;
-    color: var(--fg);
-  }
-
-  .lede {
-    margin: 0;
-    font-size: 15px;
-    line-height: 1.65;
-    color: color-mix(in srgb, var(--fg) 75%, transparent);
-    max-width: 60ch;
-  }
   .lede strong { color: var(--fg); font-weight: 500; }
-
-  .meta {
-    margin: 0.25rem 0 0;
-    font-size: 12.5px;
-    color: var(--muted);
-  }
-  .meta a,
-  .next a {
-    color: var(--fg);
-    text-decoration: none;
-    border-bottom: 1px solid color-mix(in srgb, var(--fg) 30%, transparent);
-    transition: border-color 140ms ease;
-  }
-  .meta a:hover,
-  .next a:hover {
-    border-bottom-color: var(--fg);
-  }
 
   /* Copy-as-Markdown action row. Sits between the thesis and the meta
      line so it's the second-most-prominent thing in the hero. */
@@ -808,271 +728,10 @@ appRoot.setRoot(.home(home))`} label="Cross-module composition" />
   }
   .thesis p strong { color: var(--fg); font-weight: 500; }
 
-  /* ── Sections ──────────────────────────────────────────────────────── */
+  /* Rule lists / Caveat callouts / Mistake cards live in
+     $lib/docs/{RuleList,Rule,Caveat,MistakeCard}.svelte.
 
-  .sec {
-    margin: 0 0 clamp(4rem, 8vw, 6rem);
-    padding-top: clamp(2.5rem, 5vw, 4rem);
-    border-top: 1px solid var(--line-soft);
-    scroll-margin-top: 5rem;
-  }
-  .sec:first-of-type {
-    margin-top: 0;
-    padding-top: 0;
-    border-top: 0;
-  }
-
-  .sec h2 {
-    margin: 0 0 1rem;
-    font-family: var(--font-mono);
-    font-size: clamp(1.2rem, 2.4vw, 1.55rem);
-    font-weight: 500;
-    letter-spacing: -0.015em;
-    color: var(--fg);
-  }
-  .sec h2 code {
-    font-family: var(--font-mono);
-    font-size: 0.9em;
-    background: var(--surface-2);
-    border: 1px solid var(--line-soft);
-    padding: 0.05em 0.4em;
-    border-radius: 3px;
-  }
-
-  .sec h3 {
-    margin: 1.5rem 0 0.5rem;
-    font-family: var(--font-mono);
-    font-size: clamp(0.95rem, 1.6vw, 1.05rem);
-    font-weight: 500;
-    color: var(--fg);
-    letter-spacing: -0.005em;
-  }
-  .sec h3 code {
-    font-family: var(--font-mono);
-    font-size: 0.95em;
-    background: var(--surface-2);
-    border: 1px solid var(--line-soft);
-    padding: 0.05em 0.4em;
-    border-radius: 3px;
-  }
-
-  .sec p {
-    margin: 0 0 1rem;
-    font-size: 14px;
-    line-height: 1.7;
-    color: color-mix(in srgb, var(--fg) 78%, transparent);
-  }
-  .sec p.sub {
-    color: color-mix(in srgb, var(--fg) 60%, transparent);
-    font-size: 13.5px;
-  }
-  .sec p strong {
-    color: var(--fg);
-    font-weight: 500;
-  }
-  .sec p em {
-    color: var(--fg);
-    font-style: italic;
-  }
-
-  /* Inline code (everywhere in prose). */
-  .sec code,
-  .lede code,
-  .meta code {
-    font-family: var(--font-mono);
-    font-size: 0.92em;
-    color: var(--fg);
-    background: var(--surface-2);
-    border: 1px solid var(--line-soft);
-    padding: 0.05em 0.4em;
-    border-radius: 3px;
-  }
-
-  .sec :global(.block) {
-    margin: 1rem 0 1.25rem;
-  }
-
-  /* ── Plain bullet list ─────────────────────────────────────────────── */
-
-  .bullets {
-    margin: 0 0 1rem;
-    padding: 0 0 0 1.1rem;
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 0.45rem;
-  }
-  .bullets li {
-    position: relative;
-    font-size: 13.5px;
-    line-height: 1.65;
-    color: color-mix(in srgb, var(--fg) 78%, transparent);
-  }
-  .bullets li::before {
-    content: '·';
-    position: absolute;
-    left: -1.1rem;
-    top: 0;
-    color: var(--muted);
-    font-family: var(--font-mono);
-  }
-  .bullets li strong { color: var(--fg); font-weight: 500; }
-
-  /* Rule lists / Caveat callouts now live in $lib/docs/RuleList.svelte,
-     $lib/docs/Rule.svelte, and $lib/docs/Caveat.svelte. */
-
-  /* ── Mistakes — numbered cards ─────────────────────────────────────── */
-
-  .mistake {
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    background: var(--surface);
-    padding: 1rem 1.1rem 1.1rem;
-    margin: 0.6rem 0 1rem;
-  }
-  .mistake-head {
-    display: flex;
-    align-items: baseline;
-    gap: 0.85rem;
-    margin: 0 0 0.5rem;
-  }
-  .mistake-num {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.16em;
-    color: var(--syn-kw);
-    flex-shrink: 0;
-  }
-  .mistake-head h3 {
-    margin: 0;
-    font-family: var(--font-mono);
-    font-size: 13.5px;
-    font-weight: 500;
-    color: var(--fg);
-    line-height: 1.45;
-    text-transform: none;
-    letter-spacing: -0.005em;
-  }
-  .mistake-head h3 code {
-    font-family: var(--font-mono);
-    font-size: 0.95em;
-    background: var(--surface-2);
-    border: 1px solid var(--line-soft);
-    padding: 0.05em 0.4em;
-    border-radius: 3px;
-  }
-  .mistake p.sub {
-    margin: 0.5rem 0 0;
-    color: color-mix(in srgb, var(--fg) 60%, transparent);
-    font-size: 13px;
-    line-height: 1.6;
-    border-left: 2px solid var(--line);
-    padding-left: 0.85rem;
-  }
-  .mistake p {
-    font-size: 13.5px;
-  }
-
-  /* ── How-it-works numbered steps ───────────────────────────────────── */
-
-  .steps {
-    margin: 0 0 1.25rem;
-    padding: 0;
-    list-style: none;
-    counter-reset: step;
-    display: flex;
-    flex-direction: column;
-    gap: 0.7rem;
-  }
-  .steps > li {
-    counter-increment: step;
-    position: relative;
-    padding-left: 2.5rem;
-    font-size: 14px;
-    line-height: 1.65;
-    color: color-mix(in srgb, var(--fg) 78%, transparent);
-  }
-  .steps > li::before {
-    content: counter(step, decimal-leading-zero);
-    position: absolute;
-    left: 0;
-    top: 1px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    color: var(--dim);
-  }
-  .steps > li strong { color: var(--fg); font-weight: 500; }
+     `.bullets`, `.steps`, `.table-wrap` / table chrome, `.ascii`, and
+     `.next` chrome live in $lib/styles/docs.css. */
   .steps .bullets { margin: 0.4rem 0 0; }
-
-  /* ── Table ─────────────────────────────────────────────────────────── */
-
-  .table-wrap {
-    margin: 0.75rem 0 1rem;
-    overflow-x: auto;
-    border: 1px solid var(--line);
-    border-radius: 6px;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12.5px;
-    font-family: var(--font-mono);
-  }
-  thead th {
-    font-size: 10.5px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--dim);
-    text-align: left;
-    padding: 0.65rem 0.85rem;
-    background: color-mix(in srgb, var(--fg) 4%, transparent);
-    border-bottom: 1px solid var(--line);
-    font-weight: 500;
-  }
-  tbody td {
-    padding: 0.65rem 0.85rem;
-    border-bottom: 1px solid var(--line-soft);
-    color: color-mix(in srgb, var(--fg) 80%, transparent);
-    vertical-align: top;
-  }
-  tbody tr:last-child td { border-bottom: 0; }
-  tbody td em { color: var(--muted); font-style: normal; font-size: 0.9em; }
-
-  /* ── ASCII tree ────────────────────────────────────────────────────── */
-
-  .ascii {
-    margin: 0.5rem 0 1.25rem;
-    padding: 1rem 1.25rem;
-    font-family: var(--font-mono);
-    font-size: 12.5px;
-    line-height: 1.7;
-    color: color-mix(in srgb, var(--fg) 80%, transparent);
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    overflow-x: auto;
-    white-space: pre;
-  }
-
-  /* ── Next-steps footer ─────────────────────────────────────────────── */
-
-  .next {
-    margin-top: clamp(2rem, 5vw, 3rem);
-    padding-top: clamp(2rem, 5vw, 3rem);
-    border-top: 1px solid var(--line-soft);
-  }
-  .next h2 {
-    margin: 0 0 0.75rem;
-    font-family: var(--font-mono);
-    font-size: clamp(1.05rem, 1.8vw, 1.25rem);
-    font-weight: 500;
-    color: var(--fg);
-  }
-  .next p {
-    margin: 0 0 0.75rem;
-    font-size: 14px;
-    line-height: 1.7;
-    color: color-mix(in srgb, var(--fg) 78%, transparent);
-  }
 </style>

@@ -1,0 +1,282 @@
+/*
+ * Shared chrome for every docs page. Imported once from
+ * `routes/docs/+layout.svelte` so the rules apply to every page under
+ * `/docs/*` without each `<style>` block having to duplicate them.
+ *
+ * Each page can still ship its own scoped `<style>` for page-specific
+ * tweaks (sim-side layouts, comparison blocks, hero variations, etc.).
+ */
+
+/* ── Page wrapper / article column ─────────────────────────────────── */
+
+.docs {
+  position: relative;
+  z-index: 1;
+  padding: clamp(3rem, 8vw, 5rem) 0 clamp(3rem, 6vw, 4rem);
+}
+
+.docs .article {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 3.5vw, 2rem);
+}
+
+/* ── Hero ──────────────────────────────────────────────────────────── */
+
+.docs .hero {
+  border-bottom: 1px solid var(--line-soft);
+  padding-bottom: clamp(2rem, 5vw, 3rem);
+  margin-bottom: clamp(2rem, 5vw, 3rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.docs .eyebrow {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.docs .hero h1 {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  color: var(--fg);
+}
+
+.docs .lede {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.65;
+  color: color-mix(in srgb, var(--fg) 75%, transparent);
+  max-width: 60ch;
+}
+
+.docs .meta {
+  margin: 0.25rem 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.docs .meta a,
+.docs .next a {
+  color: var(--fg);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--fg) 30%, transparent);
+  transition: border-color 140ms ease;
+}
+.docs .meta a:hover,
+.docs .next a:hover {
+  border-bottom-color: var(--fg);
+}
+
+/* ── Sections ──────────────────────────────────────────────────────── */
+
+.docs .sec {
+  margin: 0 0 clamp(4rem, 8vw, 6rem);
+  padding-top: clamp(2.5rem, 5vw, 4rem);
+  border-top: 1px solid var(--line-soft);
+  scroll-margin-top: 5rem;
+}
+.docs .sec:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.docs .sec h2 {
+  margin: 0 0 1rem;
+  font-family: var(--font-mono);
+  font-size: clamp(1.2rem, 2.4vw, 1.55rem);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: var(--fg);
+}
+
+.docs .sec h3 {
+  margin: 1.5rem 0 0.5rem;
+  font-family: var(--font-mono);
+  font-size: clamp(1rem, 1.8vw, 1.15rem);
+  font-weight: 500;
+  color: var(--fg);
+}
+
+.docs .sec p {
+  margin: 0 0 1rem;
+  font-size: 14px;
+  line-height: 1.7;
+  color: color-mix(in srgb, var(--fg) 78%, transparent);
+}
+.docs .sec p.sub {
+  color: color-mix(in srgb, var(--fg) 60%, transparent);
+  font-size: 13.5px;
+}
+.docs .sec p strong { color: var(--fg); font-weight: 500; }
+.docs .sec p em     { color: var(--fg); font-style: italic; }
+
+/* Inline code in prose. */
+.docs .sec code,
+.docs .lede code,
+.docs .meta code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  color: var(--fg);
+  background: var(--surface-2);
+  border: 1px solid var(--line-soft);
+  padding: 0.05em 0.4em;
+  border-radius: 3px;
+}
+
+.docs .sec h2 code,
+.docs .sec h3 code {
+  font-size: 0.92em;
+}
+
+/* CodeBlock wrapper (figure produced by $lib/CodeBlock.svelte) — full
+   width inside the article column. */
+.docs .sec .block {
+  margin: 1rem 0 1.25rem;
+}
+
+/* ── Generic bullet list (used in Why / TLDR / Compatibility) ──────── */
+
+.docs .bullets {
+  margin: 0 0 1rem;
+  padding: 0 0 0 1.1rem;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+.docs .bullets li {
+  position: relative;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: color-mix(in srgb, var(--fg) 78%, transparent);
+}
+.docs .bullets li::before {
+  content: '·';
+  position: absolute;
+  left: -1.1rem;
+  top: 0;
+  color: var(--muted);
+  font-family: var(--font-mono);
+}
+.docs .bullets li strong { color: var(--fg); font-weight: 500; }
+.docs .bullets li code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  color: var(--fg);
+  background: var(--surface-2);
+  border: 1px solid var(--line-soft);
+  padding: 0.05em 0.35em;
+  border-radius: 3px;
+}
+
+/* ── Numbered steps list (How it works, TL;DR) ─────────────────────── */
+
+.docs .steps {
+  margin: 0 0 1.25rem;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.docs .steps > li {
+  counter-increment: step;
+  position: relative;
+  padding-left: 2.5rem;
+  font-size: 14px;
+  line-height: 1.65;
+  color: color-mix(in srgb, var(--fg) 78%, transparent);
+}
+.docs .steps > li::before {
+  content: counter(step, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 1px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--dim);
+}
+.docs .steps > li strong { color: var(--fg); font-weight: 500; }
+
+/* ── Tables ────────────────────────────────────────────────────────── */
+
+.docs .table-wrap {
+  margin: 0.75rem 0 1rem;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.docs table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  font-family: var(--font-mono);
+}
+.docs thead th {
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+  text-align: left;
+  padding: 0.65rem 0.85rem;
+  background: color-mix(in srgb, var(--fg) 4%, transparent);
+  border-bottom: 1px solid var(--line);
+  font-weight: 500;
+}
+.docs tbody td {
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid var(--line-soft);
+  color: color-mix(in srgb, var(--fg) 80%, transparent);
+  vertical-align: top;
+}
+.docs tbody tr:last-child td { border-bottom: 0; }
+.docs tbody td em { color: var(--muted); font-style: normal; font-size: 0.9em; }
+
+/* ── ASCII tree / decision-tree blocks ─────────────────────────────── */
+
+.docs .ascii {
+  margin: 0.5rem 0 1.25rem;
+  padding: 1rem 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: color-mix(in srgb, var(--fg) 80%, transparent);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+/* ── Next-steps footer ─────────────────────────────────────────────── */
+
+.docs .next {
+  margin-top: clamp(2rem, 5vw, 3rem);
+  padding-top: clamp(2rem, 5vw, 3rem);
+  border-top: 1px solid var(--line-soft);
+}
+.docs .next h2 {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-mono);
+  font-size: clamp(1.05rem, 1.8vw, 1.25rem);
+  font-weight: 500;
+  color: var(--fg);
+}
+.docs .next p {
+  margin: 0 0 0.75rem;
+  font-size: 14px;
+  line-height: 1.7;
+  color: color-mix(in srgb, var(--fg) 78%, transparent);
+}
