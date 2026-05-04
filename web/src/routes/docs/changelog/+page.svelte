@@ -76,14 +76,6 @@
             no parent is a no-op, which the previous sample missed.
           </span>
         </li>
-        <li>
-          <span class="hl-tag fix">Fix</span>
-          <span class="hl-body">
-            Inline-code styling no longer leaks into syntax-highlighted
-            <code>{'<pre><code>'}</code> blocks; pill backgrounds are
-            scoped to genuine inline references in prose.
-          </span>
-        </li>
       </ul>
       <CodeBlock code={CODE_PRESENT_TYPED} label="HomeCoordinator · openSubscriptionAt" />
       <p class="sub">
