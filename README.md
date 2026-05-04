@@ -212,13 +212,11 @@ final class MainTabCoordinator: @MainActor TabCoordinatable {
 ### Deep linking
 
 Every navigation method that resolves a child coordinator
-(`route`, `setRoot`, `appendTab`, `insertTab`, `popToFirst`, `popToLast`,
-`selectFirstTab`, `selectLastTab`, `select(index:)`, `select(id:)`) ships
-a `<T: Coordinatable>` overload with a trailing closure that hands you a
-typed reference to the resolved child once the route lands. (`present(_:as:)`
-itself has no typed overload — present a coordinator, then chain typed
-calls on the routes inside it.) Chain them to walk the tree from a cold
-launch:
+(`route`, `present`, `setRoot`, `appendTab`, `insertTab`, `popToFirst`,
+`popToLast`, `selectFirstTab`, `selectLastTab`, `select(index:)`,
+`select(id:)`) ships a `<T: Coordinatable>` overload with a trailing
+closure that hands you a typed reference to the resolved child once the
+route lands. Chain them to walk the tree from a cold launch:
 
 ```swift
 appCoordinator.setRoot(.authenticated) { (tab: MainTabCoordinator) in

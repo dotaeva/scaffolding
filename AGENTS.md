@@ -305,7 +305,7 @@ final class AppCoordinator: @MainActor RootCoordinatable {
 
 ### Deep linking with the typed `<T: Coordinatable>` overloads
 
-Every navigation method that resolves a child coordinator (`route`, `setRoot`, `appendTab`, `insertTab`, `popToFirst`, `popToLast`, `selectFirstTab`, `selectLastTab`, `select(index:)`, `select(id:)`) ships a `<T: Coordinatable>` overload that fires a trailing closure with a **typed handle on the resolved child** once the route lands. (`present(_:as:)` doesn't have a typed overload — present a coordinator and use the deep-link chain on routes inside it.) Chain them to walk the tree from a cold launch:
+Every navigation method that resolves a child coordinator (`route`, `present`, `setRoot`, `appendTab`, `insertTab`, `popToFirst`, `popToLast`, `selectFirstTab`, `selectLastTab`, `select(index:)`, `select(id:)`) ships a `<T: Coordinatable>` overload that fires a trailing closure with a **typed handle on the resolved child** once the route lands. Chain them to walk the tree from a cold launch:
 
 ```swift
 @Scaffoldable @Observable

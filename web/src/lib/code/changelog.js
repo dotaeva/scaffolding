@@ -38,6 +38,19 @@ coordinator.present(.login,    as: .fullScreenCover)   // full-screen cover
 // present(_:as:) accepts ModalPresentationType (sheet / fullScreenCover)
 // at the call site; push is not a valid modal style by definition.`;
 
+// 3.1.0 — typed `present<T>` overload, mirroring the existing typed
+// route / setRoot / selectFirstTab / etc. variants.
+export const CODE_PRESENT_TYPED = `// 3.1 — present(_:as:) gains a \`<T: Coordinatable>\` overload
+// that hands you the resolved child once the modal lands.
+
+func openSubscriptionAt(planId: String) {
+    present(.subscription, as: .sheet) { (sub: SubscriptionCoordinator) in
+        // Seed the freshly-presented sub-flow before SwiftUI commits
+        // the sheet — no IDs to forward, no @Environment lookups.
+        sub.preselect(planId: planId)
+    }
+}`;
+
 export const CODE_PRESENT_HOSTS = `// 3.0 — present(_:as:) is now available on every coordinator type.
 
 @Scaffoldable @Observable
@@ -90,7 +103,7 @@ export const MIGRATION = [
   },
   {
     tag: 'Required',
-    body: `Re-spell the deep-link <code>&lt;T&gt;</code> overloads. Drop the <code>value:</code> label (the closure is now an unlabelled trailing closure), make sure the typed parameter is a <code>Coordinatable</code> (view-typed <code>T</code>s don't compile any more), and remove the <code>as:</code> argument from <code>route</code>. The overload still exists everywhere it did before; <code>present(_:as:)</code> never had a typed variant and still doesn't.`
+    body: `Re-spell the deep-link <code>&lt;T&gt;</code> overloads. Drop the <code>value:</code> label (the closure is now an unlabelled trailing closure), make sure the typed parameter is a <code>Coordinatable</code> (view-typed <code>T</code>s don't compile any more), and remove the <code>as:</code> argument from <code>route</code>. The overload still exists everywhere it did before, including a typed variant on <code>present(_:as:)</code> that hands you the resolved child once the modal lands.`
   },
   {
     tag: 'Compiler',

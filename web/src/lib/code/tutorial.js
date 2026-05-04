@@ -65,7 +65,7 @@ export const CODE_SETTINGS_VIEW = `struct SettingsView: View {
     var body: some View {
         Form {
             Button("Done") {
-                coordinator.dismissCoordinator()
+                coordinator.pop()
             }
         }
         .navigationTitle("Settings")
@@ -95,6 +95,7 @@ export const CODE_DETAIL_NAV = `struct DetailView: View {
     var body: some View {
         VStack {
             Text(title).font(.title)
+            // @Environment(\\.dismiss) works here too.
             Button("Go Back") { coordinator.pop() }
         }
     }

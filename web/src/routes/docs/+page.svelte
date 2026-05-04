@@ -376,15 +376,13 @@
         from a cold launch — is where the coordinator model
         especially shines. Every navigation method that resolves a
         child coordinator
-        (<code>route</code>, <code>setRoot</code>,
+        (<code>route</code>, <code>present</code>, <code>setRoot</code>,
         <code>appendTab</code>, <code>insertTab</code>,
         <code>popToFirst</code>, <code>popToLast</code>,
         <code>selectFirstTab</code>, <code>selectLastTab</code>,
         <code>select(index:)</code>, <code>select(id:)</code>) ships
         an overload constrained to <code>{'<T: Coordinatable>'}</code>
-        with a trailing closure. (<code>present(_:as:)</code> itself
-        has no typed overload — present a coordinator, then chain typed
-        calls on the routes inside it.) The closure fires after the
+        with a trailing closure. The closure fires after the
         route lands, receiving a typed reference to the freshly
         resolved child:
       </p>

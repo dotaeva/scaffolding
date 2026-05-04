@@ -1250,4 +1250,84 @@ struct RoutePresentSplitTests {
         #expect(sheetDest == .sheet)
         #expect(coverDest == .fullScreenCover)
     }
+
+    // MARK: present<T>() typed-callback overload
+
+    @Test("present<T>() on Flow fires callback with the resolved coordinator")
+    func flowPresentTypedFiresCallback() {
+        let home = HomeFlowCoordinator()
+        _ = home.anyStack
+
+        var captured: LeafFlowCoordinator?
+        home.present(.sheetFlow, as: .sheet) { (leaf: LeafFlowCoordinator) in
+            captured = leaf
+        }
+
+        let modal = home.stack.destinations.last
+        let presented = modal?.coordinatable as? LeafFlowCoordinator
+        #expect(captured != nil)
+        #expect(captured === presented,
+                "Typed callback receives the same instance that was appended to the stack")
+    }
+
+    @Test("present<T>() on Flow skips callback when type does not match")
+    func flowPresentTypedSkipsOnTypeMismatch() {
+        let home = HomeFlowCoordinator()
+        _ = home.anyStack
+
+        var fired = false
+        home.present(.sheetFlow, as: .sheet) { (_: SettingsFlowCoordinator) in
+            fired = true
+        }
+
+        #expect(fired == false,
+                "Callback must not fire when the resolved coordinator cannot be cast to T")
+        #expect(home.stack.destinations.last?.coordinatable is LeafFlowCoordinator,
+                "Modal still lands on the stack regardless of callback type")
+    }
+
+    @Test("present<T>() on Tab fires callback with the resolved coordinator")
+    func tabPresentTypedFiresCallback() {
+        let tab = MainTabCoordinator()
+        _ = tab.anyTabItems
+
+        var captured: SettingsFlowCoordinator?
+        tab.present(.settings, as: .sheet) { (settings: SettingsFlowCoordinator) in
+            captured = settings
+        }
+
+        let presented = tab.tabItems.modals.last?.coordinatable as? SettingsFlowCoordinator
+        #expect(captured != nil)
+        #expect(captured === presented)
+    }
+
+    @Test("present<T>() on Root fires callback with the resolved coordinator")
+    func rootPresentTypedFiresCallback() {
+        let app = AppRootCoordinator()
+        _ = app.anyRoot
+
+        var captured: LoginFlowCoordinator?
+        app.present(.login, as: .sheet) { (login: LoginFlowCoordinator) in
+            captured = login
+        }
+
+        let presented = app.root.modals.last?.coordinatable as? LoginFlowCoordinator
+        #expect(captured != nil)
+        #expect(captured === presented)
+    }
+
+    @Test("present<T>() forwards onDismiss to the modal destination")
+    func flowPresentTypedForwardsOnDismiss() {
+        let home = HomeFlowCoordinator()
+        _ = home.anyStack
+
+        var dismissed = 0
+        home.present(.sheetFlow, as: .sheet, onDismiss: { dismissed += 1 }) { (_: LeafFlowCoordinator) in }
+
+        let modalId = home.stack.destinations.last!.id
+        home.removeModalDestination(withId: modalId, type: .sheet)
+
+        #expect(dismissed == 1,
+                "Typed overload still resolves the dismissal closure exactly once on removal")
+    }
 }

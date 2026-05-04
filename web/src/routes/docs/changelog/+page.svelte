@@ -9,6 +9,7 @@
     CODE_ROUTE_BEFORE,
     CODE_ROUTE_AFTER,
     CODE_PRESENT_HOSTS,
+    CODE_PRESENT_TYPED,
     CODE_CALLBACK_BEFORE,
     CODE_CALLBACK_AFTER,
     CODE_MACRO_INJECT,
@@ -16,15 +17,17 @@
   } from '$lib/code/changelog.js';
 
   const SECTIONS = [
-    { id: 'highlights', label: 'Highlights' },
-    { id: 'view',       label: 'view property' },
-    { id: 'route',      label: 'route / present split' },
-    { id: 'present',    label: 'present everywhere' },
-    { id: 'callbacks',  label: 'Deep-link overloads' },
-    { id: 'macro',      label: 'Macro options' },
-    { id: 'fixes',      label: 'Fixes' },
-    { id: 'compat',     label: 'Compatibility' },
-    { id: 'migration',  label: 'Migration checklist' }
+    { id: 'three-one',   label: '3.1.0' },
+    { id: 'three-zero',  label: '3.0' },
+    { id: 'highlights',  label: 'Highlights' },
+    { id: 'view',        label: 'view property' },
+    { id: 'route',       label: 'route / present split' },
+    { id: 'present',     label: 'present everywhere' },
+    { id: 'callbacks',   label: 'Deep-link overloads' },
+    { id: 'macro',       label: 'Macro options' },
+    { id: 'fixes',       label: 'Fixes' },
+    { id: 'compat',      label: 'Compatibility' },
+    { id: 'migration',   label: 'Migration checklist' }
   ];
 </script>
 
@@ -33,20 +36,74 @@
 <main class="docs">
   <article class="article">
     <header class="hero">
-      <p class="eyebrow">Changelog · 2.x → 3.0</p>
-      <h1>Scaffolding 3.0.</h1>
+      <p class="eyebrow">Changelog · latest 3.1.0</p>
+      <h1>Scaffolding 3.1.0.</h1>
       <p class="lede">
-        A focused breaking release. Push and modal presentation are now
-        separate APIs, <code>view</code> becomes a property, the
-        generic value-callback overloads are gone, and a long list of
-        navigation-state bugs got fixed.
+        A small additive minor release. <code>present(_:as:)</code> gains
+        a typed <code>{'<T: Coordinatable>'}</code> overload that mirrors
+        the existing deep-link callbacks — so every navigation method
+        that resolves a child now hands you a typed reference once the
+        route lands.
       </p>
       <p class="meta">
         Source on <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">GitHub</a>.
         Compare with the <a href={`${base}/docs`}>library overview</a>
         and the <a href={`${base}/docs/api`}>API reference</a>.
+        Looking for the 2.x → 3.0 migration? <a href="#three-zero">Skip down</a>.
       </p>
     </header>
+
+    <section id="three-one" class="sec">
+      <h2>What's new in 3.1.0</h2>
+      <ul class="highlights">
+        <li>
+          <span class="hl-tag new">New</span>
+          <span class="hl-body">
+            <code>present(_:as:onDismiss:)</code> ships a
+            <code>{'<T: Coordinatable>'}</code> overload on every
+            coordinator type. The trailing closure receives the
+            freshly-presented child, ready to seed before SwiftUI
+            commits the sheet or full-screen cover.
+          </span>
+        </li>
+        <li>
+          <span class="hl-tag fix">Fix</span>
+          <span class="hl-body">
+            Tutorial — Settings dismissal now uses
+            <code>coordinator.pop()</code> (the modal lives on the host
+            flow's unified stack).
+            <code>dismissCoordinator()</code> on a root coordinator with
+            no parent is a no-op, which the previous sample missed.
+          </span>
+        </li>
+        <li>
+          <span class="hl-tag fix">Fix</span>
+          <span class="hl-body">
+            Inline-code styling no longer leaks into syntax-highlighted
+            <code>{'<pre><code>'}</code> blocks; pill backgrounds are
+            scoped to genuine inline references in prose.
+          </span>
+        </li>
+      </ul>
+      <CodeBlock code={CODE_PRESENT_TYPED} label="HomeCoordinator · openSubscriptionAt" />
+      <p class="sub">
+        Same shape as <code>route(to:_:)</code> /
+        <code>setRoot(_:_:)</code> — the cast only fires when the
+        resolved destination matches <code>T</code>, so pick the
+        concrete coordinator type returned by the route.
+      </p>
+    </section>
+
+    <section id="three-zero" class="sec">
+      <h2>Earlier — Scaffolding 3.0</h2>
+      <p>
+        A focused breaking release. Push and modal presentation are now
+        separate APIs, <code>view</code> becomes a property, the
+        generic value-callback overloads are gone, and a long list of
+        navigation-state bugs got fixed. The migration checklist below
+        applies to 2.x → 3.0; 3.0 → 3.1.0 is source-compatible.
+      </p>
+    </section>
 
     <section id="highlights" class="sec">
       <h2>Highlights</h2>
@@ -192,14 +249,13 @@
       <h2>Deep-link overloads tightened</h2>
       <p>
         Every navigation method that resolves a child coordinator
-        (<code>route</code>, <code>setRoot</code>,
+        (<code>route</code>, <code>present</code>, <code>setRoot</code>,
         <code>appendTab</code>, <code>insertTab</code>,
         <code>popToFirst</code>, <code>popToLast</code>,
         <code>selectFirstTab</code>, <code>selectLastTab</code>,
         <code>select(index:)</code>, <code>select(id:)</code>) ships
         a <code>{'<T: Coordinatable>'}</code> overload that hands you
         a typed reference to the resolved child once the route lands.
-        (<code>present(_:as:)</code> has no typed overload.)
         That's the building block for <a href={`${base}/docs#deep-link`}>deep linking</a>:
         you walk the tree by chaining one overload per layer.
       </p>

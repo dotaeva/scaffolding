@@ -447,6 +447,27 @@ public extension FlowCoordinatable {
         return self
     }
 
+    /// Presents a destination modally and invokes a typed callback with the
+    /// resolved child coordinator.
+    ///
+    /// The callback fires once after the modal lands on the stack, receiving
+    /// the newly created coordinator cast to `T`. If the destination does
+    /// not resolve to a coordinator of type `T`, the callback is not
+    /// invoked.
+    @discardableResult
+    func present<T: Coordinatable>(
+        _ destination: Destinations,
+        as type: ModalPresentationType = .sheet,
+        onDismiss: @escaping @MainActor () -> Void = { },
+        _ action: @escaping @MainActor (T) -> Void
+    ) -> Self {
+        let dest = performRoute(to: destination, as: type.presentationType, onDismiss: onDismiss)
+        if let coordinator = dest.coordinatable as? T {
+            action(coordinator)
+        }
+        return self
+    }
+
     /// Replaces the root and invokes a typed callback with the resolved
     /// child coordinator.
     @discardableResult

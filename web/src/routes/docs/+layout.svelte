@@ -37,8 +37,6 @@
     z-index: 1;
     border-bottom: 1px solid var(--line-soft);
     background: var(--header-bg);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
   }
 
   .docs-tabs-inner {

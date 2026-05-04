@@ -272,8 +272,11 @@ func startLogin() {
 
 Every navigation method that resolves a child coordinator
 (``FlowCoordinatable/route(to:onDismiss:_:)``,
+``FlowCoordinatable/present(_:as:onDismiss:_:)``,
 ``FlowCoordinatable/setRoot(_:animation:_:)``,
+``RootCoordinatable/present(_:as:onDismiss:_:)``,
 ``RootCoordinatable/setRoot(_:animation:_:)``,
+``TabCoordinatable/present(_:as:onDismiss:_:)``,
 ``TabCoordinatable/selectFirstTab(_:_:)``,
 ``TabCoordinatable/selectLastTab(_:_:)``,
 ``TabCoordinatable/appendTab(_:_:)``,

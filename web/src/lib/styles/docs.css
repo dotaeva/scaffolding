@@ -120,8 +120,11 @@
 .docs .sec p strong { color: var(--fg); font-weight: 500; }
 .docs .sec p em     { color: var(--fg); font-style: italic; }
 
-/* Inline code in prose. */
-.docs .sec code,
+/* Inline code in prose. The `:not(pre) > code` constraint keeps the
+   pill styling off the syntax-highlighted blocks rendered by
+   `<CodeBlock>` (which produces `<figure><pre><code>…</code></pre>`) — the
+   tokens inside should be plain monospace, not nested pills. */
+.docs .sec :not(pre) > code,
 .docs .lede code,
 .docs .meta code {
   font-family: var(--font-mono);

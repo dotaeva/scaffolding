@@ -108,10 +108,10 @@
       <CodeBlock code={CODE_DETAIL_VIEW}   label="DetailView.swift" />
       <CodeBlock code={CODE_SETTINGS_VIEW} label="SettingsView.swift" />
       <p class="sub">
-        <code>SettingsView</code> calls
-        <code>coordinator.dismissCoordinator()</code> to dismiss itself —
-        because it'll be the root of a presented modal coordinator, this
-        removes the entire sheet.
+        <code>SettingsView</code> calls <code>coordinator.pop()</code>
+        to dismiss itself — modals share the same
+        <code>FlowStack.destinations</code> array as pushes, so popping
+        the topmost destination removes the sheet.
       </p>
     </section>
 
@@ -158,10 +158,7 @@
               fn: (c) => c.push({ title: 'Earth', body: 'Detail.' }) },
             { code: 'present(.settings, as: .sheet)',
               fn: (c) => c.present({ title: 'Settings', list: ['Notifications', 'Privacy'] }, 'sheet') },
-            { code: 'pop()',                      fn: (c) => c.pop() },
-            { code: 'dismissCoordinator()',
-              accent: true,
-              fn: (c) => c.dismiss() }
+            { code: 'pop()', accent: true, fn: (c) => c.pop() }
           ]}
         />
       </aside>
