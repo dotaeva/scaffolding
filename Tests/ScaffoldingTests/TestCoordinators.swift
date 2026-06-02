@@ -301,6 +301,55 @@ final class MainTabCoordinator: TabCoordinatable {
     }
 }
 
+// MARK: - ReselectTrackingTabCoordinator
+
+@available(iOS 18, macOS 15, *)
+@MainActor @Observable
+final class ReselectTrackingTabCoordinator: TabCoordinatable {
+    var tabItems: TabItems<ReselectTrackingTabCoordinator>
+
+    /// Destinations passed to `tabReselected(_:)`, in call order.
+    var reselectedTabs: [Destination] = []
+
+    init() {
+        self.tabItems = TabItems<ReselectTrackingTabCoordinator>(tabs: [.home, .profile])
+    }
+
+    func home() -> any Coordinatable { HomeFlowCoordinator() }
+    func profile() -> any Coordinatable { ProfileFlowCoordinator() }
+
+    func tabReselected(_ tab: Destination) {
+        reselectedTabs.append(tab)
+    }
+
+    enum Destinations: Destinationable {
+        typealias Owner = ReselectTrackingTabCoordinator
+        case home
+        case profile
+
+        enum Meta: DestinationMeta {
+            case home
+            case profile
+        }
+
+        var meta: Meta {
+            switch self {
+            case .home: return .home
+            case .profile: return .profile
+            }
+        }
+
+        func value(for instance: Owner) -> Destination {
+            switch self {
+            case .home:
+                return Destination({ instance.home() }, meta: meta, parent: instance)
+            case .profile:
+                return Destination({ instance.profile() }, meta: meta, parent: instance)
+            }
+        }
+    }
+}
+
 // MARK: - LoginFlowCoordinator
 
 @available(iOS 18, macOS 15, *)

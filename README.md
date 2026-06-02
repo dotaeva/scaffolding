@@ -145,6 +145,19 @@ final class AppCoordinator: @MainActor TabCoordinatable {
 | `removeFirstTab(_:)` / `removeLastTab(_:)` | Remove tabs |
 | `setTabs(_:)` | Replace all tabs |
 | `present(_:as:onDismiss:)` | Show a destination as a `.sheet` or `.fullScreenCover` |
+| `tabReselected(_:)` | Override to react when the selected tab is tapped again |
+
+**Tab re-selection** — implement `tabReselected(_:)` to handle the standard "tap the active tab" gesture, e.g. to pop that tab's flow back to its root:
+
+```swift
+func tabReselected(_ tab: Destination) {
+    if let flow = tab.coordinatable as? any FlowCoordinatable {
+        flow.popToRoot()
+    }
+}
+```
+
+The default implementation does nothing, and programmatic selection (`selectFirstTab(_:)`, `select(id:)`, …) never triggers it — only taps on the tab bar do.
 
 ### RootCoordinatable — State Switches
 

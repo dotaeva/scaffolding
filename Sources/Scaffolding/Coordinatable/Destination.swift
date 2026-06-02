@@ -252,7 +252,12 @@ public struct Destination: Identifiable {
         return { cb() }
     }
 
-    var coordinatable: (any Coordinatable)? {
+    /// The child coordinator backing this destination, if any.
+    ///
+    /// Returns `nil` when the destination wraps a plain view. Useful in
+    /// hooks like ``TabCoordinatable/tabReselected(_:)`` to act on the
+    /// tab's coordinator — for example, popping its flow back to root.
+    public var coordinatable: (any Coordinatable)? {
         return _coordinatable?.coordinatable
     }
 

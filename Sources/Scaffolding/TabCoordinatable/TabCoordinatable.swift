@@ -35,6 +35,24 @@ public protocol TabCoordinatable: Coordinatable where ViewType == TabCoordinatab
 
     /// A type-erased accessor for the tab items.
     var anyTabItems: any AnyTabItems { get }
+
+    /// Called when the user taps the tab that is already selected.
+    ///
+    /// Implement this to handle re-selection — for example, popping the
+    /// tab's flow back to its root:
+    ///
+    /// ```swift
+    /// func tabReselected(_ tab: Destination) {
+    ///     if let flow = tab.coordinatable as? any FlowCoordinatable {
+    ///         flow.popToRoot()
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// The default implementation does nothing. Programmatic selection
+    /// (``selectFirstTab(_:)``, ``select(id:)``, …) never triggers this
+    /// callback — only selection through the tab bar does.
+    func tabReselected(_ tab: Destination)
 }
 
 @available(iOS 18, macOS 15, *)
@@ -77,6 +95,9 @@ public extension TabCoordinatable {
     func setTabBarVisibility(_ value: Visibility) {
         tabItems.setTabBarVisibility(value)
     }
+
+    /// Default implementation — re-selection is ignored.
+    func tabReselected(_ tab: Destination) { }
 }
 
 @available(iOS 18, macOS 15, *)
@@ -85,7 +106,14 @@ extension TabCoordinatable {
     var selectedTabBinding: Binding<UUID?> {
         Binding(
             get: { self.tabItems.selectedTab },
-            set: { self.tabItems.selectedTab = $0 }
+            set: { newValue in
+                if let newValue,
+                   newValue == self.tabItems.selectedTab,
+                   let tab = self.tabItems.tabs.first(where: { $0.id == newValue }) {
+                    self.tabReselected(tab)
+                }
+                self.tabItems.selectedTab = newValue
+            }
         )
     }
 }
