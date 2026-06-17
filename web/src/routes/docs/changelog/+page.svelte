@@ -13,10 +13,12 @@
     CODE_CALLBACK_BEFORE,
     CODE_CALLBACK_AFTER,
     CODE_MACRO_INJECT,
+    CODE_TRACKING_REMOVED,
     MIGRATION
   } from '$lib/code/changelog.js';
 
   const SECTIONS = [
+    { id: 'three-two',   label: '3.2.0' },
     { id: 'three-one',   label: '3.1.0' },
     { id: 'three-zero',  label: '3.0' },
     { id: 'highlights',  label: 'Highlights' },
@@ -36,14 +38,14 @@
 <main class="docs">
   <article class="article">
     <header class="hero">
-      <p class="eyebrow">Changelog · latest 3.1.0</p>
-      <h1>Scaffolding 3.1.0.</h1>
+      <p class="eyebrow">Changelog · latest 3.2.0</p>
+      <h1>Scaffolding 3.2.0.</h1>
       <p class="lede">
-        A small additive minor release. <code>present(_:as:)</code> gains
-        a typed <code>{'<T: Coordinatable>'}</code> overload that mirrors
-        the existing deep-link callbacks — so every navigation method
-        that resolves a child now hands you a typed reference once the
-        route lands.
+        A simplification release. Destination tracking is now governed by
+        a single rule — auto-track by return type, opt out with
+        <code>@ScaffoldingIgnored</code>. The
+        <code>@ScaffoldingTracked</code> opt-in macro and the
+        concrete-coordinator return-type heuristic are both gone.
       </p>
       <p class="meta">
         Source on <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">GitHub</a>.
@@ -52,6 +54,52 @@
         Looking for the 2.x → 3.0 migration? <a href="#three-zero">Skip down</a>.
       </p>
     </header>
+
+    <section id="three-two" class="sec">
+      <h2>What's new in 3.2.0</h2>
+      <ul class="highlights">
+        <li>
+          <span class="hl-tag breaking">Breaking</span>
+          <span class="hl-body">
+            The <code>@ScaffoldingTracked</code> macro is removed. There
+            is no longer an explicit opt-in mode — destinations are
+            always derived from the function's return type.
+          </span>
+        </li>
+        <li>
+          <span class="hl-tag breaking">Breaking</span>
+          <span class="hl-body">
+            Concrete coordinator return types are no longer auto-tracked.
+            A child-coordinator route <strong>must</strong> return
+            <code>any Coordinatable</code>; a bare
+            <code>-&gt; LoginCoordinator</code> is now skipped like any
+            other unrecognised type.
+          </span>
+        </li>
+        <li>
+          <span class="hl-tag new">New</span>
+          <span class="hl-body">
+            One mental model: a function is a destination iff its return
+            type is in the auto-tracked table
+            (<code>some View</code>, <code>any Coordinatable</code>, or a
+            tab tuple). Everything else — properties,
+            <code>Void</code> helpers, closures, generics, arrays — is
+            ignored automatically; <code>@ScaffoldingIgnored</code> is
+            only for the function that returns a tracked type but isn't a
+            route (e.g. <code>customize(_:)</code>).
+          </span>
+        </li>
+      </ul>
+      <CodeBlock code={CODE_TRACKING_REMOVED} label="3.1 → 3.2 · tracking model" />
+      <p class="sub">
+        If you never used <code>@ScaffoldingTracked</code> and always
+        returned <code>any Coordinatable</code> for child coordinators —
+        the documented guidance — this release is source-compatible. The
+        only call sites that need a change are concrete-typed coordinator
+        routes (switch them to <code>any Coordinatable</code>) and any
+        <code>@ScaffoldingTracked</code> annotations (delete them).
+      </p>
+    </section>
 
     <section id="three-one" class="sec">
       <h2>What's new in 3.1.0</h2>

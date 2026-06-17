@@ -92,10 +92,6 @@ export const CODE_SCAFFOLDABLE = `@attached(member, names: named(Destinations), 
 public macro Scaffoldable(injectsCoordinator: Bool = true)
     = #externalMacro(module: "ScaffoldingMacros", type: "ScaffoldableMacro")`;
 
-export const CODE_SCAFFOLDING_TRACKED = `@attached(peer)
-public macro ScaffoldingTracked()
-    = #externalMacro(module: "ScaffoldingMacros", type: "ScaffoldingTrackedMacro")`;
-
 export const CODE_SCAFFOLDING_IGNORED = `@attached(peer)
 public macro ScaffoldingIgnored()
     = #externalMacro(module: "ScaffoldingMacros", type: "ScaffoldingIgnoredMacro")`;

@@ -76,5 +76,4 @@ coordinator with `@Environment`.
 ### Macros
 
 - ``Scaffoldable(injectsCoordinator:)``
-- ``ScaffoldingTracked()``
 - ``ScaffoldingIgnored()``

@@ -84,6 +84,20 @@ appCoordinator.setRoot(.authenticated) { (tab: MainTabCoordinator) in
     }
 }`;
 
+// 3.2.0 — @ScaffoldingTracked and concrete-coordinator auto-tracking
+// are gone. The model is now a single rule: auto-track by return type,
+// opt out with @ScaffoldingIgnored.
+export const CODE_TRACKING_REMOVED = `// 3.1 — three ways to control tracking.
+@ScaffoldingTracked                       // explicit opt-in (removed)
+func detail() -> some View { DetailView() }
+
+func login() -> LoginCoordinator { ... }  // concrete type, auto-tracked (removed)
+
+// 3.2 — one rule. Return an auto-tracked type → it's a destination.
+//        Opt out with @ScaffoldingIgnored. Nothing else.
+func detail() -> some View { DetailView() }          // tracked
+func login() -> any Coordinatable { LoginCoordinator() }  // tracked (existential)`;
+
 export const CODE_MACRO_INJECT = `// 3.0 — opt this coordinator out of automatic environment injection.
 @Scaffoldable(injectsCoordinator: false) @Observable
 final class ReusableCoordinator: @MainActor FlowCoordinatable {

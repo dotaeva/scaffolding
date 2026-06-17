@@ -101,7 +101,8 @@ final class HomeCoordinator: @MainActor FlowCoordinatable {
     func detail(item: Item) -> some View         { DetailView(item: item) }
     func settings()         -> any Coordinatable { SettingsCoordinator() }
 
-    // Optional helpers (regular methods, not auto-generated).
+    // Optional helpers. Void return type ⇒ never tracked by the macro —
+    // no @ScaffoldingIgnored needed (or wanted) here.
     func openDetail(_ item: Item) {
         route(to: .detail(item: item))
     }
@@ -110,18 +111,22 @@ final class HomeCoordinator: @MainActor FlowCoordinatable {
 
 ### Auto-tracked return types
 
-The `@Scaffoldable` macro generates a `Destinations` enum with one case per function whose return type is one of:
+The `@Scaffoldable` macro scans the coordinator's **functions** — and only functions; stored/computed properties, `init`, and `deinit` are never scanned — and generates a `Destinations` enum case for every function whose return type is one of:
 
 | Return type | What it generates |
 |---|---|
 | `some View` | A view destination |
 | `any Coordinatable` | A child-coordinator destination |
-| `(any Coordinatable, some View)` | Tab tuple (coordinator + label) |
-| `(some View, some View)` | Tab tuple (view-only + label) |
-| `(any Coordinatable, some View, TabRole)` | Tab tuple with role |
-| `(some View, some View, TabRole)` | Tab tuple with role + view-only |
+| `(any Coordinatable, some View)` | Tab: coordinator + label view |
+| `(some View, some View)` | Tab: view-only + label view |
+| `(any Coordinatable, TabRole)` | Tab: coordinator + role |
+| `(some View, TabRole)` | Tab: view-only + role |
+| `(any Coordinatable, some View, TabRole)` | Tab: coordinator + label + role |
+| `(some View, some View, TabRole)` | Tab: view-only + label + role |
 
-Anything else — including a **concrete** coordinator type like `-> LoginCoordinator` — is **not** recognised. For a child coordinator the return type **must** be `any Coordinatable` (the existential).
+Anything else is skipped **automatically**: `Void` functions, concrete return types — including a **concrete** coordinator like `-> LoginCoordinator` — closures, generic types (`Foo<Bar>`), arrays, and any tuple shape not in the table. None of it needs an annotation.
+
+For a child coordinator the return type **must** be `any Coordinatable` (the existential); views must return `some View`:
 
 ```swift
 // ❌ Won't be picked up — concrete type.
@@ -131,20 +136,42 @@ func login() -> LoginCoordinator { LoginCoordinator() }
 func login() -> any Coordinatable { LoginCoordinator() }
 ```
 
-### Marking exclusions
+### `@ScaffoldingIgnored` — when to use it, and when not to
 
-Use `@ScaffoldingIgnored` whenever a method returns one of the auto-tracked types but **isn't** a destination — typically a `customize(_:)` override or a helper view builder shared between screens:
+**Do not** put `@ScaffoldingIgnored` on everything that isn't a route. The macro already ignores:
 
 ```swift
+// ❌ All of these annotations are redundant noise — none of these
+//    declarations is tracked in the first place. Remove the attribute.
+@ScaffoldingIgnored var session: AuthToken?                  // properties: never scanned
+@ScaffoldingIgnored func openDetail(_ item: Item) {          // returns Void: never tracked
+    route(to: .detail(item: item))
+}
+@ScaffoldingIgnored func makeHandler() -> () -> Void { ... } // closure return: never tracked
+```
+
+Use it **only** when a function's return type is in the auto-tracked table but the function isn't a destination:
+
+```swift
+// ✅ Genuinely needed — `customize` returns `some View`, so the macro
+//    would otherwise emit a bogus `.customize` destination.
 @ScaffoldingIgnored
 func customize(_ view: AnyView) -> some View {
     view
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { /* shared toolbar */ }
 }
+
+// ✅ Shared view-builder helper — returns `some View` but isn't a route.
+@ScaffoldingIgnored
+func emptyState(message: String) -> some View { ... }
+
+// ✅ Factory helper returning a coordinator that isn't routed to directly.
+@ScaffoldingIgnored
+func makeDebugCoordinator() -> any Coordinatable { ... }
 ```
 
-Use `@ScaffoldingTracked` only when you want the *opposite* default — explicit opt-in. After applying it once, only methods carrying `@ScaffoldingTracked` are emitted as destinations.
+There is no opt-in tracking attribute. Auto-tracking by return type plus exclusion via `@ScaffoldingIgnored` is the only mechanism.
 
 ---
 
@@ -465,14 +492,15 @@ func detail(item: Item) -> some View {
 
 Drop the `NavigationStack`. The parent flow already provides one.
 
-### 2. Concrete coordinator return types
+### 2. Blanket `@ScaffoldingIgnored` on non-route members
 
 ```swift
-// ❌ Macro skips this — it doesn't recognise concrete types as routes.
-func login() -> LoginCoordinator { LoginCoordinator() }
+// ❌ Redundant — properties and Void-returning helpers are never tracked.
+@ScaffoldingIgnored var stack = FlowStack<HomeCoordinator>(root: .home)
+@ScaffoldingIgnored func openSettings() { present(.settings, as: .sheet) }
 ```
 
-Use `any Coordinatable`.
+The macro only considers functions whose return type is in the auto-tracked table (`some View`, `any Coordinatable`, or a tab tuple). Everything else — properties, `Void` methods, concrete types, closures, generics — is ignored automatically. Reserve `@ScaffoldingIgnored` for the cases that genuinely need it: `customize(_:)`, shared view-builder helpers returning `some View`, and non-route coordinator factories.
 
 ### 3. Holding navigation state in a view
 
@@ -558,7 +586,8 @@ When asked to add navigation to a Scaffolding project:
    - View-only → SwiftUI native `.sheet(item:)`.
    - Sub-flow → `present(_:as:)` with a child coordinator.
 4. New routes go on the coordinator as functions returning `some View`, `any Coordinatable`, or a tab tuple. Add the function — the macro generates the case.
-5. Views read the coordinator from `@Environment(MyCoordinator.self)` and call methods on it. Views never store path or sheet booleans for flow-driven navigation.
-6. Cross-coordinator results are delivered by the presenter installing an `onComplete` callback at construction time; the presented coordinator calls the callback then `dismissCoordinator()`.
+5. Don't sprinkle `@ScaffoldingIgnored` on properties or `Void` helpers — the macro never tracks those. Use it only on functions whose return type *is* auto-tracked but that aren't destinations (`customize(_:)`, view-builder helpers, non-route factories).
+6. Views read the coordinator from `@Environment(MyCoordinator.self)` and call methods on it. Views never store path or sheet booleans for flow-driven navigation.
+7. Cross-coordinator results are delivered by the presenter installing an `onComplete` callback at construction time; the presented coordinator calls the callback then `dismissCoordinator()`.
 
 If you can't figure out which coordinator should own a destination, the answer is usually "the closest existing one" — don't invent new coordinator types just to host one route.

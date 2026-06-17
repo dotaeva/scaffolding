@@ -309,7 +309,6 @@ Mark a coordinator as `public` to expose its routes across modules — a natural
 | Macro | Target | Purpose |
 |---|---|---|
 | `@Scaffoldable(injectsCoordinator: Bool = true)` | Class | Generates `Destinations` enum from methods. Pass `injectsCoordinator: false` to opt this coordinator out of automatic environment injection. |
-| `@ScaffoldingTracked` | Method | Explicit opt-in: once applied to any method on a coordinator, only methods carrying it become destinations. |
 | `@ScaffoldingIgnored` | Method | Excludes a method from destination generation (e.g. a `customize(_:)` override). |
 
 ---

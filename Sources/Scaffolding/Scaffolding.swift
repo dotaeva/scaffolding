@@ -3,9 +3,8 @@
 /// Apply `@Scaffoldable` to an `@Observable` class that conforms to
 /// ``FlowCoordinatable``, ``TabCoordinatable``, or ``RootCoordinatable``.
 /// The macro inspects every function whose return type is `some View`,
-/// `any Coordinatable`, a concrete coordinator type, or a supported
-/// tuple and synthesises a `Destinations` enum with one case per
-/// function.
+/// `any Coordinatable`, or a supported tab tuple and synthesises a
+/// `Destinations` enum with one case per function.
 ///
 /// ```swift
 /// @Scaffoldable @Observable
@@ -30,15 +29,6 @@
 /// shouldn't bind to a specific flow).
 @attached(member, names: named(Destinations), named(_injectsCoordinator))
 public macro Scaffoldable(injectsCoordinator: Bool = true) = #externalMacro(module: "ScaffoldingMacros", type: "ScaffoldableMacro")
-
-/// Explicitly marks a function for inclusion in the generated `Destinations` enum.
-///
-/// By default ``Scaffoldable(injectsCoordinator:)`` includes every eligible function. Use
-/// `@ScaffoldingTracked` when you want to be explicit about which functions
-/// participate in code generation — functions without the attribute are then
-/// excluded.
-@attached(peer)
-public macro ScaffoldingTracked() = #externalMacro(module: "ScaffoldingMacros", type: "ScaffoldingTrackedMacro")
 
 /// Excludes a function from the generated `Destinations` enum.
 ///

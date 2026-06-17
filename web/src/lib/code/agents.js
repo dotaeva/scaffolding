@@ -39,7 +39,8 @@ final class HomeCoordinator: @MainActor FlowCoordinatable {
     func detail(item: Item) -> some View         { DetailView(item: item) }
     func settings()         -> any Coordinatable { SettingsCoordinator() }
 
-    // Optional helpers (regular methods, not auto-generated).
+    // Optional helpers. Void return type ⇒ never tracked by the macro —
+    // no @ScaffoldingIgnored needed (or wanted) here.
     func openDetail(_ item: Item) {
         route(to: .detail(item: item))
     }
@@ -57,6 +58,13 @@ func customize(_ view: AnyView) -> some View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { /* shared toolbar */ }
 }`;
+
+export const CODE_IGNORED_REDUNDANT = `// ❌ All redundant — none of these is tracked in the first place.
+@ScaffoldingIgnored var session: AuthToken?                  // properties: never scanned
+@ScaffoldingIgnored func openDetail(_ item: Item) {          // returns Void: never tracked
+    route(to: .detail(item: item))
+}
+@ScaffoldingIgnored func makeHandler() -> () -> Void { ... } // closure return: never tracked`;
 
 export const CODE_HIERARCHY = `AppCoordinator (Root)
 ├── LoginCoordinator (Flow)              ← unauthenticated
@@ -228,9 +236,6 @@ func detail(item: Item) -> some View {
         DetailScreen(item: item)
     }
 }`;
-
-export const CODE_MISTAKE_CONCRETE = `// ❌ Macro skips this — it doesn't recognise concrete types as routes.
-func login() -> LoginCoordinator { LoginCoordinator() }`;
 
 export const CODE_MISTAKE_VIEW_STATE = `// ❌ Defeats the point of coordinators.
 struct HomeView: View {

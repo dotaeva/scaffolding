@@ -13,6 +13,7 @@
     CODE_ANATOMY,
     CODE_CONCRETE_VS_EXISTENTIAL,
     CODE_IGNORED,
+    CODE_IGNORED_REDUNDANT,
     CODE_HIERARCHY,
     CODE_RESULT_PRESENTER,
     CODE_RESULT_PRESENTED,
@@ -26,7 +27,6 @@
     CODE_PREVIEW_OK,
     CODE_ADAPTIVE_BAR,
     CODE_MISTAKE_NESTED,
-    CODE_MISTAKE_CONCRETE,
     CODE_MISTAKE_VIEW_STATE,
     CODE_MISTAKE_OLD_API,
     CODE_MISTAKE_NAVLINK,
@@ -216,9 +216,11 @@
 
       <h3>Auto-tracked return types</h3>
       <p class="sub">
-        The <code>@Scaffoldable</code> macro generates a
-        <code>Destinations</code> enum with one case per function whose
-        return type is one of:
+        The <code>@Scaffoldable</code> macro scans the coordinator's
+        <strong>functions</strong> — and only functions; properties,
+        <code>init</code>, and <code>deinit</code> are never scanned —
+        and generates a <code>Destinations</code> enum case for every
+        function whose return type is one of:
       </p>
       <div class="table-wrap">
         <table>
@@ -228,35 +230,47 @@
           <tbody>
             <tr><td><code>some View</code></td><td>A view destination</td></tr>
             <tr><td><code>any Coordinatable</code></td><td>A child-coordinator destination</td></tr>
-            <tr><td><code>(any Coordinatable, some View)</code></td><td>Tab tuple (coordinator + label)</td></tr>
-            <tr><td><code>(some View, some View)</code></td><td>Tab tuple (view-only + label)</td></tr>
-            <tr><td><code>(any Coordinatable, some View, TabRole)</code></td><td>Tab tuple with role</td></tr>
-            <tr><td><code>(some View, some View, TabRole)</code></td><td>Tab tuple with role + view-only</td></tr>
+            <tr><td><code>(any Coordinatable, some View)</code></td><td>Tab: coordinator + label view</td></tr>
+            <tr><td><code>(some View, some View)</code></td><td>Tab: view-only + label view</td></tr>
+            <tr><td><code>(any Coordinatable, TabRole)</code></td><td>Tab: coordinator + role</td></tr>
+            <tr><td><code>(some View, TabRole)</code></td><td>Tab: view-only + role</td></tr>
+            <tr><td><code>(any Coordinatable, some View, TabRole)</code></td><td>Tab: coordinator + label + role</td></tr>
+            <tr><td><code>(some View, some View, TabRole)</code></td><td>Tab: view-only + label + role</td></tr>
           </tbody>
         </table>
       </div>
       <p>
-        Anything else — including a <strong>concrete</strong>
-        coordinator type like <code>-&gt; LoginCoordinator</code> — is
-        <strong>not</strong> recognised. For a child coordinator the
-        return type <strong>must</strong> be
-        <code>any Coordinatable</code> (the existential).
+        Anything else is skipped <strong>automatically</strong>:
+        <code>Void</code> functions, concrete return types — including
+        a <strong>concrete</strong> coordinator type like
+        <code>-&gt; LoginCoordinator</code> — closures, generic types,
+        arrays, and any tuple shape not in the table. None of it needs
+        an annotation. For a child coordinator the return type
+        <strong>must</strong> be <code>any Coordinatable</code> (the
+        existential); views must return <code>some View</code>.
       </p>
       <CodeBlock code={CODE_CONCRETE_VS_EXISTENTIAL} label="Concrete vs. existential" />
 
       <h3>Marking exclusions</h3>
       <p>
-        Use <code>@ScaffoldingIgnored</code> whenever a method returns
-        one of the auto-tracked types but <strong>isn't</strong> a
-        destination — typically a <code>customize(_:)</code> override or
-        a helper view builder shared between screens:
+        <strong>Don't</strong> put <code>@ScaffoldingIgnored</code> on
+        everything that isn't a route. Properties, <code>Void</code>
+        helpers, and unsupported return types are never tracked — the
+        attribute is redundant noise there:
+      </p>
+      <CodeBlock code={CODE_IGNORED_REDUNDANT} label="Redundant @ScaffoldingIgnored" />
+      <p>
+        Use it <strong>only</strong> when a method returns one of the
+        auto-tracked types but <strong>isn't</strong> a destination —
+        typically a <code>customize(_:)</code> override, a helper view
+        builder shared between screens, or a non-route coordinator
+        factory:
       </p>
       <CodeBlock code={CODE_IGNORED} label="@ScaffoldingIgnored on customize" />
       <p>
-        Use <code>@ScaffoldingTracked</code> only when you want the
-        <em>opposite</em> default — explicit opt-in. After applying it
-        once, only methods carrying <code>@ScaffoldingTracked</code> are
-        emitted as destinations.
+        There is no opt-in tracking attribute. Auto-tracking by return
+        type plus exclusion via <code>@ScaffoldingIgnored</code> is the
+        only mechanism.
       </p>
     </section>
 
@@ -485,9 +499,16 @@ appRoot.setRoot(.home(home))`} label="Cross-module composition" />
       </MistakeCard>
 
       <MistakeCard num="02">
-        {#snippet title()}Concrete coordinator return types{/snippet}
-        <CodeBlock code={CODE_MISTAKE_CONCRETE} label="Anti-pattern · concrete return type" />
-        <p class="sub">Use <code>any Coordinatable</code>.</p>
+        {#snippet title()}Blanket <code>@ScaffoldingIgnored</code> on non-route members{/snippet}
+        <CodeBlock code={CODE_IGNORED_REDUNDANT} label="Anti-pattern · redundant annotations" />
+        <p class="sub">
+          The macro only considers functions whose return type is in the
+          auto-tracked table. Properties, <code>Void</code> methods,
+          concrete types, closures, and generics are ignored
+          automatically — reserve
+          <code>@ScaffoldingIgnored</code> for the cases that genuinely
+          need it.
+        </p>
       </MistakeCard>
 
       <MistakeCard num="03">

@@ -167,19 +167,6 @@ public struct ScaffoldableMacro: MemberMacro {
             return .anyCoordinatable
         }
 
-        // A bare identifier (no whitespace, not a tuple) is treated as a
-        // concrete coordinator type. Consumers should use `some View` for
-        // view returns; a concrete view type would be misclassified here,
-        // which is by design — if you want type-safe return, return your
-        // concrete coordinator.
-        if !typeString.contains("(") &&
-           !typeString.contains(" ") &&
-           !typeString.contains("<") &&
-           !typeString.isEmpty &&
-           typeString.first?.isLetter == true {
-            return .concreteCoordinatable(typeName: typeString)
-        }
-        
         // Check for TabRole variants first (more specific patterns)
         // Order matters: check longer/more specific patterns before shorter ones
         
@@ -230,7 +217,7 @@ public struct ScaffoldableMacro: MemberMacro {
     
     private static func shouldAutoTrackFunction(returnType: ReturnTypeInfo) -> Bool {
         switch returnType {
-        case .someView, .anyCoordinatable, .concreteCoordinatable,
+        case .someView, .anyCoordinatable,
              .coordinatableViewTuple, .viewViewTuple,
              .viewTabRoleTuple, .coordinatableTabRoleTuple,
              .viewViewTabRoleTuple, .coordinatableViewTabRoleTuple:
@@ -518,7 +505,7 @@ public struct ScaffoldableMacro: MemberMacro {
         switch function.returnType {
         case .someView:
             return ".init(\(functionCall), meta: meta, parent: instance)"
-        case .anyCoordinatable, .concreteCoordinatable:
+        case .anyCoordinatable:
             return ".init({ [unowned instance] in \(functionCall) }, meta: meta, parent: instance)"
         case .coordinatableViewTuple:
             return ".init({ [unowned instance] in \(functionCall) }, meta: meta, parent: instance)"
@@ -548,7 +535,6 @@ enum ReturnTypeInfo {
     case void
     case someView
     case anyCoordinatable
-    case concreteCoordinatable(typeName: String)
     case coordinatableViewTuple      // (any Coordinatable, some View)
     case viewViewTuple               // (some View, some View)
     case viewTabRoleTuple            // (some View, TabRole)

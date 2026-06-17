@@ -16,7 +16,6 @@
     CODE_DEST_TYPES,
     CODE_DESTINATIONABLE,
     CODE_SCAFFOLDABLE,
-    CODE_SCAFFOLDING_TRACKED,
     CODE_SCAFFOLDING_IGNORED
   } from '$lib/code/api.js';
 
@@ -35,7 +34,6 @@
     { id: 'dest-types',          label: 'Type enums' },
     { id: 'destinationable',     label: 'Bridge protocols' },
     { id: 'scaffoldable',        label: '@Scaffoldable' },
-    { id: 'scaffolding-tracked', label: '@Tracked' },
     { id: 'scaffolding-ignored', label: '@Ignored' }
   ];
 
@@ -536,7 +534,7 @@
           <dt><code>(some View, some View)</code></dt>
           <dd>A view-only tab tuple — content + label, no child coordinator.</dd>
 
-          <dt><code>(any Coordinatable, some View, TabRole)</code> · <code>(some View, some View, TabRole)</code></dt>
+          <dt><code>(any Coordinatable, TabRole)</code> · <code>(some View, TabRole)</code> · <code>(any Coordinatable, some View, TabRole)</code> · <code>(some View, some View, TabRole)</code></dt>
           <dd>iOS 18+ tab tuples that include a <code>TabRole</code>.</dd>
         </dl>
 
@@ -551,27 +549,6 @@
           <a href="#destinationable"><code>Destinations</code> enum (conforms to <code>Destinationable</code>)</a>
           · <a href="#coordinatable"><code>_injectsCoordinator</code> property</a>
         </p>
-      </div>
-    </article>
-
-    <article id="scaffolding-tracked" class="sym">
-      <div class="prose">
-        <header class="sym-head">
-          <h2>@ScaffoldingTracked</h2>
-          <span class="pill" data-kind="macro">Macro</span>
-        </header>
-        <p class="meta">attached(peer) · explicit-include opt-in</p>
-        <p class="overview">
-          Marks a function for inclusion in the generated
-          <code>Destinations</code> enum. By default
-          <code>@Scaffoldable</code> includes every eligible function;
-          adding <code>@ScaffoldingTracked</code> to one method makes the
-          inclusion list explicit — anything without the attribute is
-          then excluded.
-        </p>
-
-        <h3 class="sym-label">Declaration</h3>
-        <CodeBlock code={CODE_SCAFFOLDING_TRACKED} label="Scaffolding.swift" />
       </div>
     </article>
 
