@@ -21,10 +21,24 @@ public protocol AnyTabItems: AnyObject, CoordinatableData where Coordinator: Tab
     var tabBarVisibility: Visibility { get set }
     /// Returns the numeric badge for a tab, if one is set.
     func badge(for tabID: Destination.ID) -> Int?
+    /// Returns the accessibility identifier metadata for a tab, if one is set.
+    func tabBarAccessibilityIdentifier(for tabID: Destination.ID) -> TabBarAccessibilityIdentifier?
     /// The presentation type if this tab coordinator was presented modally.
     var presentedAs: PresentationType? { get set }
     /// Modal destinations presented from this coordinator.
     var modals: [Destination] { get set }
+}
+
+@available(iOS 18, macOS 15, *)
+@MainActor
+public extension AnyTabItems {
+    /// Returns accessibility identifier metadata for a tab, if one is set.
+    ///
+    /// Defaulting to `nil` keeps existing external conformers source-compatible;
+    /// ``TabItems`` overrides this when identifier metadata is stored.
+    func tabBarAccessibilityIdentifier(for tabID: Destination.ID) -> TabBarAccessibilityIdentifier? {
+        nil
+    }
 }
 
 /// Observable state container for a ``TabCoordinatable`` coordinator.
@@ -59,9 +73,11 @@ public class TabItems<Coordinator: TabCoordinatable>: AnyTabItems {
     /// The visibility of the tab bar.
     public var tabBarVisibility: Visibility = .automatic
     private var tabBadges: [Destination.ID: Int] = [:]
+    private var tabBarAccessibilityIdentifiers: [Destination.ID: TabBarAccessibilityIdentifier] = [:]
     /// Whether ``setup(for:)`` has been called.
     public var isSetup: Bool = false
     private var initialTabs: [Coordinator.Destinations] = .init()
+    private var pendingFirstMetaAccessibilityIdentifiers: [(Coordinator.Destinations.Meta, TabBarAccessibilityIdentifier?)] = []
 
     private var pendingSelectionIndex: Int? = nil
     private var pendingSelectionId: UUID? = nil
@@ -125,6 +141,8 @@ public class TabItems<Coordinator: TabCoordinatable>: AnyTabItems {
             selectedTab = tabs.first?.id
         }
 
+        applyPendingFirstMetaAccessibilityIdentifiers()
+
         pendingSelectionIndex = nil
         pendingSelectionId = nil
         pendingSelectionFirstMeta = nil
@@ -160,6 +178,16 @@ public class TabItems<Coordinator: TabCoordinatable>: AnyTabItems {
         tabBadges[tabID]
     }
 
+    /// Sets or clears accessibility identifier metadata for a tab.
+    public func setTabBarAccessibilityIdentifier(_ value: TabBarAccessibilityIdentifier?, for tabID: Destination.ID) {
+        tabBarAccessibilityIdentifiers[tabID] = value
+    }
+
+    /// Returns accessibility identifier metadata for a tab, if one is set.
+    public func tabBarAccessibilityIdentifier(for tabID: Destination.ID) -> TabBarAccessibilityIdentifier? {
+        tabBarAccessibilityIdentifiers[tabID]
+    }
+
     /// Sets or clears the badge for the first tab matching a destination meta value.
     ///
     /// This helper operates on the resolved tabs, so call it after ``setup(for:)``
@@ -171,6 +199,36 @@ public class TabItems<Coordinator: TabCoordinatable>: AnyTabItems {
         }) else { return }
 
         setBadge(count, for: tab.id)
+    }
+
+    /// Sets or clears accessibility identifier metadata for the first tab matching a destination meta value.
+    ///
+    /// If called before ``setup(for:)`` has populated ``tabs``, the metadata is applied during setup.
+    public func setTabBarAccessibilityIdentifier(_ value: TabBarAccessibilityIdentifier?, forFirst meta: Coordinator.Destinations.Meta) {
+        guard isSetup else {
+            pendingFirstMetaAccessibilityIdentifiers.append((meta, value))
+            return
+        }
+
+        guard let tab = tabs.first(where: { destination in
+            guard let destinationMeta = destination.meta as? Coordinator.Destinations.Meta else { return false }
+            return destinationMeta == meta
+        }) else { return }
+
+        setTabBarAccessibilityIdentifier(value, for: tab.id)
+    }
+
+    private func applyPendingFirstMetaAccessibilityIdentifiers() {
+        for (meta, value) in pendingFirstMetaAccessibilityIdentifiers {
+            guard let tab = tabs.first(where: { destination in
+                guard let destinationMeta = destination.meta as? Coordinator.Destinations.Meta else { return false }
+                return destinationMeta == meta
+            }) else { continue }
+
+            setTabBarAccessibilityIdentifier(value, for: tab.id)
+        }
+
+        pendingFirstMetaAccessibilityIdentifiers.removeAll()
     }
 
     private func propagateDestinationType(to coordinatable: (any Coordinatable)?, as type: PresentationType) {

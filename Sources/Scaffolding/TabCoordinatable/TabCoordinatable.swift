@@ -470,6 +470,13 @@ public struct TabCoordinatableView: CoordinatableView {
                 }
             }
         }
+        .tabBarAccessibilityIdentifiers(tabBarAccessibilityIdentifiers)
+    }
+
+    private var tabBarAccessibilityIdentifiers: [TabBarAccessibilityIdentifier] {
+        _coordinator.anyTabItems.tabs.compactMap { tab in
+            _coordinator.anyTabItems.tabBarAccessibilityIdentifier(for: tab.id)
+        }
     }
 
     @ViewBuilder
@@ -499,6 +506,7 @@ public struct TabCoordinatableView: CoordinatableView {
                     .tabBadge(_coordinator.anyTabItems.badge(for: tab.id))
             }
         }
+        .tabBarAccessibilityIdentifiers(tabBarAccessibilityIdentifiers)
     }
 
     private func modals(of type: ModalPresentationType) -> [Destination] {
