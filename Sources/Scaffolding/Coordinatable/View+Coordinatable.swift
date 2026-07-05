@@ -9,6 +9,26 @@ import SwiftUI
 
 @MainActor
 extension View {
+    /// Applies presenter-side sheet configuration to presented content.
+    @ViewBuilder
+    func applySheetConfiguration(_ configuration: SheetConfiguration?) -> some View {
+        if let configuration {
+            let base = self
+                .presentationDragIndicator(configuration.dragIndicator)
+                .interactiveDismissDisabled(configuration.interactiveDismissDisabled)
+            if configuration.detents.isEmpty {
+                base
+            } else {
+                base.presentationDetents(configuration.detents)
+            }
+        } else {
+            self
+        }
+    }
+}
+
+@MainActor
+extension View {
     /// Applies a sheet + full-screen cover to a host coordinator that
     /// stores its modals in an array. Dismissal removes the matching
     /// destination and resolves its lifecycle callback.
@@ -31,6 +51,7 @@ extension View {
         ) { destination in
             modalContent(destination)
                 .id(destination.id)
+                .applySheetConfiguration(destination.modalConfiguration)
         }
 
 #if os(macOS)
@@ -89,6 +110,12 @@ public extension View {
             var result: any View = self
             for coordinator in coordinators {
                 result = result.environment(coordinator)
+            }
+
+            // The untyped navigator always points at the nearest
+            // coordinator, regardless of the typed-injection opt-out.
+            if let coordinatable = observable as? any Coordinatable {
+                result = result.environment(\.navigator, Navigator(coordinatable))
             }
 
             return AnyView(result)

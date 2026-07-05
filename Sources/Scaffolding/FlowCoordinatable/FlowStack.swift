@@ -52,6 +52,7 @@ public class FlowStack<Coordinator: FlowCoordinatable>: AnyFlowStack {
     /// Whether ``setup(for:)`` has been called.
     public var isSetup: Bool = false
     private var initialRoot: Coordinator.Destinations?
+    private var initialPath: [Coordinator.Destinations] = []
     private var coordinator: Coordinator?
 
     /// Creates a new flow stack with the given initial root destination.
@@ -61,6 +62,29 @@ public class FlowStack<Coordinator: FlowCoordinatable>: AnyFlowStack {
         self.initialRoot = root
     }
 
+    /// Creates a new flow stack with the given root and an initial path of
+    /// pushed destinations above it.
+    ///
+    /// The path is materialised when the stack is first set up — use this
+    /// to restore a flow to a deep position on cold launch, seed a preview
+    /// mid-flow, or construct a coordinator already showing a detail
+    /// screen:
+    ///
+    /// ```swift
+    /// var stack = FlowStack<HomeCoordinator>(
+    ///     root: .home,
+    ///     pushing: [.detail(item: restored)]
+    /// )
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - root: The destination case to display as the root.
+    ///   - path: Destinations pushed on top of the root, bottom first.
+    public init(root: Coordinator.Destinations, pushing path: [Coordinator.Destinations]) {
+        self.initialRoot = root
+        self.initialPath = path
+    }
+
     /// Performs one-time setup, resolving the initial root destination.
     ///
     /// - Parameter coordinator: The coordinator that owns this stack.
@@ -68,7 +92,7 @@ public class FlowStack<Coordinator: FlowCoordinatable>: AnyFlowStack {
         guard !isSetup else { return }
         self.coordinator = coordinator
         if let rootDestination = initialRoot, root == nil {
-            var rootDest = rootDestination.value(for: coordinator)
+            var rootDest = rootDestination.resolvedValue(for: coordinator)
 
             rootDest.coordinatable?.setHasLayerNavigationCoordinatable(true)
             rootDest.coordinatable?.setParent(coordinator)
@@ -79,6 +103,23 @@ public class FlowStack<Coordinator: FlowCoordinatable>: AnyFlowStack {
 
             root = rootDest
             self.initialRoot = nil
+        }
+        if !initialPath.isEmpty {
+            for element in initialPath {
+                var dest = element.resolvedValue(for: coordinator)
+
+                dest.setPushType(.push)
+                dest.setRouteType(.push)
+                dest.coordinatable?.setHasLayerNavigationCoordinatable(true)
+                dest.coordinatable?.setParent(coordinator)
+
+                if let flowCoordinator = dest.coordinatable as? any FlowCoordinatable {
+                    flowCoordinator.setPresentedAs(.push)
+                }
+
+                destinations.append(dest)
+            }
+            initialPath = []
         }
         self.isSetup = true
     }
@@ -106,6 +147,16 @@ extension FlowStack {
         }
         let removed = destinations.removeLast()
         removed.resolveDismissal()
+    }
+
+    func pop(count: Int) {
+        let removeCount = min(max(count, 0), destinations.count)
+        guard removeCount > 0 else { return }
+        let removed = Array(destinations.suffix(removeCount))
+        destinations.removeLast(removeCount)
+        for destination in removed {
+            destination.resolveDismissal()
+        }
     }
 
     func popToRoot() {

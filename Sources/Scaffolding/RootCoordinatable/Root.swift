@@ -65,7 +65,7 @@ public class Root<Coordinator: RootCoordinatable>: AnyRoot {
     public func setup(for coordinator: Coordinator) {
         guard !isSetup else { return }
         if let rootDestination = initialRoot, root == nil {
-            var rootDest = rootDestination.value(for: coordinator)
+            var rootDest = rootDestination.resolvedValue(for: coordinator)
             
             rootDest.coordinatable?.setHasLayerNavigationCoordinatable(self.hasLayerNavigationCoordinator)
             rootDest.coordinatable?.setParent(coordinator)

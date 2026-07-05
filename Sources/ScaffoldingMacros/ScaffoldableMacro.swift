@@ -28,7 +28,8 @@ public struct ScaffoldableMacro: MemberMacro {
         let isPublic = classDecl.modifiers.contains { modifier in
             modifier.name.text == "public"
         }
-        let injectsCoordinator = parseInjectsCoordinator(from: node)
+        let injectsCoordinator = parseBoolArgument(named: "injectsCoordinator", from: node)
+        let codable = parseBoolArgument(named: "codable", from: node) ?? false
 
         let functions = extractFunctions(from: classDecl)
         let trackedFunctions = try filterTrackedFunctions(functions, coordinatableType: coordinatableType, context: context)
@@ -36,7 +37,8 @@ public struct ScaffoldableMacro: MemberMacro {
         let destinationsEnum = try generateDestinationsEnum(
             className: className,
             functions: trackedFunctions,
-            isPublic: isPublic
+            isPublic: isPublic,
+            codable: codable
         )
 
         var members: [DeclSyntax] = [DeclSyntax(destinationsEnum)]
@@ -53,10 +55,10 @@ public struct ScaffoldableMacro: MemberMacro {
         return members
     }
 
-    private static func parseInjectsCoordinator(from node: AttributeSyntax) -> Bool? {
+    private static func parseBoolArgument(named name: String, from node: AttributeSyntax) -> Bool? {
         guard case let .argumentList(arguments) = node.arguments else { return nil }
         for argument in arguments {
-            guard let label = argument.label?.text, label == "injectsCoordinator" else { continue }
+            guard let label = argument.label?.text, label == name else { continue }
             let valueText = argument.expression.description.trimmingCharacters(in: .whitespacesAndNewlines)
             if valueText == "true" { return true }
             if valueText == "false" { return false }
@@ -230,7 +232,8 @@ public struct ScaffoldableMacro: MemberMacro {
     private static func generateDestinationsEnum(
         className: String,
         functions: [TrackedFunction],
-        isPublic: Bool
+        isPublic: Bool,
+        codable: Bool = false
     ) throws -> EnumDeclSyntax {
         
         // Generate Meta enum cases
@@ -260,8 +263,9 @@ public struct ScaffoldableMacro: MemberMacro {
         }
         
         let accessModifier = isPublic ? "public " : ""
-        
-        let destinationsEnum = try EnumDeclSyntax("\(raw: accessModifier)enum Destinations: Destinationable") {
+        let conformances = codable ? "Destinationable, Codable" : "Destinationable"
+
+        let destinationsEnum = try EnumDeclSyntax("\(raw: accessModifier)enum Destinations: \(raw: conformances)") {
             // typealias Owner = ClassName
             DeclSyntax("\(raw: accessModifier)typealias Owner = \(raw: className)")
             

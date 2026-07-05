@@ -27,8 +27,14 @@
 /// automatic environment injection — useful when a screen should not see
 /// the coordinator that owns it (for example, a reusable view that
 /// shouldn't bind to a specific flow).
+///
+/// Pass `codable: true` to make the generated `Destinations` enum conform
+/// to `Codable`, enabling ``Coordinatable/captureNavigationState()`` and
+/// ``Coordinatable/restoreNavigationState(from:)`` for this coordinator.
+/// Every route function's parameters must then be `Codable` themselves —
+/// the compiler enforces this at the enum synthesis.
 @attached(member, names: named(Destinations), named(_injectsCoordinator))
-public macro Scaffoldable(injectsCoordinator: Bool = true) = #externalMacro(module: "ScaffoldingMacros", type: "ScaffoldableMacro")
+public macro Scaffoldable(injectsCoordinator: Bool = true, codable: Bool = false) = #externalMacro(module: "ScaffoldingMacros", type: "ScaffoldableMacro")
 
 /// Excludes a function from the generated `Destinations` enum.
 ///

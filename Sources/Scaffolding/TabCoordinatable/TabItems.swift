@@ -86,7 +86,7 @@ public class TabItems<Coordinator: TabCoordinatable>: AnyTabItems {
     public func setup(for coordinator: Coordinator) {
         guard !isSetup else { return }
         self.tabs = initialTabs.map {
-            var t = $0.value(for: coordinator)
+            var t = $0.resolvedValue(for: coordinator)
             t.coordinatable?.setHasLayerNavigationCoordinatable(coordinator.hasLayerNavigationCoordinatable)
             t.coordinatable?.setParent(coordinator)
 
@@ -287,6 +287,21 @@ extension TabItems {
                 selectedTab = nil
             }
         }
+    }
+
+    func setBadge(_ value: String?, forFirst meta: Coordinator.Destinations.Meta) {
+        guard let index = tabs.firstIndex(where: { destination in
+            guard let destinationMeta = destination.meta as? Coordinator.Destinations.Meta else { return false }
+            return destinationMeta == meta
+        }) else { return }
+        tabs[index].badge = value
+    }
+
+    func badge(forFirst meta: Coordinator.Destinations.Meta) -> String? {
+        tabs.first(where: { destination in
+            guard let destinationMeta = destination.meta as? Coordinator.Destinations.Meta else { return false }
+            return destinationMeta == meta
+        })?.badge
     }
 
     func removeLastTab(_ meta: Coordinator.Destinations.Meta) {

@@ -25,7 +25,7 @@ final class AppCoordinator: @MainActor FlowCoordinatable {
         }
     }
 
-    func login(onComplete: @escaping @MainActor (AuthToken) -> Void) -> LoginCoordinator {
+    func login(onComplete: @escaping @MainActor (AuthToken) -> Void) -> any Coordinatable {
         LoginCoordinator(onComplete: onComplete)
     }
 

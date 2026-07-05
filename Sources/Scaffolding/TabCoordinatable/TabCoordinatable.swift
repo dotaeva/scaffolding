@@ -188,7 +188,7 @@ public extension TabCoordinatable {
     @discardableResult
     func setTabs(_ tabs: [Destinations]) -> Self {
         let tabs = tabs.map {
-            let t = $0.value(for: self)
+            let t = $0.resolvedValue(for: self)
             t.coordinatable?.setHasLayerNavigationCoordinatable(self.hasLayerNavigationCoordinatable)
             t.coordinatable?.setParent(self)
             return t
@@ -205,7 +205,7 @@ public extension TabCoordinatable {
     /// - Returns: `self` for chaining.
     @discardableResult
     func appendTab(_ tab: Destinations) -> Self {
-        let tab = tab.value(for: self)
+        let tab = tab.resolvedValue(for: self)
         tab.coordinatable?.setHasLayerNavigationCoordinatable(self.hasLayerNavigationCoordinatable)
         tab.coordinatable?.setParent(self)
 
@@ -223,7 +223,7 @@ public extension TabCoordinatable {
     /// - Returns: `self` for chaining.
     @discardableResult
     func insertTab(_ tab: Destinations, at index: Int) -> Self {
-        let tab = tab.value(for: self)
+        let tab = tab.resolvedValue(for: self)
         tab.coordinatable?.setHasLayerNavigationCoordinatable(self.hasLayerNavigationCoordinatable)
         tab.coordinatable?.setParent(self)
 
@@ -252,6 +252,45 @@ public extension TabCoordinatable {
         return self
     }
 
+    /// Sets or clears the badge on the **first** tab matching the given
+    /// destination.
+    ///
+    /// ```swift
+    /// tabCoordinator.setBadge("3", for: .inbox)
+    /// tabCoordinator.setBadge(nil, for: .inbox)   // clear
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - value: The badge text, or `nil` to remove the badge.
+    ///   - tab: The destination meta of the tab to badge.
+    /// - Returns: `self` for chaining.
+    @discardableResult
+    func setBadge(_ value: String?, for tab: Destinations.Meta) -> Self {
+        _ = anyTabItems // resolve tabs before the first render if needed
+        tabItems.setBadge(value, forFirst: tab)
+        return self
+    }
+
+    /// Sets a numeric badge on the **first** tab matching the given
+    /// destination. A count of `0` removes the badge, matching SwiftUI's
+    /// `badge(_:)` behavior.
+    ///
+    /// - Parameters:
+    ///   - count: The badge count. `0` clears the badge.
+    ///   - tab: The destination meta of the tab to badge.
+    /// - Returns: `self` for chaining.
+    @discardableResult
+    func setBadge(_ count: Int, for tab: Destinations.Meta) -> Self {
+        setBadge(count == 0 ? nil : String(count), for: tab)
+    }
+
+    /// Returns the badge currently set on the **first** tab matching the
+    /// given destination, if any.
+    func badge(for tab: Destinations.Meta) -> String? {
+        _ = anyTabItems // resolve tabs before the first render if needed
+        return tabItems.badge(forFirst: tab)
+    }
+
     /// Returns whether the given destination is currently present in the
     /// tab bar.
     func isInTabItems(_ meta: Destinations.Meta) -> Bool {
@@ -271,6 +310,7 @@ public extension TabCoordinatable {
         _ tab: Destinations.Meta,
         _ action: @escaping @MainActor (T) -> Void
     ) -> Self {
+        _ = anyTabItems // resolve tabs so cold-launch deep links fire the callback
         if let dest = tabItems.select(first: tab),
            let coordinator = dest.coordinatable as? T {
             action(coordinator)
@@ -285,6 +325,7 @@ public extension TabCoordinatable {
         _ tab: Destinations.Meta,
         _ action: @escaping @MainActor (T) -> Void
     ) -> Self {
+        _ = anyTabItems // resolve tabs so cold-launch deep links fire the callback
         if let dest = tabItems.select(last: tab),
            let coordinator = dest.coordinatable as? T {
             action(coordinator)
@@ -299,6 +340,7 @@ public extension TabCoordinatable {
         index: Int,
         _ action: @escaping @MainActor (T) -> Void
     ) -> Self {
+        _ = anyTabItems // resolve tabs so cold-launch deep links fire the callback
         if let dest = tabItems.select(index),
            let coordinator = dest.coordinatable as? T {
             action(coordinator)
@@ -313,6 +355,7 @@ public extension TabCoordinatable {
         id: UUID,
         _ action: @escaping @MainActor (T) -> Void
     ) -> Self {
+        _ = anyTabItems // resolve tabs so cold-launch deep links fire the callback
         if let dest = tabItems.select(id),
            let coordinator = dest.coordinatable as? T {
             action(coordinator)
@@ -327,7 +370,7 @@ public extension TabCoordinatable {
         _ tab: Destinations,
         _ action: @escaping @MainActor (T) -> Void
     ) -> Self {
-        let resolved = tab.value(for: self)
+        let resolved = tab.resolvedValue(for: self)
         resolved.coordinatable?.setHasLayerNavigationCoordinatable(self.hasLayerNavigationCoordinatable)
         resolved.coordinatable?.setParent(self)
 
@@ -346,7 +389,7 @@ public extension TabCoordinatable {
         at index: Int,
         _ action: @escaping @MainActor (T) -> Void
     ) -> Self {
-        let resolved = tab.value(for: self)
+        let resolved = tab.resolvedValue(for: self)
         resolved.coordinatable?.setHasLayerNavigationCoordinatable(self.hasLayerNavigationCoordinatable)
         resolved.coordinatable?.setParent(self)
 
@@ -368,14 +411,19 @@ public extension TabCoordinatable {
     /// - Parameters:
     ///   - destination: The destination to present.
     ///   - type: The modal presentation style. Defaults to `.sheet`.
+    ///   - policy: Pass ``RoutePolicy/distinct`` to skip the presentation
+    ///     when the same destination case is already presented. Defaults
+    ///     to ``RoutePolicy/always``.
     ///   - onDismiss: A closure invoked when the modal is dismissed.
     /// - Returns: `self` for chaining.
     @discardableResult
     func present(
         _ destination: Destinations,
         as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always,
         onDismiss: @escaping @MainActor () -> Void = { }
     ) -> Self {
+        guard !modalPolicySkips(destination, policy: policy) else { return self }
         _ = performPresent(destination, as: type, onDismiss: onDismiss)
         return self
     }
@@ -391,29 +439,169 @@ public extension TabCoordinatable {
     func present<T: Coordinatable>(
         _ destination: Destinations,
         as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always,
         onDismiss: @escaping @MainActor () -> Void = { },
         _ action: @escaping @MainActor (T) -> Void
     ) -> Self {
+        guard !modalPolicySkips(destination, policy: policy) else { return self }
         let dest = performPresent(destination, as: type, onDismiss: onDismiss)
         if let coordinator = dest.coordinatable as? T {
             action(coordinator)
         }
         return self
     }
+
+    /// Whether this coordinator currently presents a modal (sheet or
+    /// full-screen cover) above the `TabView`.
+    var isPresentingModal: Bool {
+        !anyTabItems.modals.isEmpty
+    }
+}
+
+// MARK: - Typed child resolution
+
+@MainActor
+public extension TabCoordinatable {
+    /// Selects the **first** tab matching the given destination and
+    /// returns the tab's child coordinator, if any.
+    ///
+    /// A non-closure alternative to ``selectFirstTab(_:_:)`` that
+    /// flattens deep-link chains — see
+    /// ``RootCoordinatable/setRoot(_:animation:expecting:)``.
+    func selectFirstTab<T: Coordinatable>(
+        _ tab: Destinations.Meta,
+        expecting coordinatorType: T.Type
+    ) -> T? {
+        _ = anyTabItems // resolve tabs so cold-launch deep links work
+        return tabItems.select(first: tab)?.coordinatable as? T
+    }
+
+    /// Selects the **last** tab matching the given destination and
+    /// returns the tab's child coordinator, if any.
+    func selectLastTab<T: Coordinatable>(
+        _ tab: Destinations.Meta,
+        expecting coordinatorType: T.Type
+    ) -> T? {
+        _ = anyTabItems // resolve tabs so cold-launch deep links work
+        return tabItems.select(last: tab)?.coordinatable as? T
+    }
+
+    /// Selects a tab by index and returns the tab's child coordinator,
+    /// if any.
+    func select<T: Coordinatable>(
+        index: Int,
+        expecting coordinatorType: T.Type
+    ) -> T? {
+        _ = anyTabItems // resolve tabs so cold-launch deep links work
+        return tabItems.select(index)?.coordinatable as? T
+    }
+
+    /// Selects a tab by identifier and returns the tab's child
+    /// coordinator, if any.
+    func select<T: Coordinatable>(
+        id: UUID,
+        expecting coordinatorType: T.Type
+    ) -> T? {
+        _ = anyTabItems // resolve tabs so cold-launch deep links work
+        return tabItems.select(id)?.coordinatable as? T
+    }
+
+    /// Appends a tab and returns the new tab's child coordinator, if any.
+    func appendTab<T: Coordinatable>(
+        _ tab: Destinations,
+        expecting coordinatorType: T.Type
+    ) -> T? {
+        let resolved = tab.resolvedValue(for: self)
+        resolved.coordinatable?.setHasLayerNavigationCoordinatable(self.hasLayerNavigationCoordinatable)
+        resolved.coordinatable?.setParent(self)
+        return tabItems.appendTab(resolved).coordinatable as? T
+    }
+
+    /// Inserts a tab at the given index and returns the new tab's child
+    /// coordinator, if any.
+    func insertTab<T: Coordinatable>(
+        _ tab: Destinations,
+        at index: Int,
+        expecting coordinatorType: T.Type
+    ) -> T? {
+        let resolved = tab.resolvedValue(for: self)
+        resolved.coordinatable?.setHasLayerNavigationCoordinatable(self.hasLayerNavigationCoordinatable)
+        resolved.coordinatable?.setParent(self)
+        return tabItems.insertTab(resolved, at: index).coordinatable as? T
+    }
+
+    /// Presents a destination modally and returns its resolved child
+    /// coordinator, if any.
+    func present<T: Coordinatable>(
+        _ destination: Destinations,
+        as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always,
+        onDismiss: @escaping @MainActor () -> Void = { },
+        expecting coordinatorType: T.Type
+    ) -> T? {
+        guard !modalPolicySkips(destination, policy: policy) else { return nil }
+        return performPresent(destination, as: type, onDismiss: onDismiss).coordinatable as? T
+    }
+}
+
+// MARK: - Awaitable presentation
+
+@MainActor
+public extension TabCoordinatable {
+    /// Presents a destination modally and suspends until it is dismissed.
+    ///
+    /// See ``FlowCoordinatable/presentAndWait(_:as:policy:)`` — identical
+    /// semantics, hosted above the `TabView`.
+    func presentAndWait(
+        _ destination: Destinations,
+        as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always
+    ) async {
+        guard !modalPolicySkips(destination, policy: policy) else { return }
+        let dest = performPresent(destination, as: type, onDismiss: { })
+        await dest.resolution.awaitResolution()
+    }
+
+    /// Presents a destination modally and suspends until it is dismissed,
+    /// returning the value the presented coordinator handed back via
+    /// ``Coordinatable/dismissCoordinator(returning:)``.
+    ///
+    /// See ``FlowCoordinatable/present(_:as:policy:awaiting:)`` —
+    /// identical semantics, hosted above the `TabView`.
+    func present<Result>(
+        _ destination: Destinations,
+        as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always,
+        awaiting resultType: Result.Type
+    ) async -> Result? {
+        guard !modalPolicySkips(destination, policy: policy) else { return nil }
+        let dest = performPresent(destination, as: type, onDismiss: { })
+        await dest.resolution.awaitResolution()
+        return dest.resolution.result as? Result
+    }
 }
 
 @MainActor
-private extension TabCoordinatable {
+extension TabCoordinatable {
+    func modalPolicySkips(_ destination: Destinations, policy: RoutePolicy) -> Bool {
+        guard case .distinct = policy else { return false }
+        return anyTabItems.modals.contains { dest in
+            guard let destMeta = dest.meta as? Destinations.Meta else { return false }
+            return destMeta == destination.meta
+        }
+    }
+
     @discardableResult
     func performPresent(
         _ destination: Destinations,
         as type: ModalPresentationType,
         onDismiss: @escaping @MainActor () -> Void
     ) -> Destination {
-        var dest = destination.value(for: self)
+        var dest = destination.resolvedValue(for: self)
         dest.setOnDismiss(onDismiss)
         dest.setPushType(type.presentationType)
         dest.setRouteType(DestinationType.from(presentationType: type.presentationType))
+        dest.setModalConfiguration(type.configuration)
         dest.coordinatable?.setHasLayerNavigationCoordinatable(false)
         dest.coordinatable?.setParent(self)
 
@@ -472,6 +660,7 @@ public struct TabCoordinatableView: CoordinatableView {
                 Tab(value: tab.id, role: tab.tabRole) {
                     wrappedView(tab)
                         .environmentCoordinatable(_coordinator)
+                        .badge(tab.badge.map(Text.init))
 #if os(iOS)
                         .toolbar(_coordinator.anyTabItems.tabBarVisibility, for: .tabBar)
 #endif
@@ -489,6 +678,7 @@ public struct TabCoordinatableView: CoordinatableView {
             ForEach(_coordinator.anyTabItems.tabs) { tab in
                 wrappedView(tab)
                     .environmentCoordinatable(_coordinator)
+                    .badge(tab.badge.map(Text.init))
                     .tabItem {
                         if let tabItem = tab.tabItem {
                             AnyView(tabItem)

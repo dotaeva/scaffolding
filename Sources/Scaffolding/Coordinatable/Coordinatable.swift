@@ -40,6 +40,22 @@ public protocol Coordinatable: AnyObject, Identifiable {
     ///   coordinator.
     /// - Returns: A modified view.
     func customize(_ view: AnyView) -> CustomizeContentView
+
+    /// Captures this coordinator's navigation state as a codable node,
+    /// or `nil` when the coordinator's `Destinations` are not `Codable`.
+    ///
+    /// Do not implement or call this directly — use
+    /// ``captureNavigationState()``. A default implementation is provided
+    /// for every coordinator type.
+    func _captureNavigationStateNode() -> NavigationStateNode?
+
+    /// Restores navigation state captured by
+    /// ``_captureNavigationStateNode()``.
+    ///
+    /// Do not implement or call this directly — use
+    /// ``restoreNavigationState(from:)``. A default implementation is
+    /// provided for every coordinator type.
+    func _restoreNavigationStateNode(_ node: NavigationStateNode)
 }
 
 @MainActor
@@ -185,6 +201,55 @@ public extension Coordinatable {
         }
         return self
     }
+
+    /// Dismisses every modal presented on this coordinator.
+    ///
+    /// Like ``dismissModal()`` applied until nothing is presented: each
+    /// removed modal fires its `onDismiss` exactly once, and pushed
+    /// destinations are untouched. Modals presented by *other*
+    /// coordinators deeper in the tree are not affected. Does nothing
+    /// when no modal is presented.
+    ///
+    /// - Returns: `self` for chaining.
+    @discardableResult
+    func dismissAllModals() -> Self {
+        if let root = self as? any RootCoordinatable {
+            let removed = root.anyRoot.modals
+            root.anyRoot.modals.removeAll()
+            for destination in removed.reversed() { destination.resolveDismissal() }
+        } else if let tab = self as? any TabCoordinatable {
+            let removed = tab.anyTabItems.modals
+            tab.anyTabItems.modals.removeAll()
+            for destination in removed.reversed() { destination.resolveDismissal() }
+        } else if let flow = self as? any FlowCoordinatable {
+            let isModal: (Destination) -> Bool = {
+                $0.pushType == .sheet || $0.pushType == .fullScreenCover
+            }
+            let removed = flow.anyStack.destinations.filter(isModal)
+            flow.anyStack.destinations.removeAll(where: isModal)
+            for destination in removed.reversed() { destination.resolveDismissal() }
+        }
+        return self
+    }
+
+    /// Dismisses this coordinator and hands a result back to its presenter.
+    ///
+    /// The counterpart of the `awaiting:` presentation APIs: the value is
+    /// delivered to a suspended
+    /// `present(_:as:awaiting:)` call on the presenting side, then the
+    /// coordinator is dismissed exactly like ``dismissCoordinator()``.
+    ///
+    /// ```swift
+    /// // Presenting side
+    /// let token = await present(.login, awaiting: AuthToken.self)
+    ///
+    /// // Inside LoginCoordinator
+    /// dismissCoordinator(returning: AuthToken(...))
+    /// ```
+    func dismissCoordinator<Result>(returning result: Result) {
+        _owningDestination()?.resolution.result = result
+        dismissCoordinator()
+    }
 }
 
 @MainActor
@@ -192,7 +257,13 @@ extension Coordinatable {
     /// Walks the parent's stack/root/tabItems to find the destination
     /// that wraps `self` and fires its dismissal resolution.
     func _resolveOwningDestination() {
-        guard let parent else { return }
+        _owningDestination()?.resolveDismissal()
+    }
+
+    /// Walks the parent's stack/root/tabItems to find the destination
+    /// that wraps `self`.
+    func _owningDestination() -> Destination? {
+        guard let parent else { return nil }
         let selfId = AnyHashable(self.id)
 
         let candidates: [Destination] = {
@@ -216,12 +287,10 @@ extension Coordinatable {
             return []
         }()
 
-        if let owner = candidates.first(where: {
+        return candidates.first(where: {
             guard let cId = $0.coordinatable?.id else { return false }
             return AnyHashable(cId) == selfId
-        }) {
-            owner.resolveDismissal()
-        }
+        })
     }
 }
 
@@ -268,4 +337,15 @@ public protocol Destinationable {
 
     /// Creates a ``Destination`` for the given coordinator instance.
     @MainActor func value(for instance: Owner) -> Destination
+}
+
+@MainActor
+extension Destinationable {
+    /// Creates a ``Destination`` and records the enum value it was
+    /// resolved from, so navigation state can be captured later.
+    func resolvedValue(for instance: Owner) -> Destination {
+        var destination = value(for: instance)
+        destination.setSource(self)
+        return destination
+    }
 }
