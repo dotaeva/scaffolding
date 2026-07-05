@@ -156,6 +156,35 @@ public extension Coordinatable {
     func resolveMeta(_ meta: any DestinationMeta) -> Destinations.Meta? {
         return meta as? Self.Destinations.Meta
     }
+
+    /// Dismisses the most recently presented modal.
+    ///
+    /// The counterpart of `present(_:as:onDismiss:)` for the presenting
+    /// side: removes the top modal from this coordinator and fires its
+    /// `onDismiss` callback exactly once, matching an interactive
+    /// dismissal. Does nothing when no modal is presented.
+    ///
+    /// On a ``FlowCoordinatable`` only the modal is removed — destinations
+    /// pushed onto the stack stay in place.
+    ///
+    /// - Returns: `self` for chaining.
+    @discardableResult
+    func dismissModal() -> Self {
+        if let root = self as? any RootCoordinatable {
+            guard let modal = root.anyRoot.modals.popLast() else { return self }
+            modal.resolveDismissal()
+        } else if let tab = self as? any TabCoordinatable {
+            guard let modal = tab.anyTabItems.modals.popLast() else { return self }
+            modal.resolveDismissal()
+        } else if let flow = self as? any FlowCoordinatable {
+            guard let index = flow.anyStack.destinations.lastIndex(where: {
+                $0.pushType == .sheet || $0.pushType == .fullScreenCover
+            }) else { return self }
+            let modal = flow.anyStack.destinations.remove(at: index)
+            modal.resolveDismissal()
+        }
+        return self
+    }
 }
 
 @MainActor

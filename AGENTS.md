@@ -81,6 +81,8 @@ Is it a push/pop on the current stack?
 | Show a one-screen sheet (simple form, info) | SwiftUI's `.sheet(item:)` |
 | Show a multi-step sub-flow | `coordinator.present(.subflow, as: .sheet)` |
 | Show a full-screen sub-flow | `coordinator.present(.subflow, as: .fullScreenCover)` |
+| Dismiss a modal you presented (presenter side, any coordinator type) | `coordinator.dismissModal()` |
+| Intercept a tab tap (guard, redirect, pop-to-root on re-tap) | override `shouldSelect(tab:isReselection:)` on the `TabCoordinatable` |
 | Atomically replace the entire view hierarchy (auth, onboarding) | `appCoordinator.setRoot(.authenticated)` (on a `RootCoordinatable`) |
 | Switch tabs programmatically | `tabCoordinator.selectFirstTab(.home)` |
 
@@ -387,6 +389,52 @@ final class MainTabCoordinator: @MainActor TabCoordinatable {
     }
 }
 ```
+
+### Intercepting tab selection
+
+Override `shouldSelect(tab:isReselection:)` on a `TabCoordinatable` to intercept **UI-driven** tab changes (taps on the tab bar). Return `false` to keep the current tab; perform your own navigation instead if needed. When the user re-taps the already-selected tab, the hook fires with `isReselection == true` (the return value is ignored — there's no change to veto). Programmatic selection (`selectFirstTab`, `select(index:)`, …) bypasses the hook, so redirecting from inside it doesn't recurse.
+
+```swift
+@MainActor @Observable @Scaffoldable
+final class MainTabCoordinator: @MainActor TabCoordinatable {
+    var tabItems = TabItems<MainTabCoordinator>(tabs: [.home, .profile])
+
+    func home() -> (any Coordinatable, some View) {
+        (HomeCoordinator(), Label("Home", systemImage: "house"))
+    }
+    func profile() -> (any Coordinatable, some View) {
+        (ProfileCoordinator(), Label("Profile", systemImage: "person"))
+    }
+
+    // Returns Bool ⇒ never tracked by the macro — no @ScaffoldingIgnored needed.
+    func shouldSelect(tab: Destinations.Meta, isReselection: Bool) -> Bool {
+        // Re-tap of the selected tab → pop its flow to the root.
+        if isReselection {
+            if tab == .home {
+                selectFirstTab(.home) { (home: HomeCoordinator) in home.popToRoot() }
+            }
+            return true
+        }
+        // Guard a tab behind authentication.
+        if tab == .profile && !session.isAuthenticated {
+            present(.login)   // show login instead of switching
+            return false
+        }
+        return true
+    }
+}
+```
+
+### Presenter-side modal dismissal
+
+`present(_:as:)` is paired with `dismissModal()`, available on **every** coordinator type. It removes the most recently presented modal and fires its `onDismiss` exactly once — equivalent to the user swiping the sheet away. Use it when the **presenter** decides the modal is done; the presented coordinator itself still uses `dismissCoordinator()`. This also covers view-only modals (a `some View` route presented modally), which have no coordinator to call `dismissCoordinator()` on.
+
+```swift
+appCoordinator.present(.whatsNew)          // some View route — no child coordinator
+appCoordinator.dismissModal()              // presenter closes it later
+```
+
+On a `FlowCoordinatable`, `dismissModal()` removes only the topmost modal and never touches pushed destinations — prefer it over `pop()` for closing modals: `pop()` removes whatever is last on the stack (and dismisses the whole coordinator when the stack is empty), while `dismissModal()` is a safe no-op when nothing is presented.
 
 ---
 

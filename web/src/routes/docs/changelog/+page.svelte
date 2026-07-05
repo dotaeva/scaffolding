@@ -10,6 +10,8 @@
     CODE_ROUTE_AFTER,
     CODE_PRESENT_HOSTS,
     CODE_PRESENT_TYPED,
+    CODE_DISMISS_MODAL,
+    CODE_SHOULD_SELECT,
     CODE_CALLBACK_BEFORE,
     CODE_CALLBACK_AFTER,
     CODE_MACRO_INJECT,
@@ -18,6 +20,7 @@
   } from '$lib/code/changelog.js';
 
   const SECTIONS = [
+    { id: 'three-three', label: '3.3.0' },
     { id: 'three-two',   label: '3.2.0' },
     { id: 'three-one',   label: '3.1.0' },
     { id: 'three-zero',  label: '3.0' },
@@ -38,14 +41,14 @@
 <main class="docs">
   <article class="article">
     <header class="hero">
-      <p class="eyebrow">Changelog · latest 3.2.0</p>
-      <h1>Scaffolding 3.2.0.</h1>
+      <p class="eyebrow">Changelog · latest 3.3.0</p>
+      <h1>Scaffolding 3.3.0.</h1>
       <p class="lede">
-        A simplification release. Destination tracking is now governed by
-        a single rule — auto-track by return type, opt out with
-        <code>@ScaffoldingIgnored</code>. The
-        <code>@ScaffoldingTracked</code> opt-in macro and the
-        concrete-coordinator return-type heuristic are both gone.
+        An additive release. Two new coordinator affordances:
+        <code>dismissModal()</code> lets the presenter close the modal it
+        put up, and <code>shouldSelect(tab:isReselection:)</code> hooks
+        UI-driven tab taps so you can guard, redirect, or pop-to-root on
+        re-tap. No breaking changes.
       </p>
       <p class="meta">
         Source on <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">GitHub</a>.
@@ -54,6 +57,49 @@
         Looking for the 2.x → 3.0 migration? <a href="#three-zero">Skip down</a>.
       </p>
     </header>
+
+    <section id="three-three" class="sec">
+      <h2>What's new in 3.3.0</h2>
+      <ul class="highlights">
+        <li>
+          <span class="hl-tag new">New</span>
+          <span class="hl-body">
+            <code>dismissModal()</code> on every coordinator type. The
+            presenter-side counterpart of <code>present(_:as:)</code>:
+            it removes the most recently presented modal and fires its
+            <code>onDismiss</code> exactly once. It also covers view-only
+            (<code>some View</code>) modals, which have no child
+            coordinator to call <code>dismissCoordinator()</code> on. On a
+            <code>FlowCoordinatable</code> it removes only the topmost
+            modal — pushed destinations stay put — and is a safe no-op
+            when nothing is presented.
+          </span>
+        </li>
+        <li>
+          <span class="hl-tag new">New</span>
+          <span class="hl-body">
+            <code>shouldSelect(tab:isReselection:)</code> on
+            <code>TabCoordinatable</code>. The generated
+            <code>TabView</code> consults it whenever the selection
+            binding is written through the UI. Return <code>false</code>
+            to veto the switch (e.g. present a login sheet instead); a
+            redirect performed inside the hook is preserved. Re-tapping
+            the current tab fires it with
+            <code>isReselection == true</code> for pop-to-root /
+            scroll-to-top. Programmatic selection bypasses the hook, so
+            redirecting from inside it never recurses. Defaults to
+            <code>true</code>.
+          </span>
+        </li>
+      </ul>
+      <CodeBlock code={CODE_DISMISS_MODAL} label="3.3 · presenter-side dismissModal()" />
+      <CodeBlock code={CODE_SHOULD_SELECT} label="MainTabCoordinator · shouldSelect" />
+      <p class="sub">
+        Both are purely additive — <code>shouldSelect</code> ships a
+        default implementation and <code>dismissModal()</code> is a new
+        method. No existing call site needs to change.
+      </p>
+    </section>
 
     <section id="three-two" class="sec">
       <h2>What's new in 3.2.0</h2>

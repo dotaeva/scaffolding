@@ -51,6 +51,37 @@ func openSubscriptionAt(planId: String) {
     }
 }`;
 
+// 3.3.0 — presenter-side dismissModal() on every coordinator type.
+export const CODE_DISMISS_MODAL = `// 3.3 — dismissModal() lets the *presenter* close the top modal,
+// firing its onDismiss exactly once. Works on every coordinator type,
+// including view-only modals that have no child coordinator.
+
+appCoordinator.present(.whatsNew)   // some View route — no child coordinator
+appCoordinator.dismissModal()       // presenter closes it later
+
+// On a FlowCoordinatable it removes only the topmost modal and never
+// touches pushed destinations — and it's a safe no-op when nothing is
+// presented, unlike pop().`;
+
+// 3.3.0 — shouldSelect(tab:isReselection:) hook on TabCoordinatable.
+export const CODE_SHOULD_SELECT = `// 3.3 — intercept UI-driven tab taps: guard, redirect, or pop-to-root
+// on re-tap. Programmatic selection bypasses the hook, so redirecting
+// from inside it never recurses. Default implementation returns true.
+
+func shouldSelect(tab: Destinations.Meta, isReselection: Bool) -> Bool {
+    if isReselection {                       // re-tap of the current tab
+        if tab == .home {
+            selectFirstTab(.home) { (home: HomeCoordinator) in home.popToRoot() }
+        }
+        return true                          // return value ignored here
+    }
+    if tab == .profile && !session.isAuthenticated {
+        present(.login)                      // show login instead of switching
+        return false                         // veto the switch
+    }
+    return true
+}`;
+
 export const CODE_PRESENT_HOSTS = `// 3.0 — present(_:as:) is now available on every coordinator type.
 
 @Scaffoldable @Observable

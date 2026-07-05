@@ -34,6 +34,32 @@ public protocol TabCoordinatable: Coordinatable where ViewType == TabCoordinatab
 
     /// A type-erased accessor for the tab items.
     var anyTabItems: any AnyTabItems { get }
+
+    /// Decides whether a user-initiated tab selection should be applied.
+    ///
+    /// The generated `TabView` consults this hook whenever the selection
+    /// binding is written through the UI. Return `false` to keep the
+    /// current tab — for example to present a login sheet instead of
+    /// switching. If the hook performs its own selection (e.g. via
+    /// ``selectFirstTab(_:)``), that redirect is preserved.
+    ///
+    /// When the user re-taps the tab that is already selected, the hook
+    /// fires with `isReselection == true` — useful for pop-to-root or
+    /// scroll-to-top behavior. The return value is ignored in that case,
+    /// since there is no selection change to veto.
+    ///
+    /// Programmatic selection (``selectFirstTab(_:)``, ``select(index:)``,
+    /// and friends) bypasses this hook.
+    ///
+    /// The default implementation returns `true`.
+    func shouldSelect(tab: Destinations.Meta, isReselection: Bool) -> Bool
+}
+
+@MainActor
+public extension TabCoordinatable {
+    func shouldSelect(tab: Destinations.Meta, isReselection: Bool) -> Bool {
+        true
+    }
 }
 
 @MainActor
@@ -82,7 +108,33 @@ extension TabCoordinatable {
     var selectedTabBinding: Binding<UUID?> {
         Binding(
             get: { self.tabItems.selectedTab },
-            set: { self.tabItems.selectedTab = $0 }
+            set: { newValue in
+                let current = self.tabItems.selectedTab
+
+                guard newValue != current else {
+                    // Re-tap of the already-selected tab: there is no
+                    // change to veto, but surface the event to the hook.
+                    if let id = newValue,
+                       let meta = self.tabItems.tabs.first(where: { $0.id == id })?.meta as? Destinations.Meta {
+                        _ = self.shouldSelect(tab: meta, isReselection: true)
+                    }
+                    return
+                }
+
+                if let id = newValue,
+                   let meta = self.tabItems.tabs.first(where: { $0.id == id })?.meta as? Destinations.Meta,
+                   !self.shouldSelect(tab: meta, isReselection: false) {
+                    // Rejected. Unless the hook redirected the selection
+                    // itself, re-assert the current tab — the write fires
+                    // an observation change so the TabView snaps back.
+                    if self.tabItems.selectedTab == current {
+                        self.tabItems.selectedTab = current
+                    }
+                    return
+                }
+
+                self.tabItems.selectedTab = newValue
+            }
         )
     }
 }
