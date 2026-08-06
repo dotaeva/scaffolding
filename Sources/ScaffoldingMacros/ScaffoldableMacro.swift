@@ -68,6 +68,20 @@ public struct ScaffoldableMacro: MemberMacro {
     
     
     private static func determineCoordinatableType(from classDecl: ClassDeclSyntax) throws -> CoordinatableType {
+        if let type = coordinatableTypeFromInheritance(classDecl) {
+            return type
+        }
+        // The conformance may be spelled through a refining protocol
+        // (`protocol TabFlow: FlowCoordinatable`), which a macro cannot
+        // resolve — it only sees syntax. Fall back to the state container the
+        // coordinator is required to declare, which names the kind exactly.
+        if let type = coordinatableTypeFromStateContainer(classDecl) {
+            return type
+        }
+        throw ScaffoldingMacroError.mustConformToCoordinatable
+    }
+
+    private static func coordinatableTypeFromInheritance(_ classDecl: ClassDeclSyntax) -> CoordinatableType? {
         let inheritanceTypes = classDecl.inheritanceClause?.inheritedTypes.compactMap { type -> String? in
             // Handle attributed types like "@MainActor FlowCoordinatable"
             if let attributedType = type.type.as(AttributedTypeSyntax.self),
@@ -80,16 +94,53 @@ public struct ScaffoldableMacro: MemberMacro {
             }
             return nil
         } ?? []
-        
+
         if inheritanceTypes.contains("TabCoordinatable") {
             return .tab
         } else if inheritanceTypes.contains("RootCoordinatable") {
             return .root
         } else if inheritanceTypes.contains("FlowCoordinatable") {
             return .flow
-        } else {
-            throw ScaffoldingMacroError.mustConformToCoordinatable
         }
+        return nil
+    }
+
+    /// Infers the kind from the declared state container — `FlowStack`,
+    /// `TabItems`, or `Root` — in either spelling:
+    ///
+    /// ```swift
+    /// var stack = FlowStack<HomeCoordinator>(root: .home)   // initializer
+    /// var stack: FlowStack<HomeCoordinator>                 // annotation
+    /// ```
+    private static func coordinatableTypeFromStateContainer(_ classDecl: ClassDeclSyntax) -> CoordinatableType? {
+        for member in classDecl.memberBlock.members {
+            guard let variable = member.decl.as(VariableDeclSyntax.self) else { continue }
+
+            for binding in variable.bindings {
+                if let annotation = binding.typeAnnotation?.type.as(IdentifierTypeSyntax.self),
+                   let type = CoordinatableType(stateContainerName: annotation.name.text) {
+                    return type
+                }
+                if let call = binding.initializer?.value.as(FunctionCallExprSyntax.self),
+                   let name = calleeBaseName(of: call),
+                   let type = CoordinatableType(stateContainerName: name) {
+                    return type
+                }
+            }
+        }
+        return nil
+    }
+
+    /// `FlowStack<X>(root:)` → `FlowStack`; also handles the unspecialized form.
+    private static func calleeBaseName(of call: FunctionCallExprSyntax) -> String? {
+        if let specialization = call.calledExpression.as(GenericSpecializationExprSyntax.self),
+           let reference = specialization.expression.as(DeclReferenceExprSyntax.self) {
+            return reference.baseName.text
+        }
+        if let reference = call.calledExpression.as(DeclReferenceExprSyntax.self) {
+            return reference.baseName.text
+        }
+        return nil
     }
     
     private static func extractFunctions(from classDecl: ClassDeclSyntax) -> [FunctionDeclSyntax] {
@@ -533,6 +584,16 @@ public struct ScaffoldableMacro: MemberMacro {
 
 enum CoordinatableType {
     case flow, tab, root
+
+    /// Maps a state-container type name to the coordinator kind that owns it.
+    init?(stateContainerName: String) {
+        switch stateContainerName {
+        case "FlowStack": self = .flow
+        case "TabItems": self = .tab
+        case "Root": self = .root
+        default: return nil
+        }
+    }
 }
 
 enum ReturnTypeInfo {

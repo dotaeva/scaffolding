@@ -112,12 +112,6 @@ public extension View {
                 result = result.environment(coordinator)
             }
 
-            // The untyped navigator always points at the nearest
-            // coordinator, regardless of the typed-injection opt-out.
-            if let coordinatable = observable as? any Coordinatable {
-                result = result.environment(\.navigator, Navigator(coordinatable))
-            }
-
             return AnyView(result)
         }
 

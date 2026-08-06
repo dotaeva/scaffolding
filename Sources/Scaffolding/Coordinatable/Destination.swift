@@ -10,7 +10,7 @@ import SwiftUI
 /// A type that uniquely identifies a destination case without its
 /// associated values.
 ///
-/// The ``Scaffoldable(injectsCoordinator:)`` macro generates a conforming `Meta` enum
+/// The ``Scaffoldable(injectsCoordinator:codable:)`` macro generates a conforming `Meta` enum
 /// alongside the `Destinations` enum. You can use meta values with
 /// methods like ``FlowCoordinatable/popToFirst(_:)`` or
 /// ``TabCoordinatable/selectFirstTab(_:)`` to navigate by case name.
@@ -30,7 +30,9 @@ public enum DestinationType {
     /// The destination is presented as a full-screen cover.
     case fullScreenCover
 
-    var isModal: Bool {
+    /// Whether the destination is presented modally
+    /// (`.sheet` or `.fullScreenCover`).
+    public var isModal: Bool {
         switch self {
         case .sheet, .fullScreenCover:
             return true
@@ -54,8 +56,8 @@ public enum DestinationType {
 /// is displayed.
 ///
 /// Routing splits cleanly into push and modal presentation:
-/// ``FlowCoordinatable/route(to:onDismiss:)`` always pushes onto the
-/// navigation stack, while ``FlowCoordinatable/present(_:as:onDismiss:)``
+/// ``FlowCoordinatable/route(to:policy:onDismiss:)`` always pushes onto the
+/// navigation stack, while ``FlowCoordinatable/present(_:as:policy:onDismiss:)``
 /// shows a destination as a sheet or full-screen cover. Use
 /// ``ModalPresentationType`` at the call site.
 @MainActor
@@ -116,11 +118,11 @@ public struct SheetConfiguration: Equatable, Sendable {
 }
 
 /// The modal presentation style accepted by
-/// ``FlowCoordinatable/present(_:as:onDismiss:)``.
+/// ``FlowCoordinatable/present(_:as:policy:onDismiss:)``.
 ///
 /// Modal presentation is restricted to sheet or full-screen cover —
 /// pushes are expressed exclusively through
-/// ``FlowCoordinatable/route(to:onDismiss:)``.
+/// ``FlowCoordinatable/route(to:policy:onDismiss:)``.
 ///
 /// Use the plain ``sheet`` / ``fullScreenCover`` values, or configure the
 /// sheet from the presenting side:

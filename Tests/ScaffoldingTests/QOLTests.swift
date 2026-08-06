@@ -4,7 +4,7 @@
 //
 //  Tests for stack introspection, pop(count:), replaceLast, dismissAllModals,
 //  RoutePolicy, seeded paths, sheet configuration, tab badges, expecting:
-//  overloads, debugHierarchy, and Navigator.
+//  overloads, debugHierarchy, and hierarchy orientation.
 //
 
 import Testing
@@ -543,66 +543,119 @@ struct DebugHierarchyTests {
     }
 }
 
-// MARK: - Navigator
+// MARK: - Hierarchy orientation
 
 @MainActor
-@Suite("Navigator")
-struct NavigatorTests {
+@Suite("Hierarchy orientation")
+struct HierarchyOrientationTests {
 
-    @Test("pop and popToRoot act on the flow coordinator")
-    func popActions() {
-        let flow = HomeFlowCoordinator()
-        _ = flow.anyStack
-        flow.route(to: .settings)
-        flow.route(to: .settings)
-
-        let navigator = Navigator(flow)
-        navigator.pop()
-        #expect(flow.depth == 1)
-
-        navigator.popToRoot()
-        #expect(flow.depth == 0)
-    }
-
-    @Test("dismissModal and dismissAllModals act on the nearest coordinator")
-    func modalActions() {
+    @Test("routeType reflects how the coordinator was reached")
+    func routeTypes() {
         let app = AppRootCoordinator()
-        app.present(.login)
-        app.present(.main)
+        _ = app.anyRoot
+        #expect(app.routeType == .root) // top of the tree
 
-        let navigator = Navigator(app)
-        navigator.dismissModal()
-        #expect(app.anyRoot.modals.count == 1)
+        let tabs = app.anyRoot.root?.coordinatable as? MainTabCoordinator
+        #expect(tabs?.routeType == .root) // RootCoordinatable root
 
-        navigator.dismissAllModals()
-        #expect(app.anyRoot.modals.isEmpty)
+        _ = tabs?.anyTabItems
+        let home = tabs?.anyTabItems.tabs.first?.coordinatable as? HomeFlowCoordinator
+        #expect(home?.routeType == .root) // tab child
+
+        let pushed = home?.route(to: .detail, expecting: DetailFlowCoordinator.self)
+        #expect(pushed?.routeType == .push)
+
+        let sheet = home?.present(.sheetFlow, expecting: LeafFlowCoordinator.self)
+        #expect(sheet?.routeType == .sheet)
+
+        let cover = pushed?.present(.subDetail, as: .fullScreenCover, expecting: LeafFlowCoordinator.self)
+        #expect(cover?.routeType == .fullScreenCover)
+        #expect(cover?.routeType.isModal == true)
+        #expect(pushed?.routeType.isModal == false)
     }
 
-    @Test("dismissCoordinator(returning:) delivers a result")
-    func dismissReturning() async {
-        let flow = HomeFlowCoordinator()
-        _ = flow.anyStack
+    @Test("ancestor(ofType:) finds the nearest match and nil otherwise")
+    func ancestorLookup() {
+        let app = AppRootCoordinator()
+        _ = app.anyRoot
+        let tabs = app.anyRoot.root?.coordinatable as? MainTabCoordinator
+        _ = tabs?.anyTabItems
+        let home = tabs?.anyTabItems.tabs.first?.coordinatable as? HomeFlowCoordinator
+        let leaf = home?.present(.sheetFlow, expecting: LeafFlowCoordinator.self)
 
-        let waiter = Task { await flow.present(.sheetFlow, awaiting: String.self) }
-        while flow.anyStack.destinations.isEmpty { await Task.yield() }
-
-        let leaf = flow.anyStack.destinations.first?.coordinatable as? LeafFlowCoordinator
-        if let leaf {
-            Navigator(leaf).dismissCoordinator(returning: "done")
-        }
-
-        let result = await waiter.value
-        #expect(result == "done")
+        #expect(leaf?.ancestor(ofType: HomeFlowCoordinator.self) === home)
+        #expect(leaf?.ancestor(ofType: MainTabCoordinator.self) === tabs)
+        #expect(leaf?.ancestor(ofType: AppRootCoordinator.self) === app)
+        #expect(leaf?.ancestor(ofType: ProfileFlowCoordinator.self) == nil)
+        #expect(app.ancestor(ofType: MainTabCoordinator.self) == nil) // never self, only ancestors
     }
 
-    @Test("default navigator is a safe no-op")
-    func defaultNoop() {
-        let navigator = Navigator()
-        navigator.pop()
-        navigator.popToRoot()
-        navigator.dismissModal()
-        navigator.dismissAllModals()
-        navigator.dismissCoordinator()
-        #expect(navigator.coordinator == nil)
+    @Test("hierarchyRoot walks to the topmost coordinator")
+    func hierarchyRoot() {
+        let app = AppRootCoordinator()
+        _ = app.anyRoot
+        let tabs = app.anyRoot.root?.coordinatable as? MainTabCoordinator
+        _ = tabs?.anyTabItems
+        let home = tabs?.anyTabItems.tabs.first?.coordinatable as? HomeFlowCoordinator
+        let leaf = home?.present(.sheetFlow, expecting: LeafFlowCoordinator.self)
+
+        #expect(leaf?.hierarchyRoot === app)
+        #expect(app.hierarchyRoot === app)
+    }
+}
+
+// MARK: - Conformance spelled through a refining protocol
+
+/// A refining protocol, as an app would declare to share `customize(_:)`
+/// across several flows. `@Scaffoldable` sees only syntax and cannot resolve
+/// the refinement, so it falls back to the declared state container.
+@MainActor
+protocol RefinedFlow: FlowCoordinatable { }
+
+@MainActor
+@Observable
+@Scaffoldable
+final class RefiningProtocolCoordinator: @MainActor RefinedFlow {
+    var stack = FlowStack<RefiningProtocolCoordinator>(root: .home)
+
+    func home() -> some View { EmptyView() }
+    func detail(id: Int) -> some View { EmptyView() }
+}
+
+/// Same, with the container spelled as a type annotation instead of an
+/// initializer call.
+@MainActor
+@Observable
+@Scaffoldable
+final class AnnotatedContainerCoordinator: @MainActor RefinedFlow {
+    var stack: FlowStack<AnnotatedContainerCoordinator>
+
+    init() {
+        stack = FlowStack(root: .home)
+    }
+
+    func home() -> some View { EmptyView() }
+}
+
+@Suite("Refining-protocol conformance")
+@MainActor
+struct RefiningProtocolConformanceTests {
+    @Test("Destinations are generated when the clause names only a refinement")
+    func generatesDestinations() {
+        let coordinator = RefiningProtocolCoordinator()
+        coordinator.route(to: .detail(id: 7))
+
+        #expect(coordinator.depth == 1)
+        #expect(coordinator.topDestination == .detail)
+        #expect(coordinator.isInStack(.detail))
+    }
+
+    @Test("A type-annotated state container is recognised too")
+    func annotatedContainer() {
+        let coordinator = AnnotatedContainerCoordinator()
+        _ = coordinator.anyStack
+
+        #expect(coordinator.depth == 0)
+        #expect(coordinator.topDestination == .home)
     }
 }
