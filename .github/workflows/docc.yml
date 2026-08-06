@@ -1,4 +1,4 @@
-name: Deploy site (Svelte + DocC) to GitHub Pages
+name: Deploy DocC to GitHub Pages
 
 on:
   push:
@@ -32,41 +32,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-spm-
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: web/package-lock.json
-
-      - name: Install web dependencies
-        working-directory: web
-        run: npm ci
-
-      - name: Build Svelte site
-        working-directory: web
-        env:
-          BASE_PATH: /scaffolding
-        run: npm run build
-
-      - name: Stage Svelte build at the Pages root
+      - name: Build DocC at the Pages root
         run: |
           mkdir -p ./docs
-          cp -R web/build/. ./docs/
-
-      - name: Build DocC into /scaffolding/docc/
-        run: |
-          mkdir -p ./docs/docc
-          swift package --allow-writing-to-directory ./docs/docc \
+          swift package --allow-writing-to-directory ./docs \
             generate-documentation \
             --target Scaffolding \
-            --output-path ./docs/docc \
+            --output-path ./docs \
             --transform-for-static-hosting \
-            --hosting-base-path scaffolding/docc
+            --hosting-base-path scaffolding
 
-      # The Pages artifact now contains:
-      #   /                              → Svelte landing & docs pages
-      #   /docc/documentation/scaffolding/ → DocC archive
+      # The Pages artifact contains the DocC archive only:
+      #   /documentation/scaffolding/ → library documentation
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

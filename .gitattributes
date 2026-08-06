@@ -1,5 +1,0 @@
-# `web/` is the marketing + docs site (SvelteKit), not part of the
-# Swift package. Mark it as documentation so GitHub Linguist excludes
-# it from the repo's language stats — otherwise the Svelte/JS line
-# count drowns the Swift library that this repo actually ships.
-web/** linguist-documentation
