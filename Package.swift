@@ -13,6 +13,12 @@ let package = Package(
             name: "Scaffolding",
             targets: ["Scaffolding"]
         ),
+        // Test-only helpers for asserting on coordinators. Link this from a
+        // test target, never from an app target — it imports Swift Testing.
+        .library(
+            name: "ScaffoldingTesting",
+            targets: ["ScaffoldingTesting"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/swiftlang/swift-syntax", from: "600.0.1"),
@@ -33,9 +39,11 @@ let package = Package(
         // Library that exposes a macro as part of its API, which is used in client programs.
         .target(name: "Scaffolding", dependencies: ["ScaffoldingMacros"]),
 
+        .target(name: "ScaffoldingTesting", dependencies: ["Scaffolding"]),
+
         .testTarget(
             name: "ScaffoldingTests",
-            dependencies: ["Scaffolding"]
+            dependencies: ["Scaffolding", "ScaffoldingTesting"]
         ),
     ]
 )

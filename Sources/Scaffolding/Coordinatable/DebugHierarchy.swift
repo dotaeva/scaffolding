@@ -32,101 +32,36 @@ public extension Coordinatable {
     /// Inspecting the tree has no side effects: in the rare case where a
     /// destination's child coordinator has not been created yet, it is
     /// reported as `(not yet created)` rather than being materialised.
+    ///
+    /// For assertions and debug UIs, prefer the structured
+    /// ``hierarchySnapshot()`` over matching this string.
     func debugHierarchy() -> String {
-        var lines: [String] = []
-        _appendHierarchy(to: &lines, label: nil, indent: "")
+        var lines = ["\(String(describing: type(of: self))) [\(_kindLabel)]"]
+        _appendNodes(hierarchySnapshot(), to: &lines, indent: "  ")
         return lines.joined(separator: "\n")
     }
 }
 
 @MainActor
-extension Coordinatable {
-    private var _kindLabel: String {
-        if self is any FlowCoordinatable { return "flow" }
-        if self is any TabCoordinatable { return "tab" }
-        if self is any RootCoordinatable { return "root" }
-        return "coordinator"
-    }
+private func _appendNodes(
+    _ nodes: [HierarchyNode],
+    to lines: inout [String],
+    indent: String
+) {
+    for node in nodes {
+        let label = "\(node.role.debugLabel) \(node.metaDescription)"
 
-    func _appendHierarchy(to lines: inout [String], label: String?, indent: String) {
-        let header = "\(String(describing: type(of: self))) [\(_kindLabel)]"
-        lines.append("\(indent)\(label.map { "\($0) → " } ?? "")\(header)")
-
-        let childIndent = indent + "  "
-
-        if let flow = self as? any FlowCoordinatable {
-            if let root = flow.anyStack.root {
-                _appendDestination(root, role: "root", to: &lines, indent: childIndent)
-            }
-            for destination in flow.anyStack.destinations {
-                _appendDestination(
-                    destination,
-                    role: _roleLabel(for: destination.pushType),
-                    to: &lines,
-                    indent: childIndent
-                )
-            }
-        } else if let tab = self as? any TabCoordinatable {
-            let items = tab.anyTabItems
-            for (index, destination) in items.tabs.enumerated() {
-                let selectedMark = destination.id == items.selectedTab ? "*" : ""
-                _appendDestination(
-                    destination,
-                    role: "tab[\(index)]\(selectedMark)",
-                    to: &lines,
-                    indent: childIndent
-                )
-            }
-            for destination in items.modals {
-                _appendDestination(
-                    destination,
-                    role: _roleLabel(for: destination.pushType),
-                    to: &lines,
-                    indent: childIndent
-                )
-            }
-        } else if let root = self as? any RootCoordinatable {
-            if let rootDestination = root.anyRoot.root {
-                _appendDestination(rootDestination, role: "root", to: &lines, indent: childIndent)
-            }
-            for destination in root.anyRoot.modals {
-                _appendDestination(
-                    destination,
-                    role: _roleLabel(for: destination.pushType),
-                    to: &lines,
-                    indent: childIndent
-                )
-            }
-        }
-    }
-
-    private func _roleLabel(for pushType: PresentationType?) -> String {
-        switch pushType {
-        case .push: return "push"
-        case .sheet: return "sheet"
-        case .fullScreenCover: return "fullScreenCover"
-        case nil: return "root"
-        }
-    }
-
-    private func _appendDestination(
-        _ destination: Destination,
-        role: String,
-        to lines: inout [String],
-        indent: String
-    ) {
-        let metaText = ".\(String(describing: destination.meta))"
-
-        guard destination.hasCoordinatable else {
-            lines.append("\(indent)\(role) \(metaText)")
-            return
+        guard node.hasCoordinator else {
+            lines.append("\(indent)\(label)")
+            continue
         }
 
-        guard let child = destination.materializedCoordinatable else {
-            lines.append("\(indent)\(role) \(metaText) → (not yet created)")
-            return
+        guard let child = node.coordinator else {
+            lines.append("\(indent)\(label) → (not yet created)")
+            continue
         }
 
-        child._appendHierarchy(to: &lines, label: "\(role) \(metaText)", indent: indent)
+        lines.append("\(indent)\(label) → \(String(describing: type(of: child))) [\(child._kindLabel)]")
+        _appendNodes(node.children, to: &lines, indent: indent + "  ")
     }
 }
