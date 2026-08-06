@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "scaffolding",
+  "description": "Agent skills for the Scaffolding SwiftUI navigation library.",
+  "owner": {
+    "name": "dotaeva",
+    "url": "https://github.com/dotaeva"
+  },
+  "plugins": [
+    {
+      "name": "scaffolding",
+      "description": "Agent skills for writing SwiftUI navigation with Scaffolding: coordinators, routing, environment values, state restoration, testing.",
+      "source": "./",
+      "category": "development"
+    }
+  ]
+}
