@@ -1,0 +1,150 @@
+@Tutorial(time: 20) {
+    @Intro(title: "Unit-Testing Your Coordinators") {
+        A coordinator is a plain `@MainActor @Observable` class, and every
+        navigation call mutates its state synchronously. So the whole
+        navigation layer is unit-testable: no host app, no rendered
+        `NavigationStack`, no UI test, no view-inspection library.
+
+        You will link the `ScaffoldingTesting` library, assert on pushes and
+        policies, drive a presented sub-flow and its awaited result, cover a tab
+        guard, and check a deep link and a restore round trip — all in
+        milliseconds.
+
+        @Image(source: "scaffolding-chapter-hero", alt: "The Scaffolding coordinator hierarchy.")
+    }
+
+    @Section(title: "Set Up the Test Target") {
+        @ContentAndMedia {
+            Add a unit-test target (**File > New > Target > Unit Testing
+            Bundle**) and link `ScaffoldingTesting`, the package's second
+            library. Everything else is plain Swift Testing.
+        }
+
+        @Steps {
+            @Step {
+                Link the `ScaffoldingTesting` product into the **test target**
+                — never into the app target, since it imports Swift Testing. It
+                brings four helpers: `activated()`, `descendant(ofType:)`,
+                `hierarchyContains(_:_:as:)`, and `waitUntil`.
+
+                @Code(name: "Package.swift", file: "test-01-package.swift")
+            }
+
+            @Step {
+                Write the first suite. Mark it `@MainActor` — coordinators are
+                MainActor-isolated — and start from `activated()`, which
+                resolves the initial root the way the first render would.
+
+                > `FlowStack`, `Root`, and `TabItems` resolve their destinations
+                lazily. Skip `activated()` and pushes still work, but
+                `topDestination`, `isRoot(_:)`, and `hierarchyContains` read as
+                empty, because the root was never resolved.
+
+                @Code(name: "PlanetsFlowTests.swift", file: "test-02-first-test.swift")
+            }
+        }
+    }
+
+    @Section(title: "Pushes, Policies, and Dismissal") {
+        @ContentAndMedia {
+            `depth`, `topDestination`, `isInStack(_:)`, `count(of:)`, and
+            `isPresentingModal` are the vocabulary for stack assertions. They
+            are public, synchronous, and cheap.
+        }
+
+        @Steps {
+            @Step {
+                Pin down the behaviours that are easy to break: the double-tap
+                guard, an awaited push resuming exactly once when the screen
+                leaves, and a seeded stack starting deep.
+
+                > Assert through this API rather than reaching into
+                `anyStack.destinations` — the framework's internals are not your
+                contract.
+
+                @Code(name: "PushPolicyTests.swift", file: "test-03-policies.swift")
+            }
+        }
+    }
+
+    @Section(title: "Modals and Results") {
+        @ContentAndMedia {
+            Presented coordinators are where tests usually stall: the child is
+            created inside the framework, so how do you get at it? With the
+            `expecting:` overloads, which navigate *and* return the resolved
+            child, typed.
+        }
+
+        @Steps {
+            @Step {
+                When the **test** performs the navigation, `expecting:` hands
+                back the child: prove the sub-flow owns its own stack, and that
+                `dismissModal()` leaves pushes alone. `routeType` and
+                `ancestor(ofType:)` confirm the child was wired to its
+                presenter.
+
+                @Code(name: "ModalTests.swift", file: "test-04-modals.swift")
+            }
+
+            @Step {
+                When the **code under test** performs it, use
+                `descendant(ofType:)`: `present(_:awaiting:)` deliberately hands
+                back no coordinator, so this is how a test drives the presented
+                flow and lets the awaited result come back. The second test
+                covers the cancel path, which resumes with `nil`.
+
+                @Code(name: "ResultTests.swift", file: "test-05-async.swift")
+            }
+        }
+    }
+
+    @Section(title: "Tabs, Roots, and Restoration") {
+        @ContentAndMedia {
+            The same approach scales to the top of the tree: tab guards are
+            ordinary methods, root swaps are one call, and a whole-tree
+            assertion is one string comparison.
+        }
+
+        @Steps {
+            @Step {
+                Call `shouldSelect(tab:isReselection:)` the way the tab bar does
+                and assert both the veto and its side effect. Remember the
+                asymmetry: programmatic selection bypasses the hook, so a test
+                calling `selectFirstTab` is testing selection, not the guard.
+
+                @Code(name: "TabTests.swift", file: "test-06-tabs.swift")
+            }
+
+            @Step {
+                Cover the deep link end to end. `hierarchyContains(_:_:as:)`
+                checks the whole tree in one typed assertion — no string
+                matching, and it never materialises coordinators that do not
+                exist yet, so the assertion cannot create what it is looking
+                for.
+
+                > Need more than yes/no? `hierarchySnapshot()` in the main
+                library returns the same tree as `[HierarchyNode]` — role, meta,
+                coordinator, children.
+
+                @Code(name: "RootTests.swift", file: "test-07-deeplinks.swift")
+            }
+
+            @Step {
+                Finish with the restore round trip: navigate, capture, tear the
+                tree down, replay, and compare.
+
+                @Code(name: "RestorationTests.swift", file: "test-08-restoration.swift")
+            }
+
+            @Step {
+                **Run the tests** (⌘U). The whole suite finishes in a fraction of
+                a second, because none of it touches SwiftUI.
+
+                Two things to leave untested: view rendering — that a
+                `NavigationStack` shows the top destination is the framework's
+                job — and `\.destination`, which reads as its default outside a
+                real render, exactly as it does in a `#Preview`.
+            }
+        }
+    }
+}

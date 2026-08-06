@@ -11,7 +11,7 @@ must be maintained by hand, and deep linking requires plumbing that touches
 every layer of the app.
 
 Scaffolding solves this by moving navigation into **coordinators** — observable
-classes whose functions *are* the routes. The ``Scaffoldable(injectsCoordinator:)`` macro reads
+classes whose functions *are* the routes. The ``Scaffoldable(injectsCoordinator:codable:)`` macro reads
 those functions at compile time and generates a `Destinations` enum
 automatically. You navigate by calling `route(to:)` to push or
 `present(_:as:)` to show a modal, and Scaffolding handles the rest using
@@ -113,6 +113,11 @@ without delegating to a child flow.
 Go back with ``FlowCoordinatable/pop()``,
 ``FlowCoordinatable/popToRoot()``, or pop to a specific destination with
 ``FlowCoordinatable/popToFirst(_:)`` and ``FlowCoordinatable/popToLast(_:)``.
+
+Both `route(to:)` and `present(_:as:)` take an `onDismiss` closure that fires
+when the destination leaves. When the code that navigates also wants to
+continue afterwards, the `await` form says the same thing in a straight line —
+see <doc:MeetScaffolding#Awaiting-Navigation>.
 
 ## TabCoordinatable — Tab Bars
 
@@ -268,15 +273,98 @@ func startLogin() {
 }
 ```
 
+The same result can travel back without a callback at all — see
+``Coordinatable/dismissCoordinator(returning:)`` in
+<doc:MeetScaffolding#Awaiting-Navigation>. Prefer the awaited form when the
+presenter is the only interested party, and the callback when the route needs
+to hand the child a channel it may use more than once. Callback payloads also
+make a route non-`Codable`, which rules it out of state restoration.
+
+## Awaiting Navigation
+
+Every navigation call above has an `async` counterpart that suspends until the
+destination leaves. It is an alternative to the `onDismiss:` /
+`onComplete:` closures, not a replacement: same machinery, read top to bottom.
+
+```swift
+// Push a screen, continue when it pops.
+await routeAndWait(to: .categoryPicker)
+print(category)              // whatever the picker wrote
+
+// Present a modal, continue when it closes.
+await presentAndWait(.onboarding, as: .fullScreenCover)
+
+// Present a sub-flow and take its result.
+guard let limit = await present(.limitPicker, awaiting: Decimal.self) else {
+    return                   // the user backed out
+}
+```
+
+The closure form and the awaited form of the same navigation:
+
+```swift
+// Closure: the continuation lives in a callback.
+route(to: .categoryPicker, onDismiss: { [weak self] in
+    self?.applyFilter()
+})
+
+// await: the continuation is the next line.
+await routeAndWait(to: .categoryPicker)
+applyFilter()
+```
+
+On the presented side, ``Coordinatable/dismissCoordinator(returning:)``
+delivers the value that ``FlowCoordinatable/present(_:as:policy:awaiting:)``
+resumes with, and closes the coordinator in the same call:
+
+```swift
+// Inside LimitCoordinator
+func finish(_ amount: Decimal) {
+    dismissCoordinator(returning: amount)   // presenter resumes with amount
+}
+
+func cancel() {
+    dismissCoordinator()                    // presenter resumes with nil
+}
+```
+
+Three guarantees worth relying on:
+
+- The suspension resumes **exactly once**, however the destination
+  leaves — `pop()`, `popToRoot()`, a back swipe, a root swap,
+  ``Coordinatable/dismissModal()``, or the whole coordinator being dismissed.
+- Any dismissal that is not `dismissCoordinator(returning:)` resumes with
+  `nil`, so cancellation needs no extra code — and a result of a different
+  type than the one you awaited also arrives as `nil`.
+- ``FlowCoordinatable/presentAndWait(_:as:policy:)`` and
+  ``FlowCoordinatable/present(_:as:policy:awaiting:)`` exist on
+  ``RootCoordinatable`` and ``TabCoordinatable`` too;
+  ``FlowCoordinatable/routeAndWait(to:policy:)`` is push-only, so it lives on
+  ``FlowCoordinatable``.
+
+Calling these from a view is ordinary structured concurrency — wrap the call in
+a `Task`, or put it in `.task`:
+
+```swift
+Button("Change limit") {
+    Task { await coordinator.changeLimit() }
+}
+```
+
+> When a `RoutePolicy` skips the navigation — `policy: .distinct` while the
+same case is already on top or already presented — the awaited call returns
+immediately (with `nil` for the `awaiting:` form) instead of suspending
+forever.
+
 ## Deep Linking
 
 Every navigation method that resolves a child coordinator
-(``FlowCoordinatable/route(to:onDismiss:_:)``,
-``FlowCoordinatable/present(_:as:onDismiss:_:)``,
+(``FlowCoordinatable/route(to:policy:onDismiss:_:)``,
+``FlowCoordinatable/present(_:as:policy:onDismiss:_:)``,
 ``FlowCoordinatable/setRoot(_:animation:_:)``,
-``RootCoordinatable/present(_:as:onDismiss:_:)``,
+``RootCoordinatable/present(_:as:policy:onDismiss:_:)``,
 ``RootCoordinatable/setRoot(_:animation:_:)``,
-``TabCoordinatable/present(_:as:onDismiss:_:)``,
+``TabCoordinatable/present(_:as:policy:onDismiss:_:)``,
 ``TabCoordinatable/selectFirstTab(_:_:)``,
 ``TabCoordinatable/selectLastTab(_:_:)``,
 ``TabCoordinatable/appendTab(_:_:)``,
@@ -325,6 +413,22 @@ the concrete coordinator type that matches the route's return signature —
 for `func authenticated() -> any Coordinatable { MainTabCoordinator() }`,
 the closure parameter must be `MainTabCoordinator`.
 
+Each of those overloads also has an `expecting:` sibling that **returns** the
+resolved child instead of taking a closure. Same work, no nesting — pick
+whichever reads better, and reach for this one when a step needs to branch:
+
+```swift
+func openProfile(userId: Int) {
+    let tab = setRoot(.authenticated, expecting: MainTabCoordinator.self)
+    let profile = tab?.selectFirstTab(.profile, expecting: ProfileCoordinator.self)
+    profile?.route(to: .userDetail(id: userId))
+}
+```
+
+It returns `nil` when the destination is view-only, resolves to a different
+type, or the policy skipped the navigation — which also makes it the seam
+tests use to drive a nested coordinator.
+
 ## Dismissing a Flow
 
 `pop()` and `dismissCoordinator()` are not the same call. `pop()` removes a
@@ -364,7 +468,16 @@ struct PasswordStepView: View {
 For a single-screen back button inside a flow, prefer `pop()` or SwiftUI's
 `@Environment(\.dismiss)`. Reach for `dismissCoordinator()` when the intent
 is "I am done with this whole sub-flow," typically right after handing a
-result back through an `onComplete` callback.
+result back — through an `onComplete` callback, or in a single call with
+``Coordinatable/dismissCoordinator(returning:)``.
+
+From the **presenter's** side the call is ``Coordinatable/dismissModal()``,
+available on every coordinator type. It removes the topmost modal, fires its
+`onDismiss` exactly once, and no-ops when nothing is presented — so it is also
+the only way to close a *view-only* modal programmatically, since there is no
+child coordinator to dismiss. Unlike `pop()`, it never touches pushed
+destinations. ``Coordinatable/dismissAllModals()`` clears the whole modal
+stack, which is what you want before a root swap.
 
 > Calling ``Coordinatable/dismissCoordinator()`` on the root coordinator is
 a no-op — there is no parent to remove it from.
@@ -414,6 +527,14 @@ func customize(_ view: AnyView) -> some View {
 
 ## Next Steps
 
-Ready to try it yourself? Follow the
-<doc:YourFirstScaffoldingProject> tutorial to build a working app in
-under 25 minutes.
+Ready to try it yourself? Follow <doc:YourFirstScaffoldingProject> to build a
+working app in about twenty minutes, then take the tutorial that matches the
+problem in front of you:
+
+- <doc:TabsAndFlows> — a tab per flow, badges, selection guards, custom bars.
+- <doc:AuthenticationFlow> — atomic root swaps and reaching up the tree.
+- <doc:ModalSubFlows> — native sheet vs. presented sub-flow, and both result
+  patterns, including the awaited one.
+- <doc:DeepLinking> — landing anywhere from a URL, guarded and deferred.
+- <doc:StateRestoration> — capture and replay the live tree.
+- <doc:TestingCoordinators> — unit-test the whole navigation layer.

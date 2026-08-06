@@ -10,7 +10,7 @@ type-safe routes and minimal boilerplate.
 ## Overview
 
 Scaffolding lets you define navigation routes as plain Swift functions on
-coordinator classes. The ``Scaffoldable(injectsCoordinator:)`` macro inspects those functions at
+coordinator classes. The ``Scaffoldable(injectsCoordinator:codable:)`` macro inspects those functions at
 compile time and generates a `Destinations` enum automatically — no manual
 enums, no switch statements, no boilerplate.
 
@@ -41,12 +41,26 @@ to push, `present(_:as:)` to show a sheet or full-screen cover, `pop()`,
 into the SwiftUI environment, so any child view can access its nearest
 coordinator with `@Environment`.
 
+Because all of that state lives on a plain `@Observable` class, the whole
+navigation layer is unit-testable without rendering a view. The package's
+second library, `ScaffoldingTesting`, adds the helpers for it — see
+<doc:TestingCoordinators>.
+
 ## Topics
 
 ### Essentials
 
 - <doc:MeetScaffolding>
 - <doc:YourFirstScaffoldingProject>
+
+### Tutorials by Use Case
+
+- <doc:TabsAndFlows>
+- <doc:AuthenticationFlow>
+- <doc:ModalSubFlows>
+- <doc:DeepLinking>
+- <doc:StateRestoration>
+- <doc:TestingCoordinators>
 
 ### Coordinator Protocols
 
@@ -73,7 +87,12 @@ coordinator with `@Environment`.
 - ``Root``
 - ``TabItems``
 
+### Inspecting the Tree
+
+- ``HierarchyNode``
+- ``HierarchyRole``
+
 ### Macros
 
-- ``Scaffoldable(injectsCoordinator:)``
+- ``Scaffoldable(injectsCoordinator:codable:)``
 - ``ScaffoldingIgnored()``

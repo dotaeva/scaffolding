@@ -85,6 +85,7 @@ Is it a push/pop on the current stack?
 | Intercept a tab tap (guard, redirect, pop-to-root on re-tap) | override `shouldSelect(tab:isReselection:)` on the `TabCoordinatable` |
 | Atomically replace the entire view hierarchy (auth, onboarding) | `appCoordinator.setRoot(.authenticated)` (on a `RootCoordinatable`) |
 | Switch tabs programmatically | `tabCoordinator.selectFirstTab(.home)` |
+| Replace the system tab bar with your own UI | `TabItems(tabs:, visibility: .hidden)` + custom bar view (see *Custom tab bar*) |
 
 Stay native for view-only modals. The native modifier is lighter, requires no coordinator boundary, and avoids the overhead of an extra `Destinations` case.
 
@@ -425,6 +426,73 @@ final class MainTabCoordinator: @MainActor TabCoordinatable {
 }
 ```
 
+### Custom tab bar
+
+To replace the system tab bar with your own UI, stay on `TabCoordinatable` — don't hand-roll tab state in a view. Three pieces:
+
+1. **Hide the native bar** — pass `visibility: .hidden` to the `TabItems` initializer (or call `setTabBarVisibility(.hidden)` later).
+2. **Omit the label views.** The `some View` label in the tab tuple only feeds the native tab bar. With a custom bar it's dead weight — tab routes can return plain `any Coordinatable` (or `some View` for a view-only tab) instead of `(any Coordinatable, some View)`. Both are auto-tracked, so the macro still generates the `.home` / `.profile` cases; the tab simply has no native label.
+3. **Build the bar from the macro-generated values.** The bar is an ordinary view: it reads the coordinator from `@Environment`, renders a button per `Destinations.Meta` case, drives selection with `selectFirstTab(_:)`, and derives the selected state from `tabItems.selectedTab`. Badges come from `badge(for:)`. Attach it in `customize(_:)`, which wraps the whole `TabView`.
+
+```swift
+@MainActor @Observable @Scaffoldable
+final class MainTabCoordinator: @MainActor TabCoordinatable {
+    var tabItems = TabItems<MainTabCoordinator>(
+        tabs: [.home, .profile],
+        visibility: .hidden          // native bar off
+    )
+
+    // No native bar → no label views. Plain returns still generate the cases.
+    func home()    -> any Coordinatable { HomeCoordinator() }
+    func profile() -> any Coordinatable { ProfileCoordinator() }
+
+    @ScaffoldingIgnored
+    func customize(_ view: AnyView) -> some View {
+        view.safeAreaInset(edge: .bottom) { CustomTabBar() }
+    }
+}
+
+struct CustomTabBar: View {
+    @Environment(MainTabCoordinator.self) private var coordinator
+
+    var body: some View {
+        HStack {
+            tabButton(.home,    icon: "house")
+            tabButton(.profile, icon: "person")
+        }
+    }
+
+    private func tabButton(
+        _ tab: MainTabCoordinator.Destinations.Meta,
+        icon: String
+    ) -> some View {
+        Button {
+            coordinator.selectFirstTab(tab)
+        } label: {
+            Image(systemName: icon)
+                .foregroundStyle(isSelected(tab) ? Color.accentColor : .secondary)
+        }
+    }
+
+    private func isSelected(_ tab: MainTabCoordinator.Destinations.Meta) -> Bool {
+        coordinator.tabItems.tabs
+            .first { $0.id == coordinator.tabItems.selectedTab }
+            .flatMap { $0.meta as? MainTabCoordinator.Destinations.Meta } == tab
+    }
+}
+```
+
+One caveat: taps on a custom bar go through `selectFirstTab(_:)`, which is **programmatic** selection — `shouldSelect(tab:isReselection:)` is not consulted. If you need guarding or re-tap behavior, call the hook yourself from the button action:
+
+```swift
+Button {
+    let isReselection = isSelected(tab)
+    if coordinator.shouldSelect(tab: tab, isReselection: isReselection) && !isReselection {
+        coordinator.selectFirstTab(tab)
+    }
+}
+```
+
 ### Presenter-side modal dismissal
 
 `present(_:as:)` is paired with `dismissModal()`, available on **every** coordinator type. It removes the most recently presented modal and fires its `onDismiss` exactly once — equivalent to the user swiping the sheet away. Use it when the **presenter** decides the modal is done; the presented coordinator itself still uses `dismissCoordinator()`. This also covers view-only modals (a `some View` route presented modally), which have no coordinator to call `dismissCoordinator()` on.
@@ -435,6 +503,57 @@ appCoordinator.dismissModal()              // presenter closes it later
 ```
 
 On a `FlowCoordinatable`, `dismissModal()` removes only the topmost modal and never touches pushed destinations — prefer it over `pop()` for closing modals: `pop()` removes whatever is last on the stack (and dismisses the whole coordinator when the stack is empty), while `dismissModal()` is a safe no-op when nothing is presented.
+
+---
+
+## Orienting in a nested hierarchy
+
+Deep trees (root → tabs → flows → presented sub-flows) make it easy to lose track of which coordinator owns the current screen. Don't guess — Scaffolding has explicit orientation tools.
+
+### Which coordinator do I call?
+
+- **From a view:** the nearest coordinator via `@Environment(HomeCoordinator.self)`. Every *ancestor* coordinator is injected too — `@Environment(AppCoordinator.self)` works from any depth. Prefer the nearest one; reach for an ancestor only for actions that genuinely belong to it (root swaps, tab switching).
+- **From a coordinator, upward:** `ancestor(ofType:)` walks the `parent` chain to this coordinator's nearest ancestor of that type:
+
+  ```swift
+  // A flow deep in the tree exposes an action that belongs to the app root.
+  func signOut() {
+      ancestor(ofType: AppCoordinator.self)?.setRoot(.unauthenticated)
+  }
+  ```
+
+- **From a coordinator, downward:** stay typed through the deep-link trailing closures / `expecting:` overloads (see Deep linking). Never store references to child coordinators.
+
+### Where am I?
+
+| Question | API |
+|---|---|
+| How was this **coordinator** presented? | `coordinator.routeType` — `.root` / `.push` / `.sheet` / `.fullScreenCover`; `routeType.isModal` collapses the modal cases |
+| How was this **screen** reached? (in a view) | `@Environment(\.destination).routeType` |
+| How deep is the flow? | `flow.depth` — pushed count above root, modals excluded |
+| What's on top? | `flow.topDestination` — `Destinations.Meta` of the top push, or the root's |
+| Is a case already in the stack? | `flow.isInStack(.detail)`, `flow.count(of: .detail)` |
+| Is a modal up? | `coordinator.isPresentingModal` (any coordinator type) |
+
+The two `routeType`s answer different questions and can differ for the same screen: a view pushed inside a sheet-presented flow reads `.push` from `\.destination`, while its flow coordinator reads `.sheet`.
+
+### When routing misbehaves, print the tree first
+
+```swift
+print(coordinator.hierarchyRoot.debugHierarchy())   // whole tree from anywhere
+```
+
+```
+AppRootCoordinator [root]
+  root .main → MainTabCoordinator [tab]
+    tab[0]* .home → HomeFlowCoordinator [flow]
+      root .home
+      push .settings
+      sheet .sheetFlow → LeafFlowCoordinator [flow]
+        root .leaf
+```
+
+`hierarchyRoot` is the topmost coordinator of the tree; `debugHierarchy()` is a side-effect-free snapshot (uncreated children are reported as `(not yet created)`, never materialised). It answers "who owns what" immediately — verify your mental model of the tree against it before changing navigation code.
 
 ---
 
@@ -522,6 +641,114 @@ struct AdaptiveTopBar: View {
 ```
 
 The same view, used as a root, a pushed detail, and a presented sheet, renders three different leading controls — without the bar knowing anything about the surrounding flow. Switch on `destination.meta` (the macro emits a `Meta` enum alongside `Destinations`) when the same view renders different *layouts* depending on which route reached it.
+
+---
+
+## Testing
+
+A coordinator is a plain `@MainActor @Observable` class and every navigation call mutates its state **synchronously**, so the entire navigation layer is unit-testable: no host app, no rendered `NavigationStack`, no UI test, no view-inspection library. Test the shipping coordinator directly — don't invent a test double for it.
+
+This is the payoff of the discipline above. If navigation logic can't be reached from a test, the cause is almost always state that leaked into a view.
+
+The package ships a second library, **ScaffoldingTesting**, for the test target only (it imports Swift Testing — never link it into an app target). Four helpers:
+
+| Helper | Use it for |
+|---|---|
+| `coordinator.activated()` | Resolving the initial root/tabs before asserting. **Required** — see below. |
+| `coordinator.descendant(ofType:)` / `descendants(ofType:)` | A typed handle on an already-created child, including one the code under test presented itself. Never materialises anything. |
+| `coordinator.hierarchyContains(_:_:)` / `(_:_:as:)` | Typed whole-tree assertions instead of `debugHierarchy()` string matching. |
+| `await waitUntil { … }` | Letting a `Task` started by the code under test run before asserting. |
+
+```swift
+import Testing
+import Scaffolding
+import ScaffoldingTesting
+@testable import MyApp
+
+@MainActor                          // coordinators are MainActor-isolated
+@Suite("Home flow")
+struct HomeFlowTests {
+    @Test("opening a transaction pushes one screen")
+    func openPushes() {
+        let home = HomeCoordinator().activated()
+
+        home.open(Transaction.samples[0])
+
+        #expect(home.depth == 1)
+        #expect(home.topDestination == .transaction)
+    }
+}
+```
+
+### Always activate first
+
+`FlowStack` / `Root` / `TabItems` resolve their initial destinations lazily — the first time the framework touches `view`, `anyStack`, `anyRoot`, or `anyTabItems`, which at runtime is the first render. A test renders nothing, so without `activated()` the root is still unresolved and every root-dependent read (`topDestination`, `isRoot(_:)`, `debugHierarchy()`) comes back empty. Pushes and presentations work without it; assertions about the root don't.
+
+### What to assert on
+
+The orientation API from *Where am I?* is the assertion surface: `depth`, `topDestination`, `isInStack(_:)`, `count(of:)`, `isPresentingModal`, `isRoot(_:)`, `isInTabItems(_:)`, `badge(for:)`, `routeType`, `ancestor(ofType:)`, `hierarchyRoot`. For multi-step navigation, assert the shape of the tree:
+
+```swift
+app.handle(URL(string: "myapp://holding/NVDA")!)
+
+#expect(app.hierarchyContains(InvestCoordinator.self, .holding, as: .push))
+#expect(app.hierarchyContains(MainTabCoordinator.self, .invest, as: .tab(index: 2, isSelected: true)))
+```
+
+`hierarchySnapshot()` (in the main library) returns that tree as `[HierarchyNode]` — `role`, `meta`, `coordinator`, `children` — when a test or a debug UI needs more than a yes/no. Never assert on framework internals (`Destination`, `pushType`, `resolution`) or on SwiftUI output.
+
+### Reaching a child coordinator
+
+Two ways, and they answer different questions:
+
+- **In production code** — the `expecting:` overloads (or typed trailing closures) hand the child over at the moment the route lands: `let picker = cards.present(.limitPicker, expecting: LimitCoordinator.self)`.
+- **In a test** — `descendant(ofType:)` finds a child the code under test created on its own, which is the only way in when the action awaits its own presentation:
+
+```swift
+let picking = Task { await cards.changeLimit() }   // wraps present(_:awaiting:)
+await waitUntil { cards.isPresentingModal }
+
+cards.descendant(ofType: LimitCoordinator.self)?.finish(2_000)
+await picking.value
+
+#expect(cards.limit == 2_000)
+```
+
+Don't store child coordinator references on a coordinator to make it testable — that breaks the ownership model. Returning the child from an action (`@discardableResult` + `expecting:`) is fine and often the clearest seam.
+
+### Modals, guards, and results
+
+```swift
+// Presenter-side dismissal, and the .distinct policy swallowing a double tap.
+cards.openDetail(card)
+cards.openDetail(card)
+#expect(cards.count(of: .cardDetail) == 1)
+cards.resolveFreeze(card, freeze: true)
+#expect(!cards.isPresentingModal)
+
+// shouldSelect is an ordinary method — call it the way the tab bar does.
+#expect(!tabs.shouldSelect(tab: .invest, isReselection: false))
+#expect(tabs.isPresentingModal)     // the gate it presented instead
+#expect(tabs.selectedIndex == 0)    // selection never moved
+```
+
+Programmatic tab selection bypasses `shouldSelect`, so a test that calls `selectFirstTab` is testing selection, not the guard.
+
+### Awaitable navigation
+
+`routeAndWait`, `presentAndWait`, and `present(_:awaiting:)` suspend until the destination leaves. Drive them from a `Task`, then resolve them from the test body:
+
+```swift
+let picking = Task { await cards.present(.limitPicker, awaiting: Decimal.self) }
+await waitUntil { cards.isPresentingModal }
+
+cards.dismissModal()                            // stands in for a swipe-down
+#expect(await picking.value == nil)             // cancellation path
+```
+
+### Don't test
+
+`\.destination` reads as its default in a unit test for the same reason it does in a `#Preview` (nothing was materialised through the framework), views' rendering, or anything that requires poking a view's `@State` to drive navigation — that last one is a design bug to fix, not a test to write.
 
 ---
 
@@ -637,5 +864,6 @@ When asked to add navigation to a Scaffolding project:
 5. Don't sprinkle `@ScaffoldingIgnored` on properties or `Void` helpers — the macro never tracks those. Use it only on functions whose return type *is* auto-tracked but that aren't destinations (`customize(_:)`, view-builder helpers, non-route factories).
 6. Views read the coordinator from `@Environment(MyCoordinator.self)` and call methods on it. Views never store path or sheet booleans for flow-driven navigation.
 7. Cross-coordinator results are delivered by the presenter installing an `onComplete` callback at construction time; the presented coordinator calls the callback then `dismissCoordinator()`.
+8. Test navigation against the coordinator, not the UI: link **ScaffoldingTesting**, start from `Coordinator().activated()`, and assert with `depth` / `topDestination` / `isPresentingModal` / `isRoot(_:)` / `hierarchyContains(_:_:as:)`. Reach nested coordinators with `expecting:` in production code and `descendant(ofType:)` in tests.
 
 If you can't figure out which coordinator should own a destination, the answer is usually "the closest existing one" — don't invent new coordinator types just to host one route.

@@ -1,11 +1,12 @@
-@Tutorial(time: 25) {
+@Tutorial(time: 20) {
     @Intro(title: "Your First Scaffolding Project") {
-        Build a three-screen iOS app with push navigation and sheet presentation
-        using Scaffolding's coordinator pattern.
+        Build a three-screen iOS app with push navigation and a sheet, using
+        Scaffolding's coordinator pattern.
 
-        You will create a coordinator, define views, wire up navigation between
-        a list screen and a detail screen, and present a settings screen as
-        a modal sheet — all with just a few lines of code.
+        You will create a coordinator, define routes as plain functions, wire
+        navigation between a list and a detail screen, and present settings
+        as a modal — without a single `NavigationStack` or `@State` flag in
+        your views.
 
         @Image(source: "01-home-list", alt: "The finished Planets app showing a list of planets with a gear icon in the toolbar.")
     }
@@ -44,9 +45,11 @@
             Define a ``FlowCoordinatable`` coordinator that manages navigation
             between three screens: **Home**, **Detail**, and **Settings**.
 
-            The ``Scaffoldable(injectsCoordinator:)`` macro inspects the functions you write and
-            generates a type-safe `Destinations` enum at compile time. Each
-            function becomes a destination — no manual enums needed.
+            The ``Scaffoldable(injectsCoordinator:codable:)`` macro inspects the
+            functions you write and generates a type-safe `Destinations` enum at
+            compile time. Every function whose return type is `some View` or
+            `any Coordinatable` becomes a destination — no manual enums, and
+            nothing to keep in sync.
         }
 
         @Steps {
@@ -95,11 +98,15 @@
     @Section(title: "Build the Views") {
         @ContentAndMedia {
             Create the three SwiftUI views that the coordinator returns.
-            Each view accesses the coordinator through the SwiftUI environment
-            using `@Environment(AppCoordinator.self)`.
+            Each view reads its coordinator from the SwiftUI environment
+            with `@Environment(AppCoordinator.self)` — Scaffolding injects a
+            coordinator into every view it manages, and every ancestor
+            coordinator alongside it.
 
-            Scaffolding automatically injects coordinators into the
-            environment for all their child views.
+            No view here owns a navigation path or an `isPresented` flag.
+            That is the whole point: navigation state belongs to the
+            coordinator, so it can be driven — and tested — from outside the
+            view tree.
         }
 
         @Steps {
@@ -119,13 +126,15 @@
             }
 
             @Step {
-                Create **SettingsView.swift**. This view will be presented as a
-                sheet later. It includes a **Done** button that calls
-                `dismissCoordinator()` to dismiss itself.
+                Create **SettingsView.swift**. This screen will be presented as
+                a sheet later, and its **Done** button closes it with
+                `dismissModal()`.
 
-                Notice the inner `NavigationStack` — sheets presented by
-                Scaffolding get their own navigation context, so you can add
-                a toolbar and title.
+                > Do not add a `NavigationStack` here. `FlowCoordinatable`
+                already is one, and SwiftUI does not compose nested stacks —
+                the inner one swallows pushes that belong to the flow. If a
+                modal needs its own navigation, present a child coordinator
+                instead, as shown in <doc:ModalSubFlows>.
 
                 @Code(name: "SettingsView.swift", file: "03-settings-view.swift")
             }
@@ -147,6 +156,10 @@
                 an item, call `coordinator.route(to: .detail(title: item))` to
                 push the detail screen with the selected title.
 
+                > A plain `Button` calling the coordinator replaces
+                `NavigationLink` — the row stays decoupled from navigation, which
+                is what lets a destination live in another module.
+
                 @Code(name: "HomeView.swift", file: "04-home-view-navigation.swift")
             }
 
@@ -154,9 +167,11 @@
                 Update **DetailView** to include a **Go Back** button. Call
                 `coordinator.pop()` to remove the current view from the stack.
 
-                > The system back button in the navigation bar already works
-                automatically — this custom button is just to demonstrate the
-                programmatic API.
+                > The system back button already works, and so does SwiftUI's
+                `@Environment(\.dismiss)` — this custom button just shows the
+                programmatic API. Reach for `pop()` to remove one screen and
+                `dismissCoordinator()` to remove a whole coordinator; they are
+                not interchangeable.
 
                 @Code(name: "DetailView.swift", file: "04-detail-view-navigation.swift")
             }
@@ -165,10 +180,11 @@
 
     @Section(title: "Present a Sheet") {
         @ContentAndMedia {
-            Present the settings screen as a modal sheet. In Scaffolding,
-            the presentation style is decided at the **call site**, not in the
-            coordinator definition — the same route can be pushed or
-            presented as a sheet depending on context.
+            Present the settings screen as a modal sheet. The presentation
+            style is decided at the **call site**, not in the route
+            definition — the same destination can be pushed in one place and
+            presented as a sheet in another, with the presenter choosing the
+            detents and whether it can be swiped away.
 
             @Image(source: "03-settings-sheet", alt: "The settings screen presented as a modal sheet with a Done button.")
         }
@@ -185,7 +201,7 @@
             @Step {
                 Add a toolbar button to **HomeView** that presents settings as
                 a sheet. Call `present(_:as:)` instead of `route(to:)` —
-                `route` is push-only, while `present` handles `.sheet` and
+                `route` is push-only, while `present` takes `.sheet(…)` and
                 `.fullScreenCover`.
 
                 @Code(name: "HomeView.swift", file: "05-home-view-sheet.swift")
@@ -213,7 +229,10 @@
                 push the detail screen. Tap the gear icon in the toolbar to
                 present settings as a sheet. Tap **Done** to dismiss it.
 
-                Congratulations — you have built your first Scaffolding app!
+                You have built your first Scaffolding app. From here,
+                <doc:TabsAndFlows> splits this single flow into tabs,
+                <doc:AuthenticationFlow> puts it behind a login, and
+                <doc:TestingCoordinators> covers it with tests.
             }
         }
     }

@@ -1,0 +1,103 @@
+@Tutorial(time: 15) {
+    @Intro(title: "Deep Linking from a Cold Launch") {
+        `planets://planet/Mars` should land the user on the Mars detail screen
+        — root swapped, tab selected, screen pushed — whether the app was
+        already running or launched by the tap.
+
+        You will funnel every external entry point into one coordinator
+        method, walk the tree with the typed `expecting:` overloads, guard the
+        link behind authentication, and defer a link that arrives too early.
+
+        @Image(source: "scaffolding-chapter-hero", alt: "The Scaffolding coordinator hierarchy.")
+    }
+
+    @Section(title: "One Entry Point") {
+        @ContentAndMedia {
+            Deep-link handling belongs on a coordinator — the one place that
+            can see the whole tree. Views never dispatch multi-step navigation;
+            a view firing several `route(to:)` calls in sequence is the smell
+            this section removes.
+        }
+
+        @Steps {
+            @Step {
+                Hand the URL straight to the root coordinator from
+                `onOpenURL`. That is the entire view-side contribution.
+
+                @Code(name: "PlanetsApp.swift", file: "link-01-url-scheme.swift")
+            }
+        }
+    }
+
+    @Section(title: "Walk the Tree") {
+        @ContentAndMedia {
+            Every navigation call that resolves a child coordinator has an
+            `expecting:` overload that **returns** the resolved child, typed.
+            Chaining them is how you reach a screen three levels down without
+            storing a single reference — and it stays flat, one line per hop.
+        }
+
+        @Steps {
+            @Step {
+                Implement `handle(_:)` with the `expecting:` variants — each step
+                returns the next child, so the whole walk reads top to bottom.
+                `setRoot` re-runs the route function, so the signed-in tree is
+                rebuilt: exactly what a cold launch needs.
+
+                > `expecting:` returns `nil` when the destination is view-only,
+                resolves to a different type, or the policy skipped the
+                navigation — so pick the concrete type that matches the route's
+                return value.
+
+                @Code(name: "AppRootCoordinator+DeepLink.swift", file: "link-02-expecting.swift")
+            }
+
+        }
+    }
+
+    @Section(title: "Guard and Defer") {
+        @ContentAndMedia {
+            A link is untrusted input: it can arrive while the user is signed
+            out, name something that no longer exists, or fire twice. The
+            coordinator is the right place to be strict about all three.
+        }
+
+        @Steps {
+            @Step {
+                Refuse to route past authentication with `isRoot(_:)`, clear the
+                target flow with `popToRoot()` before pushing so the user lands
+                on a predictable stack, and add `policy: .distinct` so a
+                repeated link cannot push two identical screens.
+
+                @Code(name: "AppRootCoordinator+DeepLink.swift", file: "link-04-guarded.swift")
+            }
+
+            @Step {
+                Store the rejected URL and replay it after `signIn()`. The tree
+                only exists once the root swap has happened, which is why the
+                replay lives here and not in the view layer.
+
+                @Code(name: "AppRootCoordinator.swift", file: "link-05-pending.swift")
+            }
+
+            @Step {
+                Push notifications, quick actions, and Handoff all funnel into
+                the same method. One implementation of "where should the app
+                be", not one per source.
+
+                @Code(name: "PlanetsApp.swift", file: "link-06-notification.swift")
+            }
+
+            @Step {
+                **Build and run,** then trigger the link with
+                `xcrun simctl openurl booted planets://planet/Mars`. Try it
+                signed out first, then sign in and watch the deferred link
+                replay.
+
+                If the app lands somewhere unexpected, print
+                `coordinator.debugHierarchy()` — <doc:StateRestoration> shows
+                what that output looks like.
+            }
+        }
+    }
+}

@@ -77,7 +77,31 @@ Add Scaffolding via Swift Package Manager:
 https://github.com/dotaeva/scaffolding.git
 ```
 
+The package exposes two libraries: **Scaffolding** for your app target, and
+**ScaffoldingTesting** — the test-only helpers described under
+[Testing](#testing) — for your test target. Don't link `ScaffoldingTesting`
+into an app target; it imports Swift Testing.
+
 **Requirements:** iOS 18+ · macOS 15+ · tvOS 18+ · watchOS 11+ · macCatalyst 18+ · Swift 6.2 · Xcode 16+
+
+### Agent skills
+
+This repo doubles as a [Claude Code](https://claude.com/claude-code) plugin marketplace shipping five skills that teach coding agents the current API — coordinators, routing, `@Environment` values, state restoration, and testing. Install them with one command in your terminal:
+
+```sh
+claude plugin marketplace add dotaeva/scaffolding && claude plugin install scaffolding@scaffolding
+```
+
+Or, from inside a Claude Code session:
+
+```
+/plugin marketplace add dotaeva/scaffolding
+/plugin install scaffolding@scaffolding
+```
+
+Add `--scope project` (CLI) if you'd rather commit the plugin to a single project than install it for your user. `claude plugin update scaffolding` pulls newer skills after a Scaffolding release; `claude plugin uninstall scaffolding` removes them.
+
+Skills load on demand, so the standing cost is only the ~1.7k tokens of skill descriptions. For agents without plugin support, [`AGENTS.md`](AGENTS.md) covers the same ground in one file.
 
 ---
 
@@ -102,15 +126,23 @@ final class MainCoordinator: @MainActor FlowCoordinatable {
 
 | Method | Description |
 |---|---|
-| `route(to:onDismiss:)` | Push a destination onto the stack |
-| `present(_:as:onDismiss:)` | Show a destination as a `.sheet` or `.fullScreenCover` |
-| `pop()` / `popToRoot()` | Pop the topmost / everything-above-root |
+| `route(to:policy:onDismiss:)` | Push a destination onto the stack |
+| `present(_:as:policy:onDismiss:)` | Show a destination as a `.sheet` or `.fullScreenCover` |
+| `pop()` / `pop(_:)` / `popToRoot()` | Pop the topmost / *n* destinations / everything-above-root |
 | `popToFirst(_:)` / `popToLast(_:)` | Pop to a specific destination by `Meta` |
+| `replaceLast(with:)` | Swap the top push, so back skips it |
 | `setRoot(_:animation:)` | Replace the root destination |
+| `dismissModal()` / `dismissAllModals()` | Close the top / every presented modal |
 | `dismissCoordinator()` | Remove the whole coordinator from its parent |
-| `isInStack(_:)` | Check whether a destination exists in the stack |
+| `depth` · `topDestination` · `isInStack(_:)` · `count(of:)` · `isPresentingModal` | Read the current stack |
 
-Each of these methods also exposes a `<T: Coordinatable>` overload with a trailing closure — handy for [deep linking](#advanced-usage).
+Pass `policy: .distinct` to make a route a no-op when the same case is already on top (or already presented) — a one-word double-tap guard. Each navigation method that resolves a child coordinator also exposes `<T: Coordinatable>` overloads — a trailing closure or the flatter `expecting:` variant — for [deep linking](#deep-linking).
+
+A flow can also start deep, without any routing calls:
+
+```swift
+var stack = FlowStack<HomeCoordinator>(root: .home, pushing: [.detail(item: item)])
+```
 
 ### TabCoordinatable — Tab Bars
 
@@ -144,7 +176,30 @@ final class AppCoordinator: @MainActor TabCoordinatable {
 | `appendTab(_:)` / `insertTab(_:at:)` | Add tabs dynamically |
 | `removeFirstTab(_:)` / `removeLastTab(_:)` | Remove tabs |
 | `setTabs(_:)` | Replace all tabs |
-| `present(_:as:onDismiss:)` | Show a destination as a `.sheet` or `.fullScreenCover` |
+| `setBadge(_:for:)` / `badge(for:)` | Set or read a tab badge (`0` / `nil` clears) |
+| `setTabBarVisibility(_:)` | Show or hide the native tab bar |
+| `isInTabItems(_:)` | Check whether a tab is currently present |
+| `present(_:as:policy:onDismiss:)` | Show a destination as a `.sheet` or `.fullScreenCover` |
+
+Override `shouldSelect(tab:isReselection:)` to intercept **UI-driven** selection — guard a tab behind auth by returning `false`, or pop a flow to its root when the user re-taps its tab. Programmatic selection bypasses the hook, so redirecting from inside it can't recurse.
+
+```swift
+func shouldSelect(tab: Destinations.Meta, isReselection: Bool) -> Bool {
+    if isReselection {
+        if tab == .home {
+            selectFirstTab(.home) { (home: HomeCoordinator) in home.popToRoot() }
+        }
+        return true     // ignored for re-taps — there's no change to veto
+    }
+    guard tab != .profile || session.isAuthenticated else {
+        present(.login)
+        return false
+    }
+    return true
+}
+```
+
+Pass `visibility: .hidden` to `TabItems` and tab routes can drop their label views entirely — plain `any Coordinatable` / `some View` returns are auto-tracked too, so a custom bar built from `Destinations.Meta` and `selectFirstTab(_:)` replaces the native one.
 
 ### RootCoordinatable — State Switches
 
@@ -166,7 +221,7 @@ One call flips the entire app state:
 coordinator.setRoot(.authenticated)
 ```
 
-`RootCoordinatable` also exposes `present(_:as:onDismiss:)`, so a root coordinator can host a sheet or full-screen cover directly without delegating to a child flow.
+`isRoot(_:)` reports which root is showing. `RootCoordinatable` also exposes `present(_:as:policy:onDismiss:)`, so a root coordinator can host a sheet or full-screen cover directly — the right home for cross-cutting UI (a What's New sheet, a debug panel) that isn't owned by any one flow.
 
 ---
 
@@ -228,7 +283,110 @@ appCoordinator.setRoot(.authenticated) { (tab: MainTabCoordinator) in
 
 The closure only fires if the resolved destination can be cast to `T`,
 so pick the concrete coordinator type that matches the route's return
-signature.
+signature. Every one of them has an `expecting:` sibling that returns the
+child instead of taking a closure, which flattens long chains:
+
+```swift
+let tab = appCoordinator.setRoot(.authenticated, expecting: MainTabCoordinator.self)
+let profile = tab?.selectFirstTab(.profile, expecting: ProfileCoordinator.self)
+profile?.route(to: .userDetail(id: userId))
+```
+
+### Modals and Sheet Configuration
+
+The **presenter** decides the chrome, so the same destination view can be a
+medium sheet in one place and a full-screen cover in another:
+
+```swift
+present(.cardDetail(card: card), as: .sheet(detents: [.medium, .large]))
+present(.freezeConfirm(card: card), as: .sheet(
+    detents: [.medium],
+    dragIndicator: .hidden,
+    interactiveDismissDisabled: true      // the user must answer
+))
+present(.pinChange, as: .fullScreenCover)
+```
+
+`dismissModal()` closes the topmost modal from the presenter side and fires its
+`onDismiss` exactly once — the counterpart to `dismissCoordinator()`, which the
+*presented* coordinator calls on itself. It's also the only way to close a
+view-only modal programmatically, and unlike `pop()` it never touches pushed
+destinations.
+
+### Async Navigation
+
+Navigation that reads like a function call — push or present, then continue when
+the user is done:
+
+```swift
+await routeAndWait(to: .categoryPicker)          // resumes when it pops
+await presentAndWait(.pinChange, as: .fullScreenCover)
+
+// …or with a result, nil when the user backed out:
+guard let limit = await present(.limitPicker, awaiting: Decimal.self) else { return }
+```
+
+### Cross-Coordinator Results
+
+Two ways to hand a value back, both without the presenter observing the child:
+
+```swift
+// 1. Constructor callback — the presenter installs the channel up front.
+func buy(holding: Holding, onComplete: @escaping @MainActor (Order) -> Void) -> any Coordinatable {
+    OrderCoordinator(holding: holding, onComplete: onComplete)
+}
+
+// 2. Return-on-dismiss, paired with `awaiting:` on the presenter.
+func finish(_ amount: Decimal) {
+    dismissCoordinator(returning: amount)
+}
+```
+
+### Orienting in the Tree
+
+Deep hierarchies stay legible without storing references to child coordinators:
+
+```swift
+flow.depth                  // pushes above the root, modals excluded
+flow.topDestination         // Meta of the top push (or the root's)
+coordinator.routeType       // .root / .push / .sheet / .fullScreenCover
+coordinator.isPresentingModal
+coordinator.ancestor(ofType: AppCoordinator.self)?.setRoot(.unauthenticated)
+print(coordinator.hierarchyRoot.debugHierarchy())
+```
+
+`debugHierarchy()` prints the live tree — reach for it first when routing
+misbehaves. It has no side effects; children that haven't been created yet are
+reported as `(not yet created)` rather than materialised.
+
+```
+AppCoordinator [root]
+  root .main → MainTabCoordinator [tab]
+    tab[0] .home → HomeCoordinator [flow]
+      root .transactions
+      push .transaction
+    tab[1]* .cards → CardsCoordinator [flow]
+      root .cards
+      sheet .limitPicker → LimitCoordinator [flow]
+        root .presets
+```
+
+### State Restoration
+
+Opt a coordinator's generated enum into `Codable` and the whole subtree can be
+captured and replayed:
+
+```swift
+@Scaffoldable(codable: true) @Observable
+final class HomeCoordinator: @MainActor FlowCoordinatable { /* … */ }
+
+let data = try appCoordinator.captureNavigationState()   // opaque Data
+try appCoordinator.restoreNavigationState(from: data)    // on a fresh tree
+```
+
+Coordinators that don't opt in (a route with a closure payload can't) still
+work: their subtree restores at its initial position instead of failing, and
+routes that no longer decode after an app update are skipped.
 
 ### Environment Access
 
@@ -304,18 +462,88 @@ Mark a coordinator as `public` to expose its routes across modules — a natural
 
 ---
 
+## Testing
+
+Navigation state lives on a plain `@Observable` class and every call mutates it synchronously, so the whole navigation layer is unit-testable — no host app, no rendered `NavigationStack`, no UI test. Link **ScaffoldingTesting** into your test target for the four helpers that make it ergonomic:
+
+| Helper | What it does |
+|---|---|
+| `coordinator.activated()` | Resolves the initial root/tabs, which the framework normally does on first render. Without it, root-dependent reads come back empty. |
+| `coordinator.descendant(ofType:)` | The typed handle on an already-created child — including one the code under test presented itself. |
+| `coordinator.hierarchyContains(_:_:as:)` | Typed whole-tree assertion, instead of matching `debugHierarchy()` strings. |
+| `await waitUntil { … }` | Spins the main actor until a condition holds, for the awaitable navigation API. |
+
+```swift
+import Testing
+import Scaffolding
+import ScaffoldingTesting
+@testable import MyApp
+
+@MainActor
+@Suite("Home flow")
+struct HomeFlowTests {
+    @Test("RoutePolicy.distinct swallows a double tap")
+    func distinctPolicySkipsDuplicatePush() {
+        let home = HomeCoordinator().activated()
+
+        home.open(Transaction.samples[0])
+        home.open(Transaction.samples[0])
+
+        #expect(home.count(of: .transaction) == 1)
+    }
+
+    @Test("a deep link walks root → tab → flow")
+    func deepLink() throws {
+        let app = AppCoordinator().activated()
+        app.signIn()
+
+        app.handle(try #require(URL(string: "myapp://holding/NVDA")))
+
+        #expect(app.hierarchyContains(InvestCoordinator.self, .holding, as: .push))
+    }
+
+    @Test("an awaited sheet resumes with the picker's result")
+    func awaitedResult() async {
+        let cards = CardsCoordinator().activated()
+
+        let picking = Task { await cards.changeLimit() }
+        await waitUntil { cards.isPresentingModal }
+
+        // present(_:awaiting:) hands back no coordinator — find it in the tree.
+        cards.descendant(ofType: LimitCoordinator.self)?.finish(2_000)
+        await picking.value
+
+        #expect(cards.limit == 2_000)
+    }
+}
+```
+
+Assert with the orientation API (`depth`, `topDestination`, `isInStack(_:)`, `count(of:)`, `isPresentingModal`, `isRoot(_:)`, `badge(for:)`, `routeType`, `ancestor(ofType:)`), or read the structured tree with `hierarchySnapshot()` — the same snapshot `debugHierarchy()` renders, and what the helpers above are built on. Tab guards are just methods: `#expect(!tabs.shouldSelect(tab: .invest, isReselection: false))`.
+
+The demo app ships [44 such tests](Example/Demo/Tests) covering pushes and policies, modals and presenter-side dismissal, tab guards and badges, deep links, cross-coordinator results, and state restoration.
+
+---
+
 ## Macros Reference
 
 | Macro | Target | Purpose |
 |---|---|---|
-| `@Scaffoldable(injectsCoordinator: Bool = true)` | Class | Generates `Destinations` enum from methods. Pass `injectsCoordinator: false` to opt this coordinator out of automatic environment injection. |
-| `@ScaffoldingIgnored` | Method | Excludes a method from destination generation (e.g. a `customize(_:)` override). |
+| `@Scaffoldable(injectsCoordinator: Bool = true, codable: Bool = false)` | Class | Generates the `Destinations` enum (and its `Meta`) from the class's methods. `injectsCoordinator: false` opts the coordinator out of automatic environment injection; `codable: true` makes `Destinations` `Codable` for [state restoration](#state-restoration). |
+| `@ScaffoldingIgnored` | Method | Excludes a method whose return type *is* auto-tracked from destination generation (e.g. `customize(_:)` or a shared view-builder helper). Properties, `Void` methods, and concrete return types are never tracked, so they don't need it. |
 
 ---
 
 ## Example Project
 
-A full example using [Tuist](https://github.com/tuist/tuist) and The Modular Architecture is available [here](https://github.com/dotaeva/zen-example-tma).
+[`Example/Demo`](Example/Demo) is a banking-style app that exercises the whole API surface — a root coordinator with an auth swap, a tab coordinator with a custom glass tab bar and a gated tab, four independent flows, sheet configuration, awaited results, deep links, snapshot save/restore, and the unit tests above. It's a plain Xcode project with no generators or extra tooling:
+
+```sh
+open Example/Demo/Demo.xcodeproj
+```
+
+⌘R runs the app, ⌘U runs the tests.
+
+A multi-module example using [Tuist](https://github.com/tuist/tuist) and The Modular Architecture lives [here](https://github.com/dotaeva/zen-example-tma).
 
 ---
 

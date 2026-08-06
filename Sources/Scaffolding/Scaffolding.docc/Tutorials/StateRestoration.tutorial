@@ -1,0 +1,123 @@
+@Tutorial(time: 15) {
+    @Intro(title: "Restoring Where the User Left Off") {
+        Capture the live coordinator tree — current root, selected tab, every
+        flow's push stack, presented modals — persist it, and replay it on the
+        next launch.
+
+        You will opt coordinators into `Codable` destinations, learn which
+        payloads survive, wire capture and restore to the scene phase, see what
+        happens to a subtree that cannot participate, and seed a known start
+        position without any persistence at all.
+
+        @Image(source: "scaffolding-chapter-hero", alt: "The Scaffolding coordinator hierarchy.")
+    }
+
+    @Section(title: "Opt In") {
+        @ContentAndMedia {
+            Capture walks the generated `Destinations` enums, so each
+            participating coordinator has to make its enum `Codable`. That is
+            one macro argument — and one constraint on route payloads.
+        }
+
+        @Steps {
+            @Step {
+                Pass `codable: true` to `@Scaffoldable` on **PlanetsCoordinator**.
+                Do the same for the tab and root coordinators so the whole spine
+                of the tree can be recorded.
+
+                @Code(name: "PlanetsCoordinator.swift", file: "state-01-codable.swift")
+            }
+
+            @Step {
+                Every route parameter must now be `Codable` — the compiler
+                enforces it at enum synthesis. Prefer stable identifiers over
+                whole model objects, and note that a closure payload can never
+                qualify.
+
+                @Code(name: "PlanetsCoordinator.swift", file: "state-02-payloads.swift")
+            }
+        }
+    }
+
+    @Section(title: "Capture and Restore") {
+        @ContentAndMedia {
+            Two calls, one opaque `Data`. Capture from the top of the tree when
+            the app backgrounds; restore onto a freshly created coordinator on
+            launch.
+        }
+
+        @Steps {
+            @Step {
+                Capture on the way to the background. The `Data` is opaque —
+                persist it wherever you like, but never construct or edit it.
+
+                @Code(name: "PlanetsApp.swift", file: "state-03-capture.swift")
+            }
+
+            @Step {
+                Restore in `.task`, on a coordinator that has just been created.
+                Restoration *replays* the captured routes through the normal
+                `route` / `present` / `setRoot` machinery rather than swapping
+                state in wholesale — which is why a fresh tree is the right
+                target.
+
+                > Routes that no longer decode — because the enum changed shape
+                between app versions — are skipped silently, so a stale snapshot
+                degrades instead of failing launch. Only structurally invalid
+                data throws.
+
+                @Code(name: "PlanetsApp.swift", file: "state-04-restore.swift")
+            }
+
+            @Step {
+                Some coordinators cannot opt in, and that is fine. A flow with a
+                callback route is recorded without its internal state and comes
+                back at its initial position while the rest of the tree restores
+                fully.
+
+                > Only calling `captureNavigationState()` **directly on** a
+                non-codable coordinator throws
+                `NavigationStateError.unsupported`. If a flow must restore,
+                replace its callback route with the `awaiting:` result pattern
+                from <doc:ModalSubFlows>.
+
+                @Code(name: "FavoritesCoordinator.swift", file: "state-05-degradation.swift")
+            }
+        }
+    }
+
+    @Section(title: "Seed and Verify") {
+        @ContentAndMedia {
+            Restoration is not the only way to start deep. When you already
+            know the position — a fallback for a failed deep link, a preview, a
+            test — construct the stack that way instead.
+        }
+
+        @Steps {
+            @Step {
+                `FlowStack(root:pushing:)` materialises a pushed path when the
+                stack is first set up. Expose it through your own initializer;
+                the macro synthesises no `init(initialRoute:)`.
+
+                @Code(name: "PlanetsCoordinator.swift", file: "state-06-seeded.swift")
+            }
+
+            @Step {
+                Verify the result by printing the tree. `debugHierarchy()` is
+                side-effect-free: children that have not been created yet are
+                reported as `(not yet created)` rather than materialised.
+
+                @Code(name: "DebugScreen.swift", file: "state-07-verify.swift")
+            }
+
+            @Step {
+                **Build and run.** Push a detail screen, background the app,
+                relaunch it — and land back on that screen. Compare the printed
+                hierarchy before and after to see exactly what came back.
+
+                Next: <doc:TestingCoordinators> turns this round trip into a
+                test that runs in milliseconds.
+            }
+        }
+    }
+}

@@ -16,9 +16,11 @@ struct HomeView: View {
         }
         .navigationTitle("Planets")
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    coordinator.present(.settings, as: .sheet)
+                    // The presenter picks the chrome: route(to:) always
+                    // pushes, present(_:as:) handles modals.
+                    coordinator.present(.settings, as: .sheet(detents: [.medium, .large]))
                 } label: {
                     Image(systemName: "gear")
                 }

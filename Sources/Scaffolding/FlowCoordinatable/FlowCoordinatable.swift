@@ -14,7 +14,7 @@ import os.log
 ///
 /// Conform to `FlowCoordinatable` to build stack-based navigation flows.
 /// Provide a ``FlowStack`` property and define route functions — the
-/// ``Scaffoldable(injectsCoordinator:)`` macro generates the `Destinations` enum for you.
+/// ``Scaffoldable(injectsCoordinator:codable:)`` macro generates the `Destinations` enum for you.
 ///
 /// ```swift
 /// @Scaffoldable @Observable
@@ -26,8 +26,8 @@ import os.log
 /// }
 /// ```
 ///
-/// Navigate with ``route(to:onDismiss:)``,
-/// ``FlowCoordinatable/present(_:as:onDismiss:)``, and ``pop()``.
+/// Navigate with ``route(to:policy:onDismiss:)``,
+/// ``FlowCoordinatable/present(_:as:policy:onDismiss:)``, and ``pop()``.
 @MainActor
 public protocol FlowCoordinatable: Coordinatable where ViewType == FlowCoordinatableView {
     /// The observable navigation stack that holds this coordinator's state.
@@ -338,6 +338,11 @@ public extension FlowCoordinatable {
     /// `route(to:)` is a push-only operation — to present a destination
     /// modally, use ``FlowCoordinatable/present(_:as:policy:onDismiss:)`` instead.
     ///
+    /// The `onDismiss` closure has an `async` alternative: to continue
+    /// straight after the pushed destination is popped, `await`
+    /// ``FlowCoordinatable/routeAndWait(to:policy:)`` instead of passing a
+    /// callback.
+    ///
     /// - Parameters:
     ///   - destination: The destination to push.
     ///   - policy: Pass ``RoutePolicy/distinct`` to skip the push when the
@@ -361,6 +366,11 @@ public extension FlowCoordinatable {
     ///
     /// The modal lives on this coordinator's stack and is rendered as a
     /// sheet or full-screen cover by the flow's view layer.
+    ///
+    /// The `onDismiss` closure has `async` alternatives: `await`
+    /// ``FlowCoordinatable/presentAndWait(_:as:policy:)`` to continue once the
+    /// modal closes, or ``FlowCoordinatable/present(_:as:policy:awaiting:)``
+    /// to take a value back from it.
     ///
     /// - Parameters:
     ///   - destination: The destination to present.

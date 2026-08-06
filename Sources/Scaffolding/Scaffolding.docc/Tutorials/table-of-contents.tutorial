@@ -1,16 +1,48 @@
 @Tutorials(name: "Scaffolding") {
-    @Intro(title: "Getting Started with Scaffolding") {
-        Learn how to use Scaffolding to build type-safe, coordinator-driven
-        navigation in SwiftUI — with minimal boilerplate and zero manual
-        destination enums.
+    @Intro(title: "Scaffolding Tutorials") {
+        Build coordinator-driven navigation in SwiftUI — type-safe routes,
+        no manual destination enums, and no navigation state in your views.
+
+        Start with the fundamentals, then take the tutorial that matches the
+        problem in front of you. Each one is self-contained and builds the
+        same example app: a Planets browser that grows from a single flow
+        into a tabbed, authenticated, deep-linkable, restorable app with
+        tests.
     }
 
-    @Chapter(name: "Your First Scaffolding Project") {
-        Create a three-screen app with push navigation and sheet presentation.
-        Learn the fundamentals of coordinators, routes, and the `@Scaffoldable`
-        macro.
+    @Chapter(name: "Fundamentals") {
+        Create a coordinator, define routes as functions, push a detail
+        screen, and present a sheet. Everything else builds on this.
 
         @Image(source: "scaffolding-chapter-hero")
         @TutorialReference(tutorial: "doc:YourFirstScaffoldingProject")
+    }
+
+    @Chapter(name: "App Structure") {
+        Give each feature its own flow: a tab bar where every tab owns a
+        coordinator, and an atomic root swap between signed-out and
+        signed-in states.
+
+        @Image(source: "scaffolding-chapter-hero")
+        @TutorialReference(tutorial: "doc:TabsAndFlows")
+        @TutorialReference(tutorial: "doc:AuthenticationFlow")
+    }
+
+    @Chapter(name: "Modals and Results") {
+        Decide between a native sheet and a presented sub-flow, configure
+        the sheet from the presenter, and hand a value back from a modal.
+
+        @Image(source: "scaffolding-chapter-hero")
+        @TutorialReference(tutorial: "doc:ModalSubFlows")
+    }
+
+    @Chapter(name: "Going Further") {
+        Land the app anywhere from a URL, put the user back where they left
+        off, and unit-test the whole navigation layer.
+
+        @Image(source: "scaffolding-chapter-hero")
+        @TutorialReference(tutorial: "doc:DeepLinking")
+        @TutorialReference(tutorial: "doc:StateRestoration")
+        @TutorialReference(tutorial: "doc:TestingCoordinators")
     }
 }

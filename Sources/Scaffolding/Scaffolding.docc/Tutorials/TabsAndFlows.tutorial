@@ -1,0 +1,160 @@
+@Tutorial(time: 15) {
+    @Intro(title: "Tabs with Independent Flows") {
+        Turn the single-flow Planets app into a tabbed app where every tab
+        owns its own coordinator — and therefore its own navigation stack,
+        its own state, and its own module boundary.
+
+        You will split the flow in two, add a ``TabCoordinatable`` above them,
+        move between tabs programmatically, badge a tab from a nested flow,
+        intercept tab taps, and finally replace the system bar with your own.
+
+        @Image(source: "scaffolding-chapter-hero", alt: "The Scaffolding coordinator hierarchy.")
+    }
+
+    @Section(title: "Split the App into Flows") {
+        @ContentAndMedia {
+            A tab is not a screen — it is a *flow*. Each one gets a
+            ``FlowCoordinatable`` so it can push, present, and pop without any
+            of its siblings noticing.
+        }
+
+        @Steps {
+            @Step {
+                Rename the coordinator from the fundamentals tutorial to
+                **PlanetsCoordinator**. It keeps its routes: a list root and a
+                pushed detail.
+
+                @Code(name: "PlanetsCoordinator.swift", file: "tabs-01-planets-coordinator.swift")
+            }
+
+            @Step {
+                Add a second flow, **FavoritesCoordinator**, with its own root
+                and its own state. Nothing is shared between the two flows —
+                that independence is what makes tabs cheap.
+
+                @Code(name: "FavoritesCoordinator.swift", file: "tabs-02-favorites-coordinator.swift")
+            }
+        }
+    }
+
+    @Section(title: "Add the Tab Coordinator") {
+        @ContentAndMedia {
+            A ``TabCoordinatable`` holds ``TabItems`` instead of a
+            ``FlowStack``. Its route functions return a tuple: the tab's
+            content plus the label the tab bar shows.
+        }
+
+        @Steps {
+            @Step {
+                Create **AppCoordinator** as a `TabCoordinatable`. Each route
+                returns `(any Coordinatable, some View)` — the tab's coordinator
+                and its `Label`. The macro generates `.planets` and
+                `.favorites` from the function names, and `TabItems(tabs:)`
+                declares the order.
+
+                @Code(name: "AppCoordinator.swift", file: "tabs-03-tab-coordinator.swift")
+            }
+
+            @Step {
+                Add a third tab that adopts a system `TabRole`. A tuple's third
+                element is the role, which on iOS gives the search tab its
+                platform-specific treatment.
+
+                > Tab routes may also return `(some View, some View)` for a
+                view-only tab, or drop the label entirely — see the last
+                section of this tutorial.
+
+                @Code(name: "AppCoordinator.swift", file: "tabs-04-tab-role.swift")
+            }
+
+            @Step {
+                Point the app entry at the tab coordinator. Nothing else
+                changes: `coordinator.view` renders whichever coordinator sits
+                at the top of the tree.
+
+                @Code(name: "PlanetsApp.swift", file: "tabs-05-app-entry.swift")
+            }
+        }
+    }
+
+    @Section(title: "Move Between Tabs") {
+        @ContentAndMedia {
+            Switching tabs is a coordinator call like any other. The typed
+            overloads hand you the tab's child coordinator once the selection
+            lands — `expecting:` returns it, so "switch tabs *and* do something
+            there" stays flat, without a nested closure.
+        }
+
+        @Steps {
+            @Step {
+                In **DetailView**, read both the nearest coordinator and the tab
+                coordinator from the environment, then jump to the favorites tab
+                with `selectFirstTab(_:expecting:)` and add the current planet
+                to the flow it returns.
+
+                > Prefer the nearest coordinator for ordinary navigation and
+                reach for an ancestor only for actions that genuinely belong to
+                it — switching tabs is one of them.
+
+                @Code(name: "DetailView.swift", file: "tabs-06-select-tab.swift")
+            }
+
+            @Step {
+                Badge the tab from inside the flow that owns the data. A
+                coordinator reaches up with `ancestor(ofType:)` — never with a
+                stored reference to its parent.
+
+                @Code(name: "FavoritesCoordinator.swift", file: "tabs-07-badge.swift")
+            }
+        }
+    }
+
+    @Section(title: "Guard the Bar, or Replace It") {
+        @ContentAndMedia {
+            `shouldSelect(tab:isReselection:)` intercepts **UI-driven**
+            selection: return `false` to keep the current tab, or handle a
+            re-tap of the selected tab. Programmatic selection bypasses the
+            hook, so redirecting from inside it cannot recurse.
+        }
+
+        @Steps {
+            @Step {
+                Override `shouldSelect(tab:isReselection:)` on **AppCoordinator**
+                to put the search tab behind a paywall and to pop the planets
+                flow to its root when the user re-taps its tab.
+
+                > The hook returns `Bool`, which is not an auto-tracked return
+                type — so it needs no `@ScaffoldingIgnored`.
+
+                @Code(name: "AppCoordinator.swift", file: "tabs-08-should-select.swift")
+            }
+
+            @Step {
+                To use your own tab bar, hide the native one and drop the label
+                views: with no native bar to feed, tab routes can return a plain
+                `any Coordinatable`. `customize(_:)` wraps the whole `TabView`,
+                which is where the custom bar goes.
+
+                @Code(name: "AppCoordinator.swift", file: "tabs-09-custom-bar-coordinator.swift")
+            }
+
+            @Step {
+                Build the bar as an ordinary view: it reads the coordinator from
+                the environment, renders a button per `Destinations.Meta` case,
+                and derives selection from `tabItems.selectedTab`.
+
+                > A custom bar's taps go through `selectFirstTab(_:)`, which is
+                *programmatic* — so call `shouldSelect(tab:isReselection:)`
+                yourself to keep the guard and the re-tap behaviour.
+
+                @Code(name: "PlanetsTabBar.swift", file: "tabs-10-custom-bar-view.swift")
+            }
+
+            @Step {
+                **Build and run.** Tap between tabs, add a favorite to see the
+                badge appear, and try the search tab to hit the paywall. Each
+                tab keeps its own push stack while you move around.
+            }
+        }
+    }
+}

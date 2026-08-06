@@ -38,7 +38,7 @@ public macro Scaffoldable(injectsCoordinator: Bool = true, codable: Bool = false
 
 /// Excludes a function from the generated `Destinations` enum.
 ///
-/// Apply `@ScaffoldingIgnored` to any function on a ``Scaffoldable(injectsCoordinator:)``
+/// Apply `@ScaffoldingIgnored` to any function on a ``Scaffoldable(injectsCoordinator:codable:)``
 /// coordinator that should **not** become a destination case.
 ///
 /// ```swift

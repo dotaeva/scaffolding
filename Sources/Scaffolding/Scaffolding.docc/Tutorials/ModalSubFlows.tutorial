@@ -1,0 +1,139 @@
+@Tutorial(time: 20) {
+    @Intro(title: "Modal Sub-Flows and Results") {
+        Not every modal deserves a coordinator. This tutorial draws the line,
+        then builds the case that does: a picker sheet with its own navigation
+        that hands a value back to whoever presented it.
+
+        You will keep a one-screen confirmation native, promote a multi-step
+        picker to a coordinator, configure the sheet from the presenter,
+        dismiss from both sides, and await a result back from it.
+
+        @Image(source: "03-settings-sheet", alt: "A settings screen presented as a modal sheet with a Done button.")
+    }
+
+    @Section(title: "Choose the Right Modal") {
+        @ContentAndMedia {
+            The rule is short: **if the modal contains navigation, make it a
+            coordinator and present it. If it is a single screen, use SwiftUI's
+            native modifier.** A native sheet costs no destination case and no
+            coordinator boundary.
+        }
+
+        @Steps {
+            @Step {
+                A removal confirmation is one screen with no navigation — keep
+                it native, with local `@State` in the view. This is the one place
+                a view may own modal state, because the modal is not part of the
+                flow.
+
+                @Code(name: "FavoritesView.swift", file: "modals-01-native-sheet.swift")
+            }
+
+            @Step {
+                The planet picker is different: it has a list *and* a
+                "custom planet" screen pushed on top. That is a flow, so it
+                becomes a ``FlowCoordinatable`` of its own.
+
+                > This is also the answer to "my sheet needs a
+                `NavigationStack`". Do not nest one inside a flow's views —
+                cross a coordinator boundary and get a fresh stack legitimately.
+
+                @Code(name: "PlanetPickerCoordinator.swift", file: "modals-02-subflow-coordinator.swift")
+            }
+        }
+    }
+
+    @Section(title: "Present the Sub-Flow") {
+        @ContentAndMedia {
+            The presenter decides *how* the modal looks. The presented screens
+            stay ignorant of their presentation, so the same route can be a
+            medium sheet in one place and a full-screen cover in another.
+        }
+
+        @Steps {
+            @Step {
+                Add a `picker()` route returning `any Coordinatable`, then
+                present it with detents. `route(to:)` always pushes; modals go
+                exclusively through `present(_:as:)`.
+
+                @Code(name: "FavoritesCoordinator.swift", file: "modals-03-present.swift")
+            }
+
+            @Step {
+                Add a second modal the user must not dismiss — a sync overlay —
+                and close it from the presenter with `dismissModal()`.
+
+                > `dismissModal()` removes only the topmost modal, fires its
+                `onDismiss` exactly once, and no-ops when nothing is presented.
+                It is the only way to close a *view-only* modal
+                programmatically, since there is no child coordinator to call
+                `dismissCoordinator()` on.
+
+                @Code(name: "FavoritesCoordinator.swift", file: "modals-04-dismissal.swift")
+            }
+        }
+    }
+
+    @Section(title: "Get a Result Back") {
+        @ContentAndMedia {
+            The presenter never observes the presented coordinator's state. It
+            awaits the presentation, and the picker hands a value back as it
+            closes: the result arrives on the next line, cancellation is free,
+            and the route carries no closure — which is also what keeps it
+            eligible for <doc:StateRestoration>.
+        }
+
+        @Steps {
+            @Step {
+                **Awaited result.** `await present(_:awaiting:)` suspends until
+                the sheet closes and returns what the picker handed back. Any
+                other dismissal — a swipe, `dismissModal()`, a plain
+                `dismissCoordinator()` — resumes with `nil`, so the cancel path
+                needs no extra code.
+
+                @Code(name: "FavoritesCoordinator.swift", file: "modals-05-awaiting.swift")
+            }
+
+            @Step {
+                On the child side, `dismissCoordinator(returning:)` delivers the
+                value and closes in one call; a plain `dismissCoordinator()`
+                resumes the presenter with `nil`.
+
+                > `dismissCoordinator()` removes the whole coordinator from its
+                parent — for a sheet, that closes the sheet. `pop()` would only
+                remove the top screen inside it.
+
+                @Code(name: "PlanetPickerCoordinator.swift", file: "modals-06-returning.swift")
+            }
+
+        }
+    }
+
+    @Section(title: "Wait Without a Result") {
+        @ContentAndMedia {
+            Sometimes you only need "continue once it's gone" — an onboarding
+            cover, a permission primer, a picker that writes into shared state
+            itself.
+        }
+
+        @Steps {
+            @Step {
+                `presentAndWait(_:as:)` suspends until the modal is dismissed,
+                and `routeAndWait(to:)` does the same for a pushed screen. Both
+                resume exactly once, however the destination leaves.
+
+                @Code(name: "FavoritesCoordinator.swift", file: "modals-09-present-and-wait.swift")
+            }
+
+            @Step {
+                **Build and run.** Confirm a removal through the native sheet,
+                add a planet through the picker sub-flow — pushing the custom
+                screen inside the sheet without disturbing the list behind it —
+                and watch the awaited call resume with your choice.
+
+                Next: <doc:TestingCoordinators> pins all of this down in tests,
+                including the cancellation path.
+            }
+        }
+    }
+}

@@ -81,6 +81,10 @@ public extension Coordinatable {
     ///
     /// The destination's `onDismiss` callback (and any awaiting
     /// `await route(...)` continuation) fires exactly once.
+    ///
+    /// To hand a value back to a presenter that is awaiting this coordinator,
+    /// use ``Coordinatable/dismissCoordinator(returning:)`` — a plain
+    /// `dismissCoordinator()` resumes that presenter with `nil`.
     func dismissCoordinator() {
         let logger = Logger(subsystem: "Scaffolding", category: "Dismissal")
 
@@ -175,7 +179,7 @@ public extension Coordinatable {
 
     /// Dismisses the most recently presented modal.
     ///
-    /// The counterpart of `present(_:as:onDismiss:)` for the presenting
+    /// The counterpart of `present(_:as:policy:onDismiss:)` for the presenting
     /// side: removes the top modal from this coordinator and fires its
     /// `onDismiss` callback exactly once, matching an interactive
     /// dismissal. Does nothing when no modal is presented.
@@ -324,7 +328,7 @@ extension Coordinatable {
 /// A type that bridges between a coordinator's `Destinations` enum and the
 /// concrete ``Destination`` value used at runtime.
 ///
-/// The ``Scaffoldable(injectsCoordinator:)`` macro generates a conforming type automatically —
+/// The ``Scaffoldable(injectsCoordinator:codable:)`` macro generates a conforming type automatically —
 /// you do not need to implement this protocol yourself.
 @MainActor
 public protocol Destinationable {

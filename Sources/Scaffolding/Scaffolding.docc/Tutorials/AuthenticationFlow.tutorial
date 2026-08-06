@@ -1,0 +1,122 @@
+@Tutorial(time: 15) {
+    @Intro(title: "Authentication with a Root Swap") {
+        Put the Planets app behind a login. A ``RootCoordinatable`` shows one
+        destination at a time and replaces it whole, so there is no "back"
+        from the app to the login screen — and no stale signed-in state left
+        behind after signing out.
+
+        You will add a root coordinator above the tab coordinator, build a
+        two-step login flow, sign in from inside that flow with
+        `ancestor(ofType:)`, sign out from a screen buried three levels down,
+        and float a root-level sheet above everything.
+
+        @Image(source: "scaffolding-chapter-hero", alt: "The Scaffolding coordinator hierarchy.")
+    }
+
+    @Section(title: "Add a Root Coordinator") {
+        @ContentAndMedia {
+            A ``RootCoordinatable`` holds a ``Root`` instead of a
+            ``FlowStack``. Its routes are the mutually exclusive states of the
+            app — here, signed out and signed in.
+        }
+
+        @Steps {
+            @Step {
+                Create **AppRootCoordinator** with two child-coordinator routes.
+                `Root(root: .login)` decides what an unauthenticated launch
+                shows.
+
+                @Code(name: "AppRootCoordinator.swift", file: "auth-01-root-coordinator.swift")
+            }
+
+            @Step {
+                Add `signIn()` and `signOut()`. `setRoot(_:)` swaps the whole
+                tree; `setRootTransitionAnimation(_:)` sets the default
+                animation, and the `animation:` parameter overrides it per call.
+
+                > These helpers return `Void`, so the macro never tracks them —
+                no annotation needed.
+
+                @Code(name: "AppRootCoordinator.swift", file: "auth-02-swap.swift")
+            }
+
+            @Step {
+                Point the app entry at the root coordinator. It is now the top
+                of the tree; the tab coordinator became a child.
+
+                @Code(name: "PlanetsApp.swift", file: "auth-03-app-entry.swift")
+            }
+        }
+    }
+
+    @Section(title: "Build the Login Flow") {
+        @ContentAndMedia {
+            The login screens are an ordinary ``FlowCoordinatable``: a couple
+            of pushes, with the address typed on the first screen carried as
+            the second route's payload.
+        }
+
+        @Steps {
+            @Step {
+                Create **LoginCoordinator** with an email root and a password
+                screen. The `username` parameter becomes part of the generated
+                `.password(username:)` case.
+
+                @Code(name: "LoginCoordinator.swift", file: "auth-04-login-coordinator.swift")
+            }
+
+            @Step {
+                Finish the flow by reaching up: the swap belongs to the app
+                root, so `LoginCoordinator` asks for its nearest
+                `AppRootCoordinator` ancestor and calls `signIn()` on it.
+
+                > `ancestor(ofType:)` walks the live parent chain. Never store
+                a reference to a parent or a child coordinator — that is what
+                breaks when a root swap rebuilds the tree.
+
+                @Code(name: "LoginCoordinator.swift", file: "auth-05-ancestor.swift")
+            }
+        }
+    }
+
+    @Section(title: "Sign Out from Anywhere") {
+        @ContentAndMedia {
+            Scaffolding injects the owning coordinator *and every ancestor*
+            into the environment, so a deeply nested screen can trigger a root
+            swap without any plumbing.
+        }
+
+        @Steps {
+            @Step {
+                In a settings screen inside a tab's flow, read
+                `AppRootCoordinator` from the environment and sign out. The
+                screen does not know or care how deep it sits.
+
+                @Code(name: "SettingsView.swift", file: "auth-06-signout-view.swift")
+            }
+
+            @Step {
+                A root coordinator can present modals itself — the right home
+                for cross-cutting UI that no single flow owns. Add a What's New
+                sheet shown right after signing in, and clear anything floating
+                above the root before swapping it away.
+
+                > `policy: .distinct` makes a repeated `present` a no-op while
+                the same case is already presented, so a double call cannot
+                stack two copies.
+
+                @Code(name: "AppRootCoordinator.swift", file: "auth-07-root-modal.swift")
+            }
+
+            @Step {
+                **Build and run.** Sign in and the whole tree is replaced with
+                the tab app; sign out from settings and it is replaced with the
+                login flow — with fresh state, because `setRoot` resolves a new
+                child every time.
+
+                Next: <doc:DeepLinking> lands the app on a specific screen from
+                a URL, and guards that link behind this very root swap.
+            }
+        }
+    }
+}

@@ -13,7 +13,7 @@ import Observation
 /// Conform to `RootCoordinatable` to build flows where the entire screen
 /// content is swapped at once — for example, switching between
 /// authentication and main-app coordinators. Provide a ``Root`` property
-/// and define destination functions using the ``Scaffoldable(injectsCoordinator:)`` macro.
+/// and define destination functions using the ``Scaffoldable(injectsCoordinator:codable:)`` macro.
 ///
 /// ```swift
 /// @Scaffoldable @Observable
@@ -120,6 +120,10 @@ public extension RootCoordinatable {
     ///
     /// The modal lives on this coordinator's container and is rendered
     /// as a sheet or full-screen cover by the root's view layer.
+    ///
+    /// The `onDismiss` closure has `async` alternatives: `await`
+    /// ``RootCoordinatable/presentAndWait(_:as:policy:)`` to continue once the modal closes, or
+    /// ``RootCoordinatable/present(_:as:policy:awaiting:)`` to take a value back from it.
     ///
     /// - Parameters:
     ///   - destination: The destination to present.
