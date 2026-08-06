@@ -51,6 +51,25 @@ jobs:
       # The Pages artifact contains the DocC archive only:
       #   /documentation/scaffolding/ → library documentation
 
+      # DocC has no route at the site root, so the bare Pages URL would
+      # render its not-found screen. Redirect it to the docs landing page.
+      - name: Redirect the site root to the documentation
+        run: |
+          cat > ./docs/index.html <<'HTML'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="0; url=/scaffolding/documentation/scaffolding/">
+            <link rel="canonical" href="https://dotaeva.github.io/scaffolding/documentation/scaffolding/">
+            <title>Scaffolding</title>
+          </head>
+          <body>
+            <p>Redirecting to the <a href="/scaffolding/documentation/scaffolding/">Scaffolding documentation</a>…</p>
+          </body>
+          </html>
+          HTML
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
