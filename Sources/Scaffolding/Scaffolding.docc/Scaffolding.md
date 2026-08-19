@@ -53,6 +53,10 @@ second library, `ScaffoldingTesting`, adds the helpers for it — see
 - <doc:MeetScaffolding>
 - <doc:YourFirstScaffoldingProject>
 
+### Coming from Another Library
+
+- <doc:MigratingFromStinsen>
+
 ### Tutorials by Use Case
 
 - <doc:TabsAndFlows>
