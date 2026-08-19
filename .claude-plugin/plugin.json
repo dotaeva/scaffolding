@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "scaffolding",
-  "version": "3.4.0",
+  "version": "3.5.0",
   "description": "Agent skills for the Scaffolding SwiftUI navigation library: coordinators and the @Scaffoldable macro, routing and modals, injected @Environment values, navigation state restoration, and unit-testing coordinators.",
   "author": {
     "name": "dotaeva",
