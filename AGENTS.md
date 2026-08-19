@@ -85,6 +85,7 @@ Is it a push/pop on the current stack?
 | Intercept a tab tap (guard, redirect, pop-to-root on re-tap) | override `shouldSelect(tab:isReselection:)` on the `TabCoordinatable` |
 | Atomically replace the entire view hierarchy (auth, onboarding) | `appCoordinator.setRoot(.authenticated)` (on a `RootCoordinatable`) |
 | Switch tabs programmatically | `tabCoordinator.selectFirstTab(.home)` |
+| Make a tab addressable in UI tests | `tabCoordinator.setTabAccessibilityIdentifier("tab.home", for: .home)` — a plain `.accessibilityIdentifier()` on the label view never reaches the tab bar item |
 | Replace the system tab bar with your own UI | `TabItems(tabs:, visibility: .hidden)` + custom bar view (see *Custom tab bar*) |
 
 Stay native for view-only modals. The native modifier is lighter, requires no coordinator boundary, and avoids the overhead of an extra `Destinations` case.
@@ -432,7 +433,7 @@ To replace the system tab bar with your own UI, stay on `TabCoordinatable` — d
 
 1. **Hide the native bar** — pass `visibility: .hidden` to the `TabItems` initializer (or call `setTabBarVisibility(.hidden)` later).
 2. **Omit the label views.** The `some View` label in the tab tuple only feeds the native tab bar. With a custom bar it's dead weight — tab routes can return plain `any Coordinatable` (or `some View` for a view-only tab) instead of `(any Coordinatable, some View)`. Both are auto-tracked, so the macro still generates the `.home` / `.profile` cases; the tab simply has no native label.
-3. **Build the bar from the macro-generated values.** The bar is an ordinary view: it reads the coordinator from `@Environment`, renders a button per `Destinations.Meta` case, drives selection with `selectFirstTab(_:)`, and derives the selected state from `tabItems.selectedTab`. Badges come from `badge(for:)`. Attach it in `customize(_:)`, which wraps the whole `TabView`.
+3. **Build the bar from the macro-generated values.** The bar is an ordinary view: it reads the coordinator from `@Environment`, renders a button per `Destinations.Meta` case, drives selection with `selectFirstTab(_:)`, and derives the selected state from `tabItems.selectedTab`. Badges come from `badge(for:)`, accessibility identifiers from `tabAccessibilityIdentifier(for:)` (apply with `.accessibilityIdentifier` on the button). Attach it in `customize(_:)`, which wraps the whole `TabView`.
 
 ```swift
 @MainActor @Observable @Scaffoldable

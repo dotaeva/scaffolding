@@ -268,8 +268,6 @@ public struct Destination: Identifiable {
             }
         }
 
-        @available(iOS 18, *)
-        @available(macOS 15, *)
         init<V: View>(_ factory: @escaping () -> (any Coordinatable, V, TabRole)) {
             self.coordinatableFactory = {
                 let (coordinatable, _, _) = factory()
@@ -317,14 +315,7 @@ public struct Destination: Identifiable {
     private var _tabItem: AnyView?
     var _coordinatable: CoordinatableCache?
 
-    @available(iOS 18, *)
-    @available(macOS 15, *)
-    var tabRole: TabRole? {
-        get { _tabRole as? TabRole }
-        set { _tabRole = newValue }
-    }
-
-    private var _tabRole: Any?
+    var tabRole: TabRole?
 
     var pushType: PresentationType?
 
@@ -339,6 +330,10 @@ public struct Destination: Identifiable {
 
     /// The badge shown on this destination's tab item, if any.
     public internal(set) var badge: String?
+
+    /// The accessibility identifier applied to this destination's tab item,
+    /// if any.
+    public internal(set) var accessibilityIdentifier: String?
 
     /// How this destination was originally routed (root, push, sheet, or
     /// full-screen cover).
@@ -453,8 +448,6 @@ public struct Destination: Identifiable {
     // MARK: - TabRole Initializers
 
     /// Creates a destination with a content view and a `TabRole`.
-    @available(iOS 18, *)
-    @available(macOS 15, *)
     public init<V: View>(
         _ factory: @escaping () -> (V, TabRole),
         meta: any DestinationMeta,
@@ -465,12 +458,10 @@ public struct Destination: Identifiable {
         self._view = AnyView(v)
         self.meta = meta
         self.parent = parent
-        self._tabRole = role
+        self.tabRole = role
     }
 
     /// Creates a destination with a child coordinator and a `TabRole`.
-    @available(iOS 18, *)
-    @available(macOS 15, *)
     public init(
         _ factory: @escaping () -> (any Coordinatable, TabRole),
         meta: any DestinationMeta,
@@ -482,13 +473,11 @@ public struct Destination: Identifiable {
         self._coordinatable = CoordinatableCache({ result.0 })
         self.meta = meta
         self.parent = parent
-        self._tabRole = role
+        self.tabRole = role
     }
 
     /// Creates a destination with a content view, a tab item view, and a
     /// `TabRole`.
-    @available(iOS 18, *)
-    @available(macOS 15, *)
     public init<V: View, T: View>(
         _ factory: @escaping () -> (V, T, TabRole),
         meta: any DestinationMeta,
@@ -500,13 +489,11 @@ public struct Destination: Identifiable {
         self.meta = meta
         self.parent = parent
         self._tabItem = AnyView(t)
-        self._tabRole = role
+        self.tabRole = role
     }
 
     /// Creates a destination with a child coordinator, a tab item view,
     /// and a `TabRole`.
-    @available(iOS 18, *)
-    @available(macOS 15, *)
     public init<V: View>(
         _ factory: @escaping () -> (any Coordinatable, V, TabRole),
         meta: any DestinationMeta,
@@ -517,7 +504,7 @@ public struct Destination: Identifiable {
         self._coordinatable = CoordinatableCache(factory)
         self.meta = meta
         self.parent = parent
-        self._tabRole = result.2
+        self.tabRole = result.2
     }
 
     // MARK: - Mutating Methods

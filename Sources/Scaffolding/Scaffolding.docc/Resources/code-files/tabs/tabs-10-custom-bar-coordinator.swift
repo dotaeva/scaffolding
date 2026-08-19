@@ -8,6 +8,13 @@ final class AppCoordinator: @MainActor TabCoordinatable {
         visibility: .hidden          // native bar off
     )
 
+    // The identifiers still live on the coordinator — the custom bar reads
+    // them back and applies them to its own buttons.
+    init() {
+        setTabAccessibilityIdentifier("tab.planets", for: .planets)
+        setTabAccessibilityIdentifier("tab.favorites", for: .favorites)
+    }
+
     // No native bar ⇒ no label views needed. Plain `any Coordinatable`
     // returns are auto-tracked too, so both cases still exist.
     func planets() -> any Coordinatable { PlanetsCoordinator() }

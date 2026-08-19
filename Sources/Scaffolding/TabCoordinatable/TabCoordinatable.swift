@@ -291,6 +291,39 @@ public extension TabCoordinatable {
         return tabItems.badge(forFirst: tab)
     }
 
+    /// Sets or clears the accessibility identifier on the **first** tab
+    /// matching the given destination.
+    ///
+    /// The identifier is applied to the rendered tab bar item, so UI tests
+    /// and accessibility tools can address the tab independently of its
+    /// localized label:
+    ///
+    /// ```swift
+    /// tabCoordinator.setTabAccessibilityIdentifier("tab.home", for: .home)
+    /// ```
+    ///
+    /// With a custom tab bar (``TabItems`` created with
+    /// `visibility: .hidden`), apply the identifier to your own button
+    /// using ``tabAccessibilityIdentifier(for:)``.
+    ///
+    /// - Parameters:
+    ///   - identifier: The accessibility identifier, or `nil` to remove it.
+    ///   - tab: The destination meta of the tab.
+    /// - Returns: `self` for chaining.
+    @discardableResult
+    func setTabAccessibilityIdentifier(_ identifier: String?, for tab: Destinations.Meta) -> Self {
+        _ = anyTabItems // resolve tabs before the first render if needed
+        tabItems.setTabAccessibilityIdentifier(identifier, forFirst: tab)
+        return self
+    }
+
+    /// Returns the accessibility identifier currently set on the **first**
+    /// tab matching the given destination, if any.
+    func tabAccessibilityIdentifier(for tab: Destinations.Meta) -> String? {
+        _ = anyTabItems // resolve tabs before the first render if needed
+        return tabItems.tabAccessibilityIdentifier(forFirst: tab)
+    }
+
     /// Returns whether the given destination is currently present in the
     /// tab bar.
     func isInTabItems(_ meta: Destinations.Meta) -> Bool {
@@ -635,11 +668,11 @@ public extension TabCoordinatable {
 
 private extension Destination {
     /// Identity used when rendering tabs on the `Tab` builder API. Includes
-    /// the badge because `TabView` (observed on iOS 26) does not apply
-    /// `.badge` changes to an already-created `Tab`; folding the badge into
-    /// the identity recreates the tab entry whenever its badge changes.
+    /// the badge and accessibility identifier because `TabView` (observed on
+    /// iOS 26) does not apply changes to an already-created `Tab`; folding
+    /// them into the identity recreates the tab entry whenever either changes.
     var tabRenderIdentity: String {
-        "\(id)|\(badge ?? "")"
+        "\(id)|\(badge ?? "")|\(accessibilityIdentifier ?? "")"
     }
 }
 
@@ -689,17 +722,7 @@ public struct TabCoordinatableView: CoordinatableView {
         self._coordinator = coordinator
     }
 
-    @ViewBuilder
     private func flowCoordinatableView() -> some View {
-        if #available(iOS 18, macOS 15, *) {
-            flowCoordinatableViewiOS18()
-        } else {
-            flowCoordinatableViewiOS17()
-        }
-    }
-
-    @available(iOS 18, macOS 15, *)
-    private func flowCoordinatableViewiOS18() -> some View {
         TabView(selection: _coordinator.selectedTabBinding) {
             // The badge participates in each tab's identity: TabView applies
             // `.badge` only when a `Tab` is created, ignoring later changes,
@@ -721,25 +744,15 @@ public struct TabCoordinatableView: CoordinatableView {
                 // TabContent, not the content view — the view-level modifier
                 // is ignored inside `Tab { }`.
                 .badge(tab.badge.map(Text.init))
+                // Likewise for the accessibility identifier: only the
+                // TabContent modifier reaches the rendered tab bar item.
+                .accessibilityIdentifier(
+                    tab.accessibilityIdentifier ?? "",
+                    isEnabled: tab.accessibilityIdentifier != nil
+                )
             }
         }
         .background(TabBadgeSync(coordinator: _coordinator, trigger: $badgeRefreshTrigger))
-    }
-
-    private func flowCoordinatableViewiOS17() -> some View {
-        TabView(selection: _coordinator.selectedTabBinding) {
-            ForEach(_coordinator.anyTabItems.tabs) { tab in
-                wrappedView(tab)
-                    .environmentCoordinatable(_coordinator)
-                    .badge(tab.badge.map(Text.init))
-                    .tabItem {
-                        if let tabItem = tab.tabItem {
-                            AnyView(tabItem)
-                        }
-                    }
-                    .tag(tab.id)
-            }
-        }
     }
 
     private func modals(of type: ModalPresentationType) -> [Destination] {

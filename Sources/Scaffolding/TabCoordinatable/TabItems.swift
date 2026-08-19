@@ -304,6 +304,21 @@ extension TabItems {
         })?.badge
     }
 
+    func setTabAccessibilityIdentifier(_ identifier: String?, forFirst meta: Coordinator.Destinations.Meta) {
+        guard let index = tabs.firstIndex(where: { destination in
+            guard let destinationMeta = destination.meta as? Coordinator.Destinations.Meta else { return false }
+            return destinationMeta == meta
+        }) else { return }
+        tabs[index].accessibilityIdentifier = identifier
+    }
+
+    func tabAccessibilityIdentifier(forFirst meta: Coordinator.Destinations.Meta) -> String? {
+        tabs.first(where: { destination in
+            guard let destinationMeta = destination.meta as? Coordinator.Destinations.Meta else { return false }
+            return destinationMeta == meta
+        })?.accessibilityIdentifier
+    }
+
     func removeLastTab(_ meta: Coordinator.Destinations.Meta) {
         guard let index = tabs.lastIndex(where: { destination in
             guard let destinationMeta = destination.meta as? Coordinator.Destinations.Meta else { return false }

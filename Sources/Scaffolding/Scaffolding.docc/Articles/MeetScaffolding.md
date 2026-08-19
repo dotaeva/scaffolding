@@ -148,6 +148,18 @@ coordinator.appendTab(.notifications)
 coordinator.removeLastTab(.notifications)
 ```
 
+Badges and accessibility identifiers are set on the coordinator too — the
+label view only feeds the native bar, and a plain `.accessibilityIdentifier()`
+on it never reaches the rendered tab bar item:
+
+```swift
+coordinator.setBadge(3, for: .notifications)
+coordinator.setTabAccessibilityIdentifier("tab.feed", for: .feed)
+```
+
+That identifier is what a UI test taps, independently of the label's
+localized text.
+
 On iOS 18+ you can also include a `TabRole` as a third tuple element to use
 the new tab bar API.
 
@@ -531,7 +543,8 @@ Ready to try it yourself? Follow <doc:YourFirstScaffoldingProject> to build a
 working app in about twenty minutes, then take the tutorial that matches the
 problem in front of you:
 
-- <doc:TabsAndFlows> — a tab per flow, badges, selection guards, custom bars.
+- <doc:TabsAndFlows> — a tab per flow, badges and identifiers, selection
+  guards, custom bars.
 - <doc:AuthenticationFlow> — atomic root swaps and reaching up the tree.
 - <doc:ModalSubFlows> — native sheet vs. presented sub-flow, and both result
   patterns, including the awaited one.

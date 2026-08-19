@@ -177,6 +177,7 @@ final class AppCoordinator: @MainActor TabCoordinatable {
 | `removeFirstTab(_:)` / `removeLastTab(_:)` | Remove tabs |
 | `setTabs(_:)` | Replace all tabs |
 | `setBadge(_:for:)` / `badge(for:)` | Set or read a tab badge (`0` / `nil` clears) |
+| `setTabAccessibilityIdentifier(_:for:)` / `tabAccessibilityIdentifier(for:)` | Set or read a tab's accessibility identifier, for UI tests |
 | `setTabBarVisibility(_:)` | Show or hide the native tab bar |
 | `isInTabItems(_:)` | Check whether a tab is currently present |
 | `present(_:as:policy:onDismiss:)` | Show a destination as a `.sheet` or `.fullScreenCover` |

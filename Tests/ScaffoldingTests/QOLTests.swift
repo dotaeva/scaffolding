@@ -429,6 +429,92 @@ struct TabBadgeTests {
     }
 }
 
+// MARK: - Tab accessibility identifiers
+
+@MainActor
+@Suite("Tab accessibility identifiers")
+struct TabAccessibilityIdentifierTests {
+
+    @Test("set, read, and clear an identifier")
+    func setReadClear() {
+        let tabs = MainTabCoordinator()
+
+        tabs.setTabAccessibilityIdentifier("tab.home", for: .home)
+        #expect(tabs.tabAccessibilityIdentifier(for: .home) == "tab.home")
+        #expect(tabs.anyTabItems.tabs[0].accessibilityIdentifier == "tab.home")
+        #expect(tabs.tabAccessibilityIdentifier(for: .profile) == nil)
+
+        tabs.setTabAccessibilityIdentifier(nil, for: .home)
+        #expect(tabs.tabAccessibilityIdentifier(for: .home) == nil)
+    }
+
+    @Test("setting before the first render resolves the tabs")
+    func setBeforeRender() {
+        let tabs = MainTabCoordinator()
+        // No view/anyTabItems access before this call — the setter itself
+        // must resolve the initial tabs.
+        tabs.setTabAccessibilityIdentifier("tab.profile", for: .profile)
+        #expect(tabs.tabAccessibilityIdentifier(for: .profile) == "tab.profile")
+    }
+
+    @Test("identifying a missing tab is a no-op")
+    func missingTab() {
+        let tabs = MainTabCoordinator()
+        tabs.setTabAccessibilityIdentifier("tab.settings", for: .settings) // not in the tab bar
+        #expect(tabs.tabAccessibilityIdentifier(for: .settings) == nil)
+    }
+
+    @Test("an appended tab can receive an identifier")
+    func appendedTab() {
+        let tabs = MainTabCoordinator()
+        _ = tabs.anyTabItems // resolve initial tabs before mutating the set
+        tabs.appendTab(.settings)
+
+        tabs.setTabAccessibilityIdentifier("tab.settings", for: .settings)
+        #expect(tabs.tabAccessibilityIdentifier(for: .settings) == "tab.settings")
+
+        tabs.removeFirstTab(.settings)
+        #expect(tabs.tabAccessibilityIdentifier(for: .settings) == nil)
+    }
+
+    @Test("identifiers can be assigned from the coordinator's init")
+    func setFromInit() {
+        let tabs = IdentifiedTabCoordinator()
+        #expect(tabs.tabAccessibilityIdentifier(for: .home) == "tab.home")
+        #expect(tabs.tabAccessibilityIdentifier(for: .profile) == "tab.profile")
+    }
+
+    @Test("identifiers and badges live independently on the same tab")
+    func coexistsWithBadge() {
+        let tabs = MainTabCoordinator()
+
+        tabs.setTabAccessibilityIdentifier("tab.home", for: .home)
+        tabs.setBadge("3", for: .home)
+        #expect(tabs.tabAccessibilityIdentifier(for: .home) == "tab.home")
+        #expect(tabs.badge(for: .home) == "3")
+
+        tabs.setBadge(nil, for: .home)
+        #expect(tabs.tabAccessibilityIdentifier(for: .home) == "tab.home")
+    }
+}
+
+/// Sets its tab identifiers from `init`, the way the documentation
+/// recommends — the setter resolves the initial tabs itself.
+@MainActor
+@Observable
+@Scaffoldable
+final class IdentifiedTabCoordinator: @MainActor TabCoordinatable {
+    var tabItems = TabItems<IdentifiedTabCoordinator>(tabs: [.home, .profile])
+
+    init() {
+        setTabAccessibilityIdentifier("tab.home", for: .home)
+        setTabAccessibilityIdentifier("tab.profile", for: .profile)
+    }
+
+    func home() -> some View { EmptyView() }
+    func profile() -> some View { EmptyView() }
+}
+
 // MARK: - expecting: overloads
 
 @MainActor

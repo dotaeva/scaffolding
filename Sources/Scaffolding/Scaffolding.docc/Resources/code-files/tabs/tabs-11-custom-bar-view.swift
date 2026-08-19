@@ -35,6 +35,12 @@ struct PlanetsTabBar: View {
                     }
                 }
         }
+        // A custom bar renders no tab bar item, so carry the coordinator's
+        // identifier over to the button that replaces it.
+        .accessibilityIdentifier(
+            coordinator.tabAccessibilityIdentifier(for: tab) ?? "",
+            isEnabled: coordinator.tabAccessibilityIdentifier(for: tab) != nil
+        )
     }
 
     private func isSelected(_ tab: AppCoordinator.Destinations.Meta) -> Bool {

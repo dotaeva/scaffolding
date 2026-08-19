@@ -5,8 +5,9 @@
         its own state, and its own module boundary.
 
         You will split the flow in two, add a ``TabCoordinatable`` above them,
-        move between tabs programmatically, badge a tab from a nested flow,
-        intercept tab taps, and finally replace the system bar with your own.
+        identify the tabs for UI tests, move between tabs programmatically,
+        badge a tab from a nested flow, intercept tab taps, and finally
+        replace the system bar with your own.
 
         @Image(source: "scaffolding-chapter-hero", alt: "The Scaffolding coordinator hierarchy.")
     }
@@ -68,11 +69,24 @@
             }
 
             @Step {
+                Give each tab a stable accessibility identifier so UI tests can
+                tap it by name rather than by its localized label. Identifiers
+                rarely change, so `init` is the natural place for them.
+
+                > A plain `.accessibilityIdentifier()` on the label view never
+                reaches the rendered tab bar item — SwiftUI only honours the
+                identifier applied to the tab itself, which is what
+                `setTabAccessibilityIdentifier(_:for:)` does.
+
+                @Code(name: "AppCoordinator.swift", file: "tabs-05-accessibility.swift")
+            }
+
+            @Step {
                 Point the app entry at the tab coordinator. Nothing else
                 changes: `coordinator.view` renders whichever coordinator sits
                 at the top of the tree.
 
-                @Code(name: "PlanetsApp.swift", file: "tabs-05-app-entry.swift")
+                @Code(name: "PlanetsApp.swift", file: "tabs-06-app-entry.swift")
             }
         }
     }
@@ -96,7 +110,7 @@
                 reach for an ancestor only for actions that genuinely belong to
                 it — switching tabs is one of them.
 
-                @Code(name: "DetailView.swift", file: "tabs-06-select-tab.swift")
+                @Code(name: "DetailView.swift", file: "tabs-07-select-tab.swift")
             }
 
             @Step {
@@ -104,7 +118,7 @@
                 coordinator reaches up with `ancestor(ofType:)` — never with a
                 stored reference to its parent.
 
-                @Code(name: "FavoritesCoordinator.swift", file: "tabs-07-badge.swift")
+                @Code(name: "FavoritesCoordinator.swift", file: "tabs-08-badge.swift")
             }
         }
     }
@@ -126,7 +140,7 @@
                 > The hook returns `Bool`, which is not an auto-tracked return
                 type — so it needs no `@ScaffoldingIgnored`.
 
-                @Code(name: "AppCoordinator.swift", file: "tabs-08-should-select.swift")
+                @Code(name: "AppCoordinator.swift", file: "tabs-09-should-select.swift")
             }
 
             @Step {
@@ -135,7 +149,7 @@
                 `any Coordinatable`. `customize(_:)` wraps the whole `TabView`,
                 which is where the custom bar goes.
 
-                @Code(name: "AppCoordinator.swift", file: "tabs-09-custom-bar-coordinator.swift")
+                @Code(name: "AppCoordinator.swift", file: "tabs-10-custom-bar-coordinator.swift")
             }
 
             @Step {
@@ -147,7 +161,7 @@
                 *programmatic* — so call `shouldSelect(tab:isReselection:)`
                 yourself to keep the guard and the re-tap behaviour.
 
-                @Code(name: "PlanetsTabBar.swift", file: "tabs-10-custom-bar-view.swift")
+                @Code(name: "PlanetsTabBar.swift", file: "tabs-11-custom-bar-view.swift")
             }
 
             @Step {

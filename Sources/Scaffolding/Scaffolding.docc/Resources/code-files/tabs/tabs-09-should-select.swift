@@ -7,6 +7,12 @@ final class AppCoordinator: @MainActor TabCoordinatable {
 
     var isSubscribed = false
 
+    init() {
+        setTabAccessibilityIdentifier("tab.planets", for: .planets)
+        setTabAccessibilityIdentifier("tab.favorites", for: .favorites)
+        setTabAccessibilityIdentifier("tab.search", for: .search)
+    }
+
     func planets() -> (any Coordinatable, some View) {
         (PlanetsCoordinator(), Label("Planets", systemImage: "globe"))
     }
