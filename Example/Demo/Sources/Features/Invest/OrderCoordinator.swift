@@ -18,13 +18,17 @@ final class OrderCoordinator: @MainActor FlowCoordinatable {
     }
 
     // MARK: Routes
+    // Routes must be declared in the class body — @Scaffoldable scans only
+    // the class declaration, never extensions.
 
     func amount() -> some View { OrderAmountScreen() }
     func review() -> some View { OrderReviewScreen() }
     func confirmation(order: Order) -> some View { OrderConfirmationScreen(order: order) }
+}
 
-    // MARK: Navigation
+// MARK: - Navigation
 
+extension OrderCoordinator {
     func goToReview() {
         route(to: .review)
     }

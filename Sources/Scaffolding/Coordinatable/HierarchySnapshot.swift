@@ -17,6 +17,8 @@ public enum HierarchyRole: Equatable, Sendable {
     case fullScreenCover
     /// A tab, with its index and whether it is currently selected.
     case tab(index: Int, isSelected: Bool)
+    /// A column of a split view (sidebar, content, or detail).
+    case column(SplitColumn)
 
     /// Whether the destination is presented modally.
     public var isModal: Bool {
@@ -26,6 +28,12 @@ public enum HierarchyRole: Equatable, Sendable {
     /// Whether the destination is a tab.
     public var isTab: Bool {
         if case .tab = self { return true }
+        return false
+    }
+
+    /// Whether the destination is a split-view column.
+    public var isColumn: Bool {
+        if case .column = self { return true }
         return false
     }
 }
@@ -107,6 +115,22 @@ public extension Coordinatable {
             return nodes
         }
 
+        if let split = self as? any SplitCoordinatable {
+            let columns = split.anySplitColumns
+            var nodes: [HierarchyNode] = []
+            if let sidebar = columns.sidebar {
+                nodes.append(_node(for: sidebar, role: .column(.sidebar)))
+            }
+            if let content = columns.content {
+                nodes.append(_node(for: content, role: .column(.content)))
+            }
+            if let detail = columns.detail {
+                nodes.append(_node(for: detail, role: .column(.detail)))
+            }
+            nodes += columns.modals.map { _node(for: $0, role: .init($0.pushType)) }
+            return nodes
+        }
+
         return []
     }
 }
@@ -118,6 +142,7 @@ extension Coordinatable {
         if self is any FlowCoordinatable { return "flow" }
         if self is any TabCoordinatable { return "tab" }
         if self is any RootCoordinatable { return "root" }
+        if self is any SplitCoordinatable { return "split" }
         return "coordinator"
     }
 
@@ -151,6 +176,7 @@ extension HierarchyRole {
         case .sheet: return "sheet"
         case .fullScreenCover: return "fullScreenCover"
         case .tab(let index, let isSelected): return "tab[\(index)]\(isSelected ? "*" : "")"
+        case .column(let column): return column.rawValue
         }
     }
 }

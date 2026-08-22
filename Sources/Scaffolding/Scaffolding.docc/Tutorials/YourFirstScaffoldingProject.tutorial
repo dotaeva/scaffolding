@@ -8,7 +8,7 @@
         as a modal — without a single `NavigationStack` or `@State` flag in
         your views.
 
-        @Image(source: "01-home-list", alt: "The finished Planets app showing a list of planets with a gear icon in the toolbar.")
+        @Image(source: "scaffolding-intro-banner", alt: "Scaffolding")
     }
 
     @Section(title: "Set Up the Project") {
@@ -16,6 +16,8 @@
             Create a new Xcode project and add Scaffolding as a Swift Package
             dependency. By the end of this section you will have a blank app
             ready for coordinator-driven navigation.
+
+            @Image(source: "01-home-list", alt: "The finished Planets app: a list of planets with a gear icon in the toolbar.")
         }
 
         @Steps {

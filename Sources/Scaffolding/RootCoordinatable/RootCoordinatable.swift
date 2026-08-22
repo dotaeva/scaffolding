@@ -284,6 +284,8 @@ extension RootCoordinatable {
             tabCoordinator.setPresentedAs(type.presentationType)
         } else if let rootCoordinator = dest.coordinatable as? any RootCoordinatable {
             rootCoordinator.setPresentedAs(type.presentationType)
+        } else if let splitCoordinator = dest.coordinatable as? any SplitCoordinatable {
+            splitCoordinator.setPresentedAs(type.presentationType)
         }
 
         anyRoot.modals.append(dest)

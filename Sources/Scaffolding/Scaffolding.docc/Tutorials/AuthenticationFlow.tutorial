@@ -10,7 +10,7 @@
         `ancestor(ofType:)`, sign out from a screen buried three levels down,
         and float a root-level sheet above everything.
 
-        @Image(source: "scaffolding-chapter-hero", alt: "The Scaffolding coordinator hierarchy.")
+        @Image(source: "scaffolding-intro-banner", alt: "Scaffolding")
     }
 
     @Section(title: "Add a Root Coordinator") {

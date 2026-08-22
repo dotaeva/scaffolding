@@ -44,7 +44,7 @@ func detail(item: Item) -> any Coordinatable {
 }
 ```
 
-The same applies to anything that wraps SwiftUI's stack: `NavigationView`, `NavigationSplitView`, custom containers that hold a `NavigationPath`. They all conflict.
+The same applies to anything that wraps SwiftUI's stack: `NavigationView`, custom containers that hold a `NavigationPath`. They all conflict. A hand-rolled `NavigationSplitView` conflicts too — split views are supported, but only as a ``SplitCoordinatable`` (see below), never inside a flow's view tree.
 
 ---
 
@@ -87,6 +87,9 @@ Is it a push/pop on the current stack?
 | Switch tabs programmatically | `tabCoordinator.selectFirstTab(.home)` |
 | Make a tab addressable in UI tests | `tabCoordinator.setTabAccessibilityIdentifier("tab.home", for: .home)` — a plain `.accessibilityIdentifier()` on the label view never reaches the tab bar item |
 | Replace the system tab bar with your own UI | `TabItems(tabs:, visibility: .hidden)` + custom bar view (see *Custom tab bar*) |
+| Show a sidebar selection in a split view's detail column | `splitCoordinator.setDetail(.planet(id:))`, guarded on domain state for re-selection (see *Master–detail split view*) |
+| Show/hide split-view columns programmatically | `splitCoordinator.setColumnVisibility(.detailOnly)` / `toggleSidebar()` |
+| Add/remove a split view's middle content column at runtime | `splitCoordinator.setContent(.moons(id:))` installs it (three-column form); `removeContent()` drops it |
 
 Stay native for view-only modals. The native modifier is lighter, requires no coordinator boundary, and avoids the overhead of an extra `Destinations` case.
 
@@ -115,7 +118,7 @@ final class HomeCoordinator: @MainActor FlowCoordinatable {
 
 ### Auto-tracked return types
 
-The `@Scaffoldable` macro scans the coordinator's **functions** — and only functions; stored/computed properties, `init`, and `deinit` are never scanned — and generates a `Destinations` enum case for every function whose return type is one of:
+The `@Scaffoldable` macro scans the coordinator's **functions in the class body** — and only functions; stored/computed properties, `init`, and `deinit` are never scanned, and **extensions are never scanned either** (a member macro sees only the attached declaration). Two consequences: a route declared in an extension is *silently untracked* — routes must live in the class body — and extensions are the natural home for everything else. The recommended shape: class body = state container + stored properties + routes; same-file extensions = actions, deep links, computed chrome, and `customize(_:)` (which needs no `@ScaffoldingIgnored` there, since the macro never sees it). The macro generates a `Destinations` enum case for every class-body function whose return type is one of:
 
 | Return type | What it generates |
 |---|---|
@@ -179,7 +182,7 @@ There is no opt-in tracking attribute. Auto-tracking by return type plus exclusi
 
 ---
 
-## Three coordinator protocols
+## Four coordinator protocols
 
 Pick by user-facing structure, not by mood.
 
@@ -188,8 +191,9 @@ Pick by user-facing structure, not by mood.
 | `FlowCoordinatable` | Push/pop navigation. The workhorse. Wraps a `NavigationStack`. |
 | `TabCoordinatable` | Tab bar where each tab is independent. Each tab's content is its own coordinator. |
 | `RootCoordinatable` | Atomic root swap: auth flow ↔ main app, onboarding ↔ home. The whole tree is replaced when `setRoot(_:)` is called. |
+| `SplitCoordinatable` | Master–detail (iPad/Mac): sidebar + optional content + detail. Wraps a `NavigationSplitView`; each column is its own destination. |
 
-A typical app uses all three:
+A typical iPhone app uses the first three:
 
 ```
 AppCoordinator (Root)
@@ -333,6 +337,51 @@ final class AppCoordinator: @MainActor RootCoordinatable {
     func signOut() { setRoot(.unauthenticated) }
 }
 ```
+
+### Master–detail split view (iPad/Mac)
+
+`SplitCoordinatable` wraps a `NavigationSplitView`. Column assignment lives in the `SplitColumns` initializer — route functions keep the plain auto-tracked return types. A child `FlowCoordinatable` in a column builds its own `NavigationStack` there (that is the composition SwiftUI expects inside a split-view column), so pushes and modals inside a column are ordinary flow calls.
+
+```swift
+@MainActor @Observable @Scaffoldable
+final class LibraryCoordinator: @MainActor SplitCoordinatable {
+    var columns = SplitColumns<LibraryCoordinator>(
+        sidebar: .sidebar,
+        detail: .placeholder          // shown before any selection
+    )
+    // Three-column variant: SplitColumns(sidebar:content:detail:).
+    // The content column is also dynamic: setContent(_:) installs it on
+    // a two-column split (swapping to the three-column form) and
+    // removeContent() drops it again.
+
+    // Domain state, not navigation state: which planet is showing.
+    private(set) var selectedPlanetId: Int?
+
+    func sidebar() -> some View { SidebarList() }
+    func placeholder() -> some View { ContentUnavailableView.search }
+    func planet(id: Int) -> any Coordinatable { PlanetFlowCoordinator(id: id) }
+
+    // The sidebar view calls this on row tap. The re-selection guard is
+    // on domain state — NOT `policy: .distinct`: every planet is the same
+    // `.planet` case, and `.distinct` compares case identity only
+    // (associated values are ignored), so it would also swallow switches
+    // between different planets. Use `.distinct` only when each
+    // selectable destination is its own case.
+    func select(_ planet: Planet) {
+        guard selectedPlanetId != planet.id else { return }
+        selectedPlanetId = planet.id
+        setDetail(.planet(id: planet.id))
+    }
+}
+```
+
+Rules that differ from the other coordinators:
+
+- **Placement.** A `SplitCoordinatable` must never live inside a `FlowCoordinatable` (SwiftUI does not support `NavigationSplitView` inside a `NavigationStack` — Scaffolding logs a critical error). Legal hosts: a `RootCoordinatable` root, a `TabCoordinatable` tab, or a modal presentation.
+- **`setDetail` replaces, it doesn't push.** The previous detail is torn down like a `setRoot`. Guard re-selection on domain state as above (`.distinct` only distinguishes *cases*, never associated values). Selection *highlight* stays in the sidebar view — use a native `List(selection:)` synced with the coordinator's domain state. One platform caveat: the iPad portrait **overlay** sidebar does not auto-dismiss after a selection (SwiftUI only auto-hides it when the detail is driven directly by the selection binding, not by a coordinator); the user taps the detail area to close it, or you can hide it yourself with `setColumnVisibility(.detailOnly)` when you know the sidebar is overlaid.
+- **Column children can't `dismissCoordinator()`.** Columns are structural, like tabs — replace them via `setDetail`/`setContent`/`setSidebar` instead. Modals presented with `present(_:as:)` dismiss normally.
+- **Compact width is free.** `NavigationSplitView` collapses to a stack on iPhone/compact iPad on its own; because the state lives on the coordinator, nothing is lost when the size class changes. Steer the collapsed form with `setPreferredCompactColumn(_:)`.
+- Deep-link with the same typed overloads: `split.setDetail(.planet(id: 4)) { (flow: PlanetFlowCoordinator) in flow.route(to: .moon(id: 2)) }`.
 
 ### Deep linking with the typed `<T: Coordinatable>` overloads
 
@@ -534,6 +583,7 @@ Deep trees (root → tabs → flows → presented sub-flows) make it easy to los
 | How deep is the flow? | `flow.depth` — pushed count above root, modals excluded |
 | What's on top? | `flow.topDestination` — `Destinations.Meta` of the top push, or the root's |
 | Is a case already in the stack? | `flow.isInStack(.detail)`, `flow.count(of: .detail)` |
+| What's in a split column? | `split.detailDestination` / `sidebarDestination` / `contentDestination`, `split.isDetail(.planet)` |
 | Is a modal up? | `coordinator.isPresentingModal` (any coordinator type) |
 
 The two `routeType`s answer different questions and can differ for the same screen: a view pushed inside a sheet-presented flow reads `.push` from `\.destination`, while its flow coordinator reads `.sheet`.
@@ -687,7 +737,7 @@ struct HomeFlowTests {
 
 ### What to assert on
 
-The orientation API from *Where am I?* is the assertion surface: `depth`, `topDestination`, `isInStack(_:)`, `count(of:)`, `isPresentingModal`, `isRoot(_:)`, `isInTabItems(_:)`, `badge(for:)`, `routeType`, `ancestor(ofType:)`, `hierarchyRoot`. For multi-step navigation, assert the shape of the tree:
+The orientation API from *Where am I?* is the assertion surface: `depth`, `topDestination`, `isInStack(_:)`, `count(of:)`, `isPresentingModal`, `isRoot(_:)`, `isInTabItems(_:)`, `detailDestination` / `isDetail(_:)`, `badge(for:)`, `routeType`, `ancestor(ofType:)`, `hierarchyRoot`. Split columns assert with `hierarchyContains(LibraryCoordinator.self, .planet, as: .column(.detail))`. For multi-step navigation, assert the shape of the tree:
 
 ```swift
 app.handle(URL(string: "myapp://holding/NVDA")!)
@@ -847,8 +897,10 @@ Use `coordinator.pop()` — or SwiftUI's `@Environment(\.dismiss)`, which works 
 - Scaffolding requires Swift 6.2 (`@Observable`, the macro toolchain, strict concurrency). The package's `swift-tools-version` is `6.2`.
 - Platform floor: iOS 18 / macOS 15 / tvOS 18 / watchOS 11 / macCatalyst 18. `TabRole` is available unconditionally on this floor.
 - `onDismiss` and the deep-link trailing closures are typed `@MainActor () -> Void` / `@MainActor (T) -> Void`. Annotate any closures you forward.
+- macOS: full-screen covers don't exist there, so `present(_:as: .fullScreenCover)` renders as a **sheet** on macOS (state still reports `.fullScreenCover`). `SidebarCommands()` in the app's `.commands` gives the standard sidebar menu item/shortcut; `splitCoordinator.toggleSidebar()` is there for custom menu commands or toolbar buttons.
+- **Known issue on the iOS 27 beta runtime** (fine on iOS 26): SwiftUI re-evaluates a view's environment in detached contexts — while a split-view detail column is being replaced by a deep link — with the injected coordinators absent, so a non-optional `@Environment(SomeCoordinator.self)` traps ("No Observable object of type … found"). Both Scaffolding injection layers are present and a live push works; this is OS-beta behavior. Workaround until it's fixed: in views reachable through those transitions, read the coordinator as an optional (`@Environment(X.self) private var coordinator: X?`) and init-inject the data the view renders. (A related beta issue — `NavigationStack` silently dropping a path seeded before its first render — is worked around inside Scaffolding itself: the path binding activates one frame after the stack mounts, so deep-link chains keep their pushed state.)
 - Scaffolding plays well with SwiftUI's `@Environment(\.dismiss)`, `@Environment(\.scenePhase)`, `@Environment(\.openURL)`, etc. — those are native environment values that don't conflict with the coordinator injection.
-- Scaffolding **does** conflict with anything that introduces another `NavigationStack` (or `NavigationView`, `NavigationSplitView`) inside a flow's view tree.
+- Scaffolding **does** conflict with anything that introduces another `NavigationStack` (or `NavigationView`) inside a flow's view tree, and with hand-rolled `NavigationSplitView`s anywhere — split views are expressed as a `SplitCoordinatable`, which itself must never sit inside a `FlowCoordinatable`.
 
 ---
 
@@ -856,8 +908,8 @@ Use `coordinator.pop()` — or SwiftUI's `@Environment(\.dismiss)`, which works 
 
 When asked to add navigation to a Scaffolding project:
 
-1. **Don't generate `NavigationStack`, `NavigationView`, or `NavigationSplitView`** anywhere inside a `FlowCoordinatable`'s view hierarchy.
-2. Decide push vs. modal vs. root-swap, then pick `route(to:)` / `present(_:as:)` / `setRoot(_:)`.
+1. **Don't generate `NavigationStack`, `NavigationView`, or `NavigationSplitView`** anywhere inside a `FlowCoordinatable`'s view hierarchy. Master–detail UIs use a `SplitCoordinatable` — never a hand-rolled `NavigationSplitView`.
+2. Decide push vs. modal vs. root-swap vs. column-swap, then pick `route(to:)` / `present(_:as:)` / `setRoot(_:)` / `setDetail(_:)`.
 3. For modals, decide view-only vs. sub-flow:
    - View-only → SwiftUI native `.sheet(item:)`.
    - Sub-flow → `present(_:as:)` with a child coordinator.

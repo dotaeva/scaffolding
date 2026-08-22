@@ -438,6 +438,82 @@ final class OuterRootCoordinator: RootCoordinatable {
     }
 }
 
+// MARK: - LibrarySplitCoordinator (NavigationSplitView coordinator)
+
+@MainActor @Observable
+final class LibrarySplitCoordinator: SplitCoordinatable {
+    var columns: SplitColumns<LibrarySplitCoordinator>
+
+    init(threeColumn: Bool = false) {
+        if threeColumn {
+            self.columns = SplitColumns<LibrarySplitCoordinator>(
+                sidebar: .sidebar,
+                content: .list,
+                detail: .placeholder
+            )
+        } else {
+            self.columns = SplitColumns<LibrarySplitCoordinator>(
+                sidebar: .sidebar,
+                detail: .placeholder
+            )
+        }
+    }
+
+    func sidebar() -> some View { EmptyView() }
+    func sidebarFlow() -> any Coordinatable { HomeFlowCoordinator() }
+    func list() -> some View { EmptyView() }
+    func placeholder() -> some View { EmptyView() }
+    func planet() -> any Coordinatable { DetailFlowCoordinator() }
+    func settings() -> any Coordinatable { LeafFlowCoordinator() }
+
+    enum Destinations: Destinationable {
+        typealias Owner = LibrarySplitCoordinator
+        case sidebar
+        case sidebarFlow
+        case list
+        case placeholder
+        case planet
+        case settings
+
+        enum Meta: DestinationMeta {
+            case sidebar
+            case sidebarFlow
+            case list
+            case placeholder
+            case planet
+            case settings
+        }
+
+        var meta: Meta {
+            switch self {
+            case .sidebar: return .sidebar
+            case .sidebarFlow: return .sidebarFlow
+            case .list: return .list
+            case .placeholder: return .placeholder
+            case .planet: return .planet
+            case .settings: return .settings
+            }
+        }
+
+        func value(for instance: Owner) -> Destination {
+            switch self {
+            case .sidebar:
+                return Destination(instance.sidebar(), meta: meta, parent: instance)
+            case .sidebarFlow:
+                return Destination({ instance.sidebarFlow() }, meta: meta, parent: instance)
+            case .list:
+                return Destination(instance.list(), meta: meta, parent: instance)
+            case .placeholder:
+                return Destination(instance.placeholder(), meta: meta, parent: instance)
+            case .planet:
+                return Destination({ instance.planet() }, meta: meta, parent: instance)
+            case .settings:
+                return Destination({ instance.settings() }, meta: meta, parent: instance)
+            }
+        }
+    }
+}
+
 // MARK: - FlowWithCoordinatorRoot (FlowStack whose root is a coordinator, not a view)
 
 @MainActor @Observable

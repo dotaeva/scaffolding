@@ -32,6 +32,11 @@ extension View {
     /// Applies a sheet + full-screen cover to a host coordinator that
     /// stores its modals in an array. Dismissal removes the matching
     /// destination and resolves its lifecycle callback.
+    ///
+    /// macOS has no full-screen cover, so covers are folded into the
+    /// sheet presentation there — a `present(_:as: .fullScreenCover)`
+    /// shows (and dismisses) as a sheet instead of silently never
+    /// appearing.
     func applyContainerModals<ModalContent: View>(
         sheets sheetDestinations: [Destination],
         fullScreenCovers coverDestinations: [Destination],
@@ -39,12 +44,22 @@ extension View {
         onDismissFullScreenCover: @escaping (UUID) -> Void,
         modalContent: @escaping (Destination) -> ModalContent
     ) -> some View {
+#if os(macOS)
+        let effectiveSheets = sheetDestinations + coverDestinations
+#else
+        let effectiveSheets = sheetDestinations
+#endif
+
         let withSheet = self.sheet(
             item: Binding<Destination?>(
-                get: { sheetDestinations.first },
+                get: { effectiveSheets.first },
                 set: { newValue in
-                    if newValue == nil, let current = sheetDestinations.first {
-                        onDismissSheet(current.id)
+                    if newValue == nil, let current = effectiveSheets.first {
+                        if current.pushType == .fullScreenCover {
+                            onDismissFullScreenCover(current.id)
+                        } else {
+                            onDismissSheet(current.id)
+                        }
                     }
                 }
             )

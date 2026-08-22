@@ -45,4 +45,13 @@
         @TutorialReference(tutorial: "doc:StateRestoration")
         @TutorialReference(tutorial: "doc:TestingCoordinators")
     }
+
+    @Chapter(name: "iPad and Mac") {
+        Build a split-view app on a SplitCoordinatable — sidebar selection,
+        flows inside columns, the dynamic third column, and column-aware
+        tests.
+
+        @Image(source: "scaffolding-chapter-hero")
+        @TutorialReference(tutorial: "doc:SplitViewApps")
+    }
 }

@@ -14,6 +14,8 @@ final class InvestCoordinator: @MainActor GlassTabFlow {
     private(set) var orders: [Order] = []
 
     // MARK: Routes
+    // Routes must be declared in the class body — @Scaffoldable scans only
+    // the class declaration, never extensions.
 
     func portfolio() -> some View { InvestScreen().tabScreenFade() }
     func holding(holding: Holding) -> some View { HoldingDetailScreen(holding: holding) }
@@ -23,9 +25,11 @@ final class InvestCoordinator: @MainActor GlassTabFlow {
     func buy(holding: Holding, onComplete: @escaping @MainActor (Order) -> Void) -> any Coordinatable {
         OrderCoordinator(holding: holding, onComplete: onComplete)
     }
+}
 
-    // MARK: Navigation
+// MARK: - Navigation
 
+extension InvestCoordinator {
     func openHolding(_ holding: Holding) {
         route(to: .holding(holding: holding), policy: .distinct)
     }

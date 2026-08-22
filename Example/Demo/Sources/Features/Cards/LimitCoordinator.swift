@@ -10,9 +10,17 @@ import Scaffolding
 final class LimitCoordinator: @MainActor FlowCoordinatable {
     var stack = FlowStack<LimitCoordinator>(root: .presets)
 
+    // MARK: Routes
+    // Routes must be declared in the class body — @Scaffoldable scans only
+    // the class declaration, never extensions.
+
     func presets() -> some View { LimitPresetsScreen() }
     func custom() -> some View { CustomLimitScreen() }
+}
 
+// MARK: - Navigation
+
+extension LimitCoordinator {
     func openCustom() {
         route(to: .custom)
     }

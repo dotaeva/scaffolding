@@ -78,6 +78,8 @@ public class Root<Coordinator: RootCoordinatable>: AnyRoot {
                     tabCoordinator.setPresentedAs(presentedAs)
                 } else if let rootCoordinator = rootDest.coordinatable as? any RootCoordinatable {
                     rootCoordinator.setPresentedAs(presentedAs)
+                } else if let splitCoordinator = rootDest.coordinatable as? any SplitCoordinatable {
+                    splitCoordinator.setPresentedAs(presentedAs)
                 }
             }
             

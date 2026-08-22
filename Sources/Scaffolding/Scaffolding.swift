@@ -1,7 +1,8 @@
 /// Generates a `Destinations` enum for a coordinator class.
 ///
 /// Apply `@Scaffoldable` to an `@Observable` class that conforms to
-/// ``FlowCoordinatable``, ``TabCoordinatable``, or ``RootCoordinatable``.
+/// ``FlowCoordinatable``, ``TabCoordinatable``, ``RootCoordinatable``,
+/// or ``SplitCoordinatable``.
 /// The macro inspects every function whose return type is `some View`,
 /// `any Coordinatable`, or a supported tab tuple and synthesises a
 /// `Destinations` enum with one case per function.

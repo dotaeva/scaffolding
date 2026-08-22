@@ -110,6 +110,28 @@ public extension Coordinatable {
             return
         }
 
+        if let parent = parent as? (any SplitCoordinatable) {
+            // Modal child of a SplitCoordinatable → remove from container.modals.
+            let selfId = AnyHashable(self.id)
+            if parent.anySplitColumns.modals.contains(where: {
+                guard let cId = $0.coordinatable?.id else { return false }
+                return AnyHashable(cId) == selfId
+            }) {
+                let toRemove = parent.anySplitColumns.modals.filter {
+                    guard let cId = $0.coordinatable?.id else { return false }
+                    return AnyHashable(cId) == selfId
+                }
+                parent.anySplitColumns.modals.removeAll {
+                    guard let cId = $0.coordinatable?.id else { return false }
+                    return AnyHashable(cId) == selfId
+                }
+                for destination in toRemove { destination.resolveDismissal() }
+                return
+            }
+            logger.critical("Scaffolding: The coordinator you're trying to dismiss is a split-view column, it will not be dismissed. Replace the column on its SplitCoordinatable instead.")
+            return
+        }
+
         if let parent = parent as? (any RootCoordinatable) {
             // Modal child of a RootCoordinatable → remove from container.modals.
             let selfId = AnyHashable(self.id)
@@ -196,6 +218,9 @@ public extension Coordinatable {
         } else if let tab = self as? any TabCoordinatable {
             guard let modal = tab.anyTabItems.modals.popLast() else { return self }
             modal.resolveDismissal()
+        } else if let split = self as? any SplitCoordinatable {
+            guard let modal = split.anySplitColumns.modals.popLast() else { return self }
+            modal.resolveDismissal()
         } else if let flow = self as? any FlowCoordinatable {
             guard let index = flow.anyStack.destinations.lastIndex(where: {
                 $0.pushType == .sheet || $0.pushType == .fullScreenCover
@@ -224,6 +249,10 @@ public extension Coordinatable {
         } else if let tab = self as? any TabCoordinatable {
             let removed = tab.anyTabItems.modals
             tab.anyTabItems.modals.removeAll()
+            for destination in removed.reversed() { destination.resolveDismissal() }
+        } else if let split = self as? any SplitCoordinatable {
+            let removed = split.anySplitColumns.modals
+            split.anySplitColumns.modals.removeAll()
             for destination in removed.reversed() { destination.resolveDismissal() }
         } else if let flow = self as? any FlowCoordinatable {
             let isModal: (Destination) -> Bool = {
@@ -288,6 +317,14 @@ extension Coordinatable {
                 arr.append(contentsOf: tab.anyTabItems.modals)
                 return arr
             }
+            if let split = parent as? any SplitCoordinatable {
+                var arr: [Destination] = []
+                if let sidebar = split.anySplitColumns.sidebar { arr.append(sidebar) }
+                if let content = split.anySplitColumns.content { arr.append(content) }
+                if let detail = split.anySplitColumns.detail { arr.append(detail) }
+                arr.append(contentsOf: split.anySplitColumns.modals)
+                return arr
+            }
             return []
         }()
 
@@ -313,6 +350,10 @@ extension Coordinatable {
         } else if let tab = self as? any TabCoordinatable {
             let toRemove = tab.anyTabItems.modals.filter { $0.id == id && $0.pushType == target }
             tab.anyTabItems.modals.removeAll { $0.id == id && $0.pushType == target }
+            for destination in toRemove { destination.resolveDismissal() }
+        } else if let split = self as? any SplitCoordinatable {
+            let toRemove = split.anySplitColumns.modals.filter { $0.id == id && $0.pushType == target }
+            split.anySplitColumns.modals.removeAll { $0.id == id && $0.pushType == target }
             for destination in toRemove { destination.resolveDismissal() }
         }
     }

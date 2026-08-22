@@ -8,7 +8,7 @@
         method, walk the tree with the typed `expecting:` overloads, guard the
         link behind authentication, and defer a link that arrives too early.
 
-        @Image(source: "scaffolding-chapter-hero", alt: "The Scaffolding coordinator hierarchy.")
+        @Image(source: "scaffolding-intro-banner", alt: "Scaffolding")
     }
 
     @Section(title: "One Entry Point") {

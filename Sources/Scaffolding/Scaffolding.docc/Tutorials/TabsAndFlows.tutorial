@@ -9,7 +9,7 @@
         badge a tab from a nested flow, intercept tab taps, and finally
         replace the system bar with your own.
 
-        @Image(source: "scaffolding-chapter-hero", alt: "The Scaffolding coordinator hierarchy.")
+        @Image(source: "scaffolding-intro-banner", alt: "Scaffolding")
     }
 
     @Section(title: "Split the App into Flows") {

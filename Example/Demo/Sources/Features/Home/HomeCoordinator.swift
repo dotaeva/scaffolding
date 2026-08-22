@@ -21,15 +21,19 @@ final class HomeCoordinator: @MainActor GlassTabFlow {
     }
 
     // MARK: Routes
+    // Routes must be declared in the class body — @Scaffoldable scans only
+    // the class declaration, never extensions.
 
     func transactions() -> some View { TransactionsScreen().tabScreenFade() }
     func transaction(transaction: Transaction) -> some View {
         TransactionDetailScreen(transaction: transaction)
     }
     func categoryPicker() -> some View { CategoryPickerScreen() }
+}
 
-    // MARK: Navigation
+// MARK: - Navigation
 
+extension HomeCoordinator {
     /// .distinct: a second tap while the push animates would double-push;
     /// the policy skips the route when the same case is already on top.
     /// onDismiss fires exactly once however the screen leaves the stack —

@@ -1,0 +1,330 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "2023_TRIP_DESCRIPTION" : {
+      "comment" : "Description of the ‘2023 Trip’ landmark collection.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الأماكن التي زرناها في رحلتنا الرائعة في ٢٠٢٣."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orte, die wir 2023 auf unserer großartigen Reise besucht haben."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Places we visited on our great trip in 2023."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מקומות שביקרנו בהם בטיול הגדול שלנו ב-2023."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "สถานที่ต่างๆ ที่เราได้ไปมาในทริปสุดยิ่งใหญ่ของเราในปี 2566"
+          }
+        }
+      }
+    },
+    "2023_TRIP_NAME" : {
+      "comment" : "Name of the ‘2023 Trip’ landmark collection.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "رحلة ٢٠٢٣"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reise 2023"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2023 Trip"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הטיול של 2023"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ทริปปี 2566"
+          }
+        }
+      }
+    },
+    "FAVORITES_NAME" : {
+      "comment" : "Description of the ‘Favorites’ landmark collection.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "المفضلة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favoriten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorites"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מועדפים"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "รายการโปรด"
+          }
+        }
+      }
+    },
+    "ICY_WONDERLAND_DESCRIPTION" : {
+      "comment" : "Description of the ‘Icy Wonderland’ landmark collection.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "باردة، لكنها مذهلة!"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalt, aber fantastisch!"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "They’re chilly, but amazing!"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "המקומות הקרים הכי חמים שיש!"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "แม้อากาศจะหนาวแต่ก็น่าตื่นตาตื่นใจ!"
+          }
+        }
+      }
+    },
+    "ICY_WONDERLAND_NAME" : {
+      "comment" : "Name of the ‘Icy Wonderland’ landmark collection.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أرض العجائب الجليدية"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eiswunderwelt"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Icy Wonderland"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ארץ פלאות חורפית"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ดินแดนมหัศจรรย์น้ำแข็ง"
+          }
+        }
+      }
+    },
+    "SWEET_DESERTS_DESCRIPTION" : {
+      "comment" : "Description of the ‘Sweet Deserts’ landmark collection.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "صحاري مذهلة حول العالم."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spektakuläre Wüsten auf der ganzen Welt"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spectacular deserts around the world."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מדבריות מרהיבים בכל רחבי העולם."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ทะเลทรายที่น่าตื่นตาตื่นใจทั่วโลก"
+          }
+        }
+      }
+    },
+    "SWEET_DESERTS_NAME" : {
+      "comment" : "Name of the ‘Sweet Deserts’ landmark collection.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "صحاري مذهلة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Malerische Wüsten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sweet Deserts"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מדבריות או לא להיות"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ทะเลทรายอันน่าทึ่ง"
+          }
+        }
+      }
+    },
+    "TOWERING_PEAKS_DESCRIPTION" : {
+      "comment" : "Description of the ‘Towering Peaks’ landmark collection.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "قمم جبال رائعة!"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Großartige Berggipfel!"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gorgeous mountain peaks!"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פסגות הרים מהממות!"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ยอดเขาสุดตระการตา!"
+          }
+        }
+      }
+    },
+    "TOWERING_PEAKS_NAME" : {
+      "comment" : "Name of the ‘Towering Peaks’ landmark collection.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "قمم مرتفعة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Himmelstrebende Gipfel"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Towering Peaks"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פסגות נישאות"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ยอดเขาสูงตระหง่าน"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.1"
+}

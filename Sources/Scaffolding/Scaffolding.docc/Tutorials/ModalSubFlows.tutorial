@@ -8,7 +8,7 @@
         picker to a coordinator, configure the sheet from the presenter,
         dismiss from both sides, and await a result back from it.
 
-        @Image(source: "03-settings-sheet", alt: "A settings screen presented as a modal sheet with a Done button.")
+        @Image(source: "scaffolding-intro-banner", alt: "Scaffolding")
     }
 
     @Section(title: "Choose the Right Modal") {

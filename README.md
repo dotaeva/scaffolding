@@ -116,7 +116,7 @@ the same ground in one file.
 
 ---
 
-## Example Project
+## Example Projects
 
 [`Example/Demo`](Example/Demo) is a banking-style app that exercises the whole
 API surface — a root coordinator with an auth swap, a tab coordinator with a
@@ -130,6 +130,32 @@ open Example/Demo/Demo.xcodeproj
 ```
 
 ⌘R runs the app, ⌘U runs the tests.
+
+[`Example/Orbit`](Example/Orbit) is an iPad-first solar-system browser built on
+`SplitCoordinatable` — a `NavigationSplitView` with the planet list in the
+sidebar and a flow coordinator in the detail column. It shows detail-column
+replacement with a `.distinct` re-selection guard, pushes inside a column, a
+settings sub-flow presented above the split view, `orbit://` deep links that
+walk sidebar → detail → pushed moon, and free compact collapse on iPhone:
+
+```sh
+open Example/Orbit/Orbit.xcodeproj
+```
+
+[`Example/Landmarks`](Example/Landmarks) is a port of Apple's
+[Landmarks: Building an app with Liquid Glass](https://developer.apple.com/documentation/swiftui/landmarks-building-an-app-with-liquid-glass)
+sample to Scaffolding coordinators — the data model, views, and Liquid
+Glass styling stay Apple's; the `NavigationPath`-in-the-model navigation
+layer becomes a `SplitCoordinatable` with a flow per sidebar page — and
+the same target builds for iPad, iPhone, and native macOS. Requires the
+iOS 26 SDK;
+ships with generated placeholder art (Apple's sample-code license
+excludes the photographs — `Scripts/import-apple-assets.sh` swaps in the
+real ones from a local copy of the sample):
+
+```sh
+open Example/Landmarks/Landmarks.xcodeproj
+```
 
 ---
 

@@ -146,6 +146,8 @@ public class TabItems<Coordinator: TabCoordinatable>: AnyTabItems {
             tabCoordinator.setPresentedAs(type)
         } else if let rootCoordinator = coordinatable as? any RootCoordinatable {
             rootCoordinator.setPresentedAs(type)
+        } else if let splitCoordinator = coordinatable as? any SplitCoordinatable {
+            splitCoordinator.setPresentedAs(type)
         }
     }
 }

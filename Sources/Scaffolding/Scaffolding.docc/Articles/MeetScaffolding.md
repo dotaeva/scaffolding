@@ -21,7 +21,7 @@ hood.
 ### How It Works
 
 1. Create a class and mark it `@Scaffoldable @Observable`.
-2. Conform to one of three coordinator protocols.
+2. Conform to one of four coordinator protocols.
 3. Write functions — each one becomes a route.
 4. The macro generates a `Destinations` enum from those functions.
 5. Push with `coordinator.route(to: .someDestination)` or present a modal
@@ -41,6 +41,8 @@ function's return type:
 
 Functions marked with ``ScaffoldingIgnored()`` or returning other types are
 skipped.
+
+![Route functions on the left, the generated Destinations enum on the right.](diagram-macro)
 
 ## Mounting the Coordinator
 
@@ -105,6 +107,8 @@ coordinator.route(to: .detail(item: "Earth"))           // push
 coordinator.present(.settings, as: .sheet)              // sheet
 coordinator.present(.settings, as: .fullScreenCover)    // full-screen cover
 ```
+
+![Push, sheet, and root swap — one call each.](diagram-routes)
 
 `present(_:as:)` is available on every coordinator type, so a
 ``TabCoordinatable`` or ``RootCoordinatable`` can host a modal directly
@@ -186,6 +190,51 @@ One call flips the app state:
 coordinator.setRoot(.authenticated)
 ```
 
+## SplitCoordinatable — Split Views
+
+``SplitCoordinatable`` manages a `NavigationSplitView` for iPad and Mac —
+a sidebar column, an optional middle content column, and a detail column,
+each showing one destination. Column assignment lives in the
+``SplitColumns`` initializer, so the route functions keep the ordinary
+return types:
+
+```swift
+@Scaffoldable @Observable
+final class LibraryCoordinator: @MainActor SplitCoordinatable {
+    var columns = SplitColumns<LibraryCoordinator>(
+        sidebar: .sidebar,
+        detail: .placeholder
+    )
+
+    func sidebar() -> some View { SidebarList() }
+    func placeholder() -> some View { ContentUnavailableView.search }
+    func planet(id: Int) -> any Coordinatable { PlanetFlowCoordinator(id: id) }
+}
+```
+
+![A split view's three columns and the call that replaces each one.](diagram-columns)
+
+Sidebar selection replaces the detail column; a ``FlowCoordinatable``
+placed in a column builds its own navigation stack there, so pushes
+inside the column are ordinary flow calls:
+
+```swift
+coordinator.setDetail(.planet(id: 4))     // replace the detail column
+coordinator.setContent(.moons(id: 4))     // install/replace the middle column
+coordinator.toggleSidebar()               // macOS-style show/hide
+```
+
+`setDetail` **replaces** — the previous detail and anything pushed inside
+it are torn down — so guard re-selection on your own domain state. On
+iPhone the same coordinator tree renders as a single collapsed stack,
+with nothing lost when the size class changes.
+
+![The same coordinator tree on iPad and iPhone.](split-devices)
+
+One placement rule: a split coordinator must never live inside a flow —
+host it at the root, as a tab, or present it modally. <doc:SplitViews>
+covers the full surface.
+
 ## Environment Access
 
 Scaffolding injects every coordinator in the hierarchy into the SwiftUI
@@ -266,6 +315,8 @@ AppCoordinator (Root)
     └── ProfileCoordinator (Flow)
         └── EditProfileView (push)
 ```
+
+![A root coordinator swapping between a login flow and a tab coordinator that owns two flows.](diagram-tree)
 
 When a presented coordinator needs to return a value to its parent, take an
 `onComplete` callback at construction time. The presenter installs the
@@ -551,3 +602,4 @@ problem in front of you:
 - <doc:DeepLinking> — landing anywhere from a URL, guarded and deferred.
 - <doc:StateRestoration> — capture and replay the live tree.
 - <doc:TestingCoordinators> — unit-test the whole navigation layer.
+- <doc:SplitViewApps> — a split-view app for iPad and Mac, column by column.

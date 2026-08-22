@@ -1,0 +1,165 @@
+@Tutorial(time: 25) {
+    @Intro(title: "Building a Split-View App") {
+        Give the Planets browser a real iPad and Mac shape: a
+        `NavigationSplitView` whose columns are coordinator-owned
+        destinations.
+
+        You will declare a ``SplitCoordinatable``, drive the detail column
+        from sidebar selection, put a whole flow *inside* a column, deep-link
+        into it, switch between the two- and three-column forms at runtime,
+        and unit-test all of it. The same shape at full size ships as
+        `Example/Orbit` in the repository.
+
+        @Image(source: "scaffolding-intro-banner", alt: "Scaffolding")
+    }
+
+    @Section(title: "Declare the Split Coordinator") {
+        @ContentAndMedia {
+            A split coordinator is the fourth coordinator kind: not a stack,
+            not tabs, not a root swap — a container of *columns*. Column
+            assignment lives in the ``SplitColumns`` initializer, so route
+            functions keep the ordinary auto-tracked return types.
+
+            One hard rule up front: a `SplitCoordinatable` must never live
+            inside a ``FlowCoordinatable`` — SwiftUI does not support
+            `NavigationSplitView` inside a `NavigationStack`. Host it at the
+            root, as a tab, or present it modally.
+
+            @Image(source: "split-ipad", alt: "The app on iPad: the planet sidebar beside an empty-detail placeholder.")
+        }
+
+        @Steps {
+            @Step {
+                Declare the coordinator: a sidebar view, a placeholder for
+                the empty detail column, and a planet route that resolves to
+                a child coordinator — the macro generates the `Destinations`
+                cases from the functions, as always.
+
+                @Code(name: "SolarSystemCoordinator.swift", file: "split-01-coordinator.swift")
+            }
+
+            @Step {
+                Mount it. `coordinator.view` renders the split view on iPad
+                and Mac and collapses to a single stack on iPhone — free,
+                because the navigation state lives on the coordinator, not
+                in the view tree.
+
+                @Code(name: "SolarSystemApp.swift", file: "split-02-app.swift")
+            }
+        }
+    }
+
+    @Section(title: "Select into the Detail Column") {
+        @ContentAndMedia {
+            ``SplitCoordinatable/setDetail(_:policy:)`` **replaces** the
+            column, like a root swap — the previous detail and anything
+            pushed inside it are torn down. That makes re-selection the
+            first thing to get right: tapping the row that is already
+            showing must not rebuild the flow.
+
+            @Image(source: "diagram-columns", alt: "A split view's three columns and the call that replaces each one.")
+        }
+
+        @Steps {
+            @Step {
+                Add selection as *domain state* and guard `select` on it.
+                ``RoutePolicy/distinct`` cannot stand in here: it compares
+                case identity only, and every planet is the same `.planet`
+                case — it would also swallow switches between planets.
+
+                @Code(name: "SolarSystemCoordinator.swift", file: "split-03-select.swift")
+            }
+
+            @Step {
+                Build the sidebar as a native `List(selection:)`, synced
+                both ways with the coordinator. Selection *highlight* is
+                view chrome; which destination the detail column shows is
+                the coordinator's.
+
+                @Code(name: "SidebarScreen.swift", file: "split-04-sidebar.swift")
+            }
+        }
+    }
+
+    @Section(title: "A Flow inside a Column") {
+        @ContentAndMedia {
+            A child ``FlowCoordinatable`` placed in a column builds its own
+            `NavigationStack` there — exactly the composition SwiftUI
+            expects inside a `NavigationSplitView` column. Everything you
+            know about flows applies unchanged.
+
+            @Image(source: "split-devices", alt: "The same coordinator tree on iPad and iPhone.")
+        }
+
+        @Steps {
+            @Step {
+                Create the detail flow: planet overview at the root, moons
+                pushed on top. Inside the column, `.distinct` works as the
+                usual double-tap guard, because pushes compare against this
+                flow's own stack.
+
+                @Code(name: "PlanetCoordinator.swift", file: "split-05-flow.swift")
+            }
+
+            @Step {
+                Deep-link through the column with the typed trailing
+                closure: `setDetail` hands over the freshly resolved flow,
+                and the walk continues into it. `setPreferredCompactColumn`
+                makes the collapsed (iPhone) form land on the detail too.
+
+                @Code(name: "SolarSystemCoordinator+DeepLink.swift", file: "split-06-deeplink.swift")
+            }
+        }
+    }
+
+    @Section(title: "Three Columns, Modals, and Visibility") {
+        @ContentAndMedia {
+            The middle content column is dynamic:
+            ``SplitCoordinatable/setContent(_:policy:)`` installs it on a
+            two-column split — the container swaps to `NavigationSplitView`'s
+            three-column form — and ``SplitCoordinatable/removeContent()``
+            drops it again. Modals and column visibility round out the
+            surface.
+
+            @Image(source: "landmarks-devices", alt: "A split-view app on Mac, iPad, and iPhone.")
+        }
+
+        @Steps {
+            @Step {
+                Offer a Mail-style three-column layout at runtime. In that
+                shape, selecting a planet updates *both* leading columns,
+                and a moon **replaces** the detail instead of pushing.
+
+                @Code(name: "SolarSystemCoordinator+Columns.swift", file: "split-07-content-column.swift")
+            }
+
+            @Step {
+                Present multi-step sub-flows above the whole split view with
+                the familiar `present` family, and drive the columns with
+                `setColumnVisibility` and `toggleSidebar` — interactive
+                changes write back, so state and screen never drift.
+
+                @Code(name: "SolarSystemCoordinator+Modals.swift", file: "split-08-modals.swift")
+            }
+        }
+    }
+
+    @Section(title: "Test the Columns") {
+        @ContentAndMedia {
+            The whole surface is synchronous coordinator state, so it
+            unit-tests like every other Scaffolding layer: `activated()`,
+            the column introspection properties, and the
+            ``HierarchyRole/column(_:)`` role in whole-tree assertions.
+        }
+
+        @Steps {
+            @Step {
+                Assert selection, re-selection state preservation, and a
+                deep link landing a push inside the fresh detail flow — no
+                rendering, no UI tests.
+
+                @Code(name: "SolarSystemSplitTests.swift", file: "split-09-tests.swift")
+            }
+        }
+    }
+}

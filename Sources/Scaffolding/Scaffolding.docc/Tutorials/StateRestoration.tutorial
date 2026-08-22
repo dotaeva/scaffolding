@@ -9,7 +9,7 @@
         happens to a subtree that cannot participate, and seed a known start
         position without any persistence at all.
 
-        @Image(source: "scaffolding-chapter-hero", alt: "The Scaffolding coordinator hierarchy.")
+        @Image(source: "scaffolding-intro-banner", alt: "Scaffolding")
     }
 
     @Section(title: "Opt In") {

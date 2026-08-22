@@ -41,6 +41,8 @@ The fundamentals that changed underneath:
 > (`Scaffolding.Coordinatable` vs. `Stinsen.Coordinatable`) in files that
 > import both.
 
+![A root coordinator swapping between a login flow and a tab coordinator that owns two flows.](diagram-tree)
+
 ## Concept Map
 
 | Stinsen | Scaffolding |

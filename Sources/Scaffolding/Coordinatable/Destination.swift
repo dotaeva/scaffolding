@@ -339,6 +339,10 @@ public struct Destination: Identifiable {
     /// full-screen cover).
     public var routeType: DestinationType = .root
 
+    /// The split-view column this destination occupies, when it is owned
+    /// by a ``SplitCoordinatable``. `nil` everywhere else.
+    public internal(set) var column: SplitColumn?
+
     /// The effective presentation type, derived from the route's push type.
     public var presentationType: DestinationType {
         switch pushType {
@@ -523,6 +527,10 @@ public struct Destination: Identifiable {
 
     mutating func setRouteType(_ value: DestinationType) {
         routeType = value
+    }
+
+    mutating func setColumn(_ value: SplitColumn) {
+        column = value
     }
 
     mutating func setSource(_ value: Any) {

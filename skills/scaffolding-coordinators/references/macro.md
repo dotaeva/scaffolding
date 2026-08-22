@@ -1,6 +1,6 @@
 # The `@Scaffoldable` macro
 
-`@Scaffoldable` is a member macro applied to a **class** that conforms to `FlowCoordinatable`, `TabCoordinatable`, or `RootCoordinatable`. It scans the class's **functions** — and only functions; stored/computed properties, `init`, and `deinit` are never scanned — and generates:
+`@Scaffoldable` is a member macro applied to a **class** that conforms to `FlowCoordinatable`, `TabCoordinatable`, `RootCoordinatable`, or `SplitCoordinatable`. It scans the class's **functions in the class body** — and only functions; stored/computed properties, `init`, `deinit`, and **extensions** are never scanned (a member macro sees only the attached declaration). A route declared in an extension is silently untracked, so routes must live in the class body; conversely, extensions are the recommended home for actions, deep links, computed chrome, and `customize(_:)` (no `@ScaffoldingIgnored` needed there). The macro generates:
 
 - a `Destinations` enum with one case per tracked function (associated values mirror the function's parameters),
 - a nested `Destinations.Meta` enum (case names without associated values, conforming to `DestinationMeta`) used by `popToFirst/Last`, `selectFirstTab`, `isInStack`, `shouldSelect`, etc.,

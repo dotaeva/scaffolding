@@ -13,8 +13,16 @@ extension View {
         from coordinator: any FlowCoordinatable,
         modalContent: @escaping (Destination) -> ModalContent
     ) -> some View {
+#if os(macOS)
+        // macOS has no full-screen cover — fold covers into the sheet
+        // presentation so present(_:as: .fullScreenCover) still shows
+        // (and can be dismissed) instead of silently never appearing.
         let sheetDestinations = coordinator.modalDestinations(for: .sheet)
-        
+            + coordinator.modalDestinations(for: .fullScreenCover)
+#else
+        let sheetDestinations = coordinator.modalDestinations(for: .sheet)
+#endif
+
         return self.sheet(
             item: Binding<Destination?>(
                 get: {
@@ -24,7 +32,10 @@ extension View {
                     if newValue == nil, let currentSheet = sheetDestinations.first {
                         // removeModalDestination invokes the destination's
                         // resolution (continuation + onDismiss) exactly once.
-                        coordinator.removeModalDestination(withId: currentSheet.id, type: .sheet)
+                        coordinator.removeModalDestination(
+                            withId: currentSheet.id,
+                            type: currentSheet.pushType ?? .sheet
+                        )
                     }
                 }
             )

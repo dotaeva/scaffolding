@@ -10,14 +10,11 @@ final class AppCoordinator: @MainActor RootCoordinatable {
     var root = Root<AppCoordinator>(root: .login)
 
     /// Snapshot persistence for the shake menu. Stored properties are never
-    /// macro-tracked.
+    /// macro-tracked (and must live in the class body for @Observable).
     private let snapshots = NavigationSnapshotStore()
 
     /// Outcome of the last save/restore, shown in the shake sheet.
     var snapshotStatus: String?
-
-    var snapshotSavedAt: Date? { snapshots.savedAt }
-    var hasSnapshot: Bool { snapshots.hasSnapshot }
 
     init() {
         // Default animation for every root swap; setRoot(_:animation:)
@@ -26,15 +23,19 @@ final class AppCoordinator: @MainActor RootCoordinatable {
     }
 
     // MARK: Routes
+    // Routes must be declared in the class body — @Scaffoldable scans only
+    // the class declaration, never extensions.
 
     func login() -> any Coordinatable { LoginCoordinator() }
     func main() -> any Coordinatable { MainTabCoordinator() }
     // View-only routes, presented modally above whatever the current root is.
     func whatsNew() -> some View { WhatsNewSheet() }
     func hierarchyDump() -> some View { HierarchyDumpSheet() }
+}
 
-    // MARK: Auth
+// MARK: - Auth
 
+extension AppCoordinator {
     func signIn() {
         setRoot(.main)
     }
@@ -43,9 +44,11 @@ final class AppCoordinator: @MainActor RootCoordinatable {
         // One-off animation override.
         setRoot(.login, animation: .easeInOut(duration: 0.25))
     }
+}
 
-    // MARK: Modals above the root
+// MARK: - Modals above the root
 
+extension AppCoordinator {
     /// Floats above the `TabView`/login — root-level modals suit
     /// cross-cutting UI that isn't owned by any one flow.
     func showWhatsNew() {
@@ -58,8 +61,13 @@ final class AppCoordinator: @MainActor RootCoordinatable {
     func showHierarchyDump() {
         present(.hierarchyDump, as: .sheet(detents: [.medium, .large]), policy: .distinct)
     }
+}
 
-    // MARK: Navigation snapshots
+// MARK: - Navigation snapshots
+
+extension AppCoordinator {
+    var snapshotSavedAt: Date? { snapshots.savedAt }
+    var hasSnapshot: Bool { snapshots.hasSnapshot }
 
     /// Captures the whole live tree — tab selection, every flow's stack,
     /// presented modals — from this coordinator downward.
@@ -108,9 +116,11 @@ final class AppCoordinator: @MainActor RootCoordinatable {
         snapshots.clear()
         snapshotStatus = "Deleted"
     }
+}
 
-    // MARK: Deep links
+// MARK: - Deep links
 
+extension AppCoordinator {
     /// scaffolding-demo://holding/NVDA · scaffolding-demo://transaction/2
     func handle(_ url: URL) {
         // isRoot compares by Meta — don't deep-link past authentication.
@@ -140,9 +150,13 @@ final class AppCoordinator: @MainActor RootCoordinatable {
             break
         }
     }
+}
 
-    // Returns `some View`, so the macro would track it — chrome, not a route.
-    @ScaffoldingIgnored
+// MARK: - Chrome
+
+extension AppCoordinator {
+    // In an extension the macro never sees this — no @ScaffoldingIgnored
+    // needed, unlike a `some View` helper declared in the class body.
     func customize(_ view: AnyView) -> some View {
         view.tint(.white)
     }

@@ -20,6 +20,8 @@ final class MainTabCoordinator: @MainActor TabCoordinatable {
     var investUnlocked = false
 
     // MARK: Routes
+    // Routes must be declared in the class body — @Scaffoldable scans only
+    // the class declaration, never extensions.
 
     // Custom tab bar ⇒ no label views: plain `any Coordinatable` returns
     // instead of `(any Coordinatable, some View)` tuples. The macro still
@@ -36,9 +38,44 @@ final class MainTabCoordinator: @MainActor TabCoordinatable {
     // Presented above the whole TabView when shouldSelect vetoes the
     // invest tab.
     func investDisclaimer() -> some View { InvestDisclaimerSheet() }
+}
 
-    // MARK: Glass bar wiring
+// MARK: - Selection interception
 
+extension MainTabCoordinator {
+    // Fires for UI-driven selection only; selectFirstTab / select(index:) /
+    // deep links bypass it.
+    func shouldSelect(tab: Destinations.Meta, isReselection: Bool) -> Bool {
+        if isReselection {
+            // Re-tap of the current tab pops its flow to the root. The typed
+            // trailing closure hands over the tab's child coordinator.
+            switch tab {
+            case .home: selectFirstTab(.home) { (c: HomeCoordinator) in c.popToRoot() }
+            case .cards: selectFirstTab(.cards) { (c: CardsCoordinator) in c.popToRoot() }
+            case .invest: selectFirstTab(.invest) { (c: InvestCoordinator) in c.popToRoot() }
+            case .profile: selectFirstTab(.profile) { (c: ProfileCoordinator) in c.popToRoot() }
+            default: break
+            }
+            return true // ignored for re-taps — there's no change to veto
+        }
+        if tab == .invest && !investUnlocked {
+            // Keep the current tab and show the gate instead.
+            present(.investDisclaimer, as: .sheet(detents: [.medium]))
+            return false
+        }
+        return true
+    }
+
+    func acceptInvestDisclaimer() {
+        investUnlocked = true
+        dismissModal()
+        selectFirstTab(.invest) // programmatic — won't re-enter shouldSelect
+    }
+}
+
+// MARK: - Glass bar wiring
+
+extension MainTabCoordinator {
     /// Chrome-side mirror of the tab destinations — derived from
     /// `tabItems.tabs`, so dynamic tab changes and badges can never drift
     /// from the actual configuration.
@@ -80,41 +117,13 @@ final class MainTabCoordinator: @MainActor TabCoordinatable {
         }
         select(index: index)
     }
+}
 
-    // MARK: Selection interception
+// MARK: - Chrome
 
-    // Returns Bool ⇒ never macro-tracked. Fires for UI-driven selection
-    // only; selectFirstTab / select(index:) / deep links bypass it.
-    func shouldSelect(tab: Destinations.Meta, isReselection: Bool) -> Bool {
-        if isReselection {
-            // Re-tap of the current tab pops its flow to the root. The typed
-            // trailing closure hands over the tab's child coordinator.
-            switch tab {
-            case .home: selectFirstTab(.home) { (c: HomeCoordinator) in c.popToRoot() }
-            case .cards: selectFirstTab(.cards) { (c: CardsCoordinator) in c.popToRoot() }
-            case .invest: selectFirstTab(.invest) { (c: InvestCoordinator) in c.popToRoot() }
-            case .profile: selectFirstTab(.profile) { (c: ProfileCoordinator) in c.popToRoot() }
-            default: break
-            }
-            return true // ignored for re-taps — there's no change to veto
-        }
-        if tab == .invest && !investUnlocked {
-            // Keep the current tab and show the gate instead.
-            present(.investDisclaimer, as: .sheet(detents: [.medium]))
-            return false
-        }
-        return true
-    }
-
-    func acceptInvestDisclaimer() {
-        investUnlocked = true
-        dismissModal()
-        selectFirstTab(.invest) // programmatic — won't re-enter shouldSelect
-    }
-
-    // MARK: Chrome
-
-    @ScaffoldingIgnored
+extension MainTabCoordinator {
+    // In an extension the macro never sees this — no @ScaffoldingIgnored
+    // needed, unlike a `some View` helper declared in the class body.
     func customize(_ view: AnyView) -> some View {
         view.modifier(GlassTabBarChrome(coordinator: self, model: barModel))
     }

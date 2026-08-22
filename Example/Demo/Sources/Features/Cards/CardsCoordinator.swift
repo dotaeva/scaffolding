@@ -14,6 +14,8 @@ final class CardsCoordinator: @MainActor GlassTabFlow {
     var toast: String?
 
     // MARK: Routes
+    // Routes must be declared in the class body — @Scaffoldable scans only
+    // the class declaration, never extensions.
 
     func cards() -> some View { CardsScreen().tabScreenFade() }
     func cardDetail(card: Card) -> some View { CardDetailSheet(card: card) }
@@ -23,9 +25,11 @@ final class CardsCoordinator: @MainActor GlassTabFlow {
     func processing() -> some View { ProcessingOverlay() }
     // Child coordinator whose whole job is returning a value.
     func limitPicker() -> any Coordinatable { LimitCoordinator() }
+}
 
-    // MARK: Modals
+// MARK: - Modals
 
+extension CardsCoordinator {
     /// The presenter decides the sheet chrome (detents here); the destination
     /// view stays ignorant and can be presented differently elsewhere.
     func openDetail(_ card: Card) {
@@ -48,9 +52,11 @@ final class CardsCoordinator: @MainActor GlassTabFlow {
         // Presenter-side close — same coordinator presented the sheet.
         dismissModal()
     }
+}
 
-    // MARK: Async variants
+// MARK: - Async variants
 
+extension CardsCoordinator {
     /// present(awaiting:) suspends until the picker flow is dismissed and
     /// returns what it passed to dismissCoordinator(returning:); any other
     /// dismissal (swipe, plain dismissCoordinator) resumes with nil.

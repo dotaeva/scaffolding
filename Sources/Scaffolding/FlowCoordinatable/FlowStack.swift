@@ -94,6 +94,7 @@ public class FlowStack<Coordinator: FlowCoordinatable>: AnyFlowStack {
         if let rootDestination = initialRoot, root == nil {
             var rootDest = rootDestination.resolvedValue(for: coordinator)
 
+            _warnIfSplitInsideNavigationStack(rootDest.coordinatable)
             rootDest.coordinatable?.setHasLayerNavigationCoordinatable(true)
             rootDest.coordinatable?.setParent(coordinator)
 
@@ -108,6 +109,7 @@ public class FlowStack<Coordinator: FlowCoordinatable>: AnyFlowStack {
             for element in initialPath {
                 var dest = element.resolvedValue(for: coordinator)
 
+                _warnIfSplitInsideNavigationStack(dest.coordinatable)
                 dest.setPushType(.push)
                 dest.setRouteType(.push)
                 dest.coordinatable?.setHasLayerNavigationCoordinatable(true)
@@ -244,6 +246,7 @@ extension FlowStack {
              self.root?.resolveDismissal()
 
              var mutableRoot = root
+             _warnIfSplitInsideNavigationStack(mutableRoot.coordinatable)
              mutableRoot.coordinatable?.setHasLayerNavigationCoordinatable(true)
 
              if let coordinator {

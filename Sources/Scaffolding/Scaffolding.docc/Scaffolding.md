@@ -65,12 +65,21 @@ second library, `ScaffoldingTesting`, adds the helpers for it — see
 - <doc:DeepLinking>
 - <doc:StateRestoration>
 - <doc:TestingCoordinators>
+- <doc:SplitViewApps>
+
+### iPad and Mac
+
+- <doc:SplitViews>
+- ``SplitCoordinatable``
+- ``SplitColumns``
+- ``SplitColumn``
 
 ### Coordinator Protocols
 
 - ``FlowCoordinatable``
 - ``TabCoordinatable``
 - ``RootCoordinatable``
+- ``SplitCoordinatable``
 
 ### Core Protocol
 
@@ -90,6 +99,8 @@ second library, `ScaffoldingTesting`, adds the helpers for it — see
 - ``FlowStack``
 - ``Root``
 - ``TabItems``
+- ``SplitColumns``
+- ``AnySplitColumns``
 
 ### Inspecting the Tree
 

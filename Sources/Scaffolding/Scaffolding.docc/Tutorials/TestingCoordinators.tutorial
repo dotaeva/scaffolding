@@ -10,7 +10,7 @@
         guard, and check a deep link and a restore round trip — all in
         milliseconds.
 
-        @Image(source: "scaffolding-chapter-hero", alt: "The Scaffolding coordinator hierarchy.")
+        @Image(source: "scaffolding-intro-banner", alt: "Scaffolding")
     }
 
     @Section(title: "Set Up the Test Target") {

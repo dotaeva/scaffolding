@@ -1,0 +1,2274 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "ALPS_DESCRIPTION" : {
+      "comment" : "Description of the ‘Alps’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تمتد جبال الألب لمسافة ١٢٠٧ كيلومتر تقريبًا من نيس في فرنسا غربًا إلى ترييستي في إيطاليا شرقًا، وتمتد عبر ثماني دول مختلفة. تشكلت الجبال على مدى عشرات الملايين من السنين نتيجة تصادم الصفائح التكتونية، مما أجبر الصخور الرسوبية على الارتفاع إلى قمم الجبال. يُعد جبل مونت بلانك أعلى جبل في أوروبا، حيث يتجاوز ارتفاعه ٤٧٨٥ متر. يؤثر الارتفاع الشاهق والحجم الهائل للجبال على مناخ أوروبا.\n\nتطورت نباتات متنوعة وفريدة في جبال الألب من خلال التكيف مع البيئة التي تتميز بارتفاعها العالي. زهرة الإديلويس الشهيرة هي زهرة جبال الألب التي تزدهر في الحجر الجيري الصخري. يُعد التوت البري الجبلي والبلوت نباتات نادرة وهشة توجد فوق الأشجار. كما ينمو الصفصاف القزم بشكل جيد في الأماكن التي يستمر فيها الثلج حتى الربيع.\n\nتوجد الثدييات الكبيرة مثل الأيل الأحمر والوعل والوشق الأوراسي والشمواة في المناطق المنخفضة والعالية الارتفاع. تعيش العديد من القوارض، مثل الفئران ومرموط الألب، تحت الأرض وتحفر جحورها في جبال الألب. تعيش بعض الزواحف، بما في ذلك الأفاعي والثعابين، بالقرب من خط الثلوج، ولكن نظرًا لعدم قدرتها على تحمل درجات الحرارة الباردة، فإنها تدخل في سبات شتوي تحت الأرض وتستمتع بالدفء على الحواف الصخرية."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Alpen erstrecken sich über fast 1.200 Kilometer von Nizza in Frankreich im Westen bis Triest in Italien im Osten und umfassen acht verschiedene Länder. Die Berge entstanden über mehrere Millionen Jahre, als tektonische Platten aufeinanderprallten und Sedimentgestein zu Berggipfeln erhoben. Der Mont Blanc ist mit über 4.800 Metern der höchste Berg Europas. Die große Höhe und schiere Größe der Berge wirken sich auf das Klima in Europa aus.\n\nIn den Alpen hat sich eine vielfältige und einzigartige Flora entwickelt, die sich an die Umgebung in großer Höhe angepasst hat. Das berühmte Edelweiß ist eine Alpenblume, die auf felsigem Kalkstein gedeiht. Moosbeeren und Blaubeeren sind seltene und empfindliche Pflanzen, die über der Baumgrenze wachsen. Die Zwergweide ist eine widerstandsfähige Pflanze, die an Orten gedeiht, an denen der Schnee bis in den Frühling hinein liegt.\n\nGroße Säugetiere wie Rothirsche, Steinböcke, Luchse und Gämsen leben in Regionen in niedriger und großer Höhe. Viele Nagetiere wie Wühlmäuse und Alpensalamander leben unterirdisch und graben in den Alpen. Einige Reptilien wie Kreuzotter und Vipern leben in der Nähe der Schneegrenze, können aber die kalten Temperaturen nicht vertragen und halten deshalb unterirdischen Winterschlaf und wärmen sich auf felsigen Vorsprüngen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extending nearly 750 miles from Nice, France in the west to Trieste, Italy in the east, the Alps stretch across eight different countries. The mountains formed over tens of millions of years as tectonic plates collided, forcing sedimentary rock to rise into mountain peaks. Mont Blanc is the tallest mountain in Europe, soaring over 15,700 feet. The high altitude and sheer size of the mountains have an effect on the climate in Europe.\n\nDiverse and unique flora has developed in the Alps by adapting to a high-altitude environment. The iconic Edelweiss is an alpine flower that thrives in rocky limestone. Mountain cranberry and bluets are rare and fragile plants found above treelike. Dwarf willow is a resilient plant that does well in places where snow lingers into spring.\n\nLarge mammals like the red deer, ibex, Eurasian lynx, and chamois are all found in low and high altitude regions. Many rodents such as voles and the Alpine marmot live underground and burrow in the Alps. Some reptiles including adders and vipers live near the snow line, but because they cannot tolerate the cold temperatures they hibernate underground and soak up warmth on rocky ledges."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הרי האלפים משתרעים לאורך כ-1,200 קילומטר מניס שבצרפת, במערב, ועד טריאסטה שבאיטליה, במזרח, וחולשים על שמונה מדינות שונות. רכס הרים זה נוצר במשך עשרות מיליוני שנים כתוצאה מהתנגשות לוחות טקטוניים, שגרמה לסלעי משקע להתרומם וליצור פסגות הרים. המון בלאן הוא ההר הגבוה ביותר באירופה ומתנשא לגובה של יותר מ-4,800 מטר. לגובה הרב של ההרים ולגודלם העצום יש השפעה על האקלים באירופה.\n\nהצומח הייחודי והמגוון התפתח בהרי האלפים תוך הסתגלות לסביבה הררית וגבוהה. האדלווייס האייקוני הוא פרח אלפיני המשגשג בסביבה של סלעי גיר. חמוצית ההרים ופרח נשות הקווייקרים (Houstonia caerulea L) הם צמחים נדירים ושבריריים הגדלים על דמויי עצים. ערבה ננסית (Salix herbacea) היא צמח עמיד המשגשג במקומות שבהם השלג מחזיק מעמד גם באביב.\n\nיונקים גדולים כמו אייל אציל, יעל, שונר צפוני וצפיר האלפים נמצאים כולם הן באזורי גובה נמוך והן באזורי גובה רב. מכרסמים רבים כגון נברן ומרמיטה אלפינית חיים במחילות תת-קרקעיות באלפים. זוחלים מסוימים כולל צפע אירופי וצפעיים אחרים חיים ליד קו השלג, אך מאחר שהם לא יכולים לשרוד בטמפרטורות נמוכות הם נכנסים לתרדמת חורף מתחת לפני הקרקע וסופגים חום על מדפים סלעיים."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เทือกเขาแอลป์ทอดยาวเกือบ 750 ไมล์จากเมืองนีซ ประเทศฝรั่งเศสทางทิศตะวันตกไปจนถึงเมืองตรีเอสเต ประเทศอิตาลีทางทิศตะวันออก เทือกเขาแอลป์ทอดยาวผ่านแปดประเทศ ภูเขาเหล่านี้ก่อตัวขึ้นในช่วงเวลากว่าสิบล้านปีจากการชนกันของแผ่นเปลือกโลก ส่งผลให้หินตะกอนสูงขึ้นไปสู่ยอดเขา ยอดเขามงบล็องเป็นภูเขาที่สูงที่สุดในยุโรป ซึ่งสูงกว่า 15,700 ฟุต ระดับความสูงและความชันของภูเขาส่งผลต่อสภาพอากาศในยุโรป\n\nพืชพรรณที่หลากหลายและมีเอกลักษณ์เฉพาะตัวได้พัฒนาขึ้นในเทือกเขาแอลป์โดยปรับตัวให้เข้ากับสภาพแวดล้อมที่สูง ดอกเอเดลไวส์อันเป็นเอกลักษณ์เป็นดอกไม้ประจำถิ่นที่เจริญเติบโตได้ดีในหินปูนที่เป็นหิน แครนเบอร์รีภูเขาและบลูเอตส์เป็นพืชหายากและเปราะบางที่พบได้เหนือต้นไม้ ต้นหลิวแคระเป็นพืชที่ยืดหยุ่นและเจริญเติบโตได้ดีในสถานที่ที่หิมะตกจนถึงฤดูใบไม้ผลิ\n\nสัตว์เลี้ยงลูกด้วยนมขนาดใหญ่ เช่น กวางแดง แพะป่า ลิงซ์ยูเรเซีย และชามัวร์ พบได้ในบริเวณพื้นที่สูงและต่ำ สัตว์ฟันแทะหลายชนิด เช่น หนูนาและมาร์มอตอัลไพน์ อาศัยอยู่ใต้ดินและขุดโพรงในเทือกเขาแอลป์ สัตว์เลื้อยคลานบางชนิดซึ่งรวมถึงงูเห่าและงูพิษอาศัยอยู่ใกล้แนวหิมะ แต่เนื่องจากสัตว์เลื้อยคลานเหล่านั้นไม่สามารถทนต่ออุณหภูมิที่เย็นจัดได้ จึงจำศีลอยู่ใต้ดินและดูดซับความอบอุ่นบนแนวหิน"
+          }
+        }
+      }
+    },
+    "ALPS_LOCATION" : {
+      "comment" : "Location of the ‘Alps’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أوروبا"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Europa"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Europe"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אירופה"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ยุโรป"
+          }
+        }
+      }
+    },
+    "ALPS_NAME" : {
+      "comment" : "Name of the ‘Alps’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جبال الألب"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alpen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alps"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הרי האלפים"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เทือกเขาแอลป์"
+          }
+        }
+      }
+    },
+    "AMAZON_RAINFOREST_DESCRIPTION" : {
+      "comment" : "Description of the ‘Amazon Rainforest’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "باعتبارها عضوًا في نادي النخبة للمعالم الطبيعية التي تغطي أكثر من واحد بالمائة من سطح الكوكب، تغطي غابات الأمازون المطيرة مساحة تبلغ حوالي ٥٫٩٥ مليون كيلومتر مربع. تقع معظم هذه الغابات المطيرة في البرازيل، ولكنها تمتد إلى دول مجاورة أخرى بما في ذلك بيرو وبوليفيا وكولومبيا. في حين أنه من الشائع اعتبار الغابات المطيرة مناطق قليلة السكان، إلا أن ما يقدر بنحو ٣٠ مليون شخص يعيشون في الأمازون.\n\nولكونها تحتوي على أعلى تنوع في الحياة النباتية على وجه الأرض، قد تجد في غابات الأمازون على ما يصل إلى ٨٠ ألف نوع من النباتات. ٧٥٪ من هذه الأنواع متوطنة في المنطقة، ولا توجد في أي مكان آخر، بما في ذلك ١٦ ألف نوع من الأشجار. تشمل الأنواع الفريدة الأخرى زنبق الماء الأمازوني العملاق، وأشجار المطاط، وأشجار الكاكاو.\n\nكما توجد المئات من أنواع الحيوانات في الغابات المطيرة. يُذكر أن الأمازون يُعد أحد آخر ملاجئ الأرض لليغور وعقاب الخطافة ودولفين النهر الوردي. كما تعيش فيه العديد من الحيوانات الكبيرة الأخرى، بما في ذلك الأسد الجبلي والتمساح الأسود، وحتى قرد كاكيتا تيتى الذي يُخرخِر مثل القط."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Als Mitglied eines Eliteclubs von Naturwundern, die mehr als ein Prozent der Erdoberfläche bedecken, erstreckt sich der Amazonas-Regenwald über ungefähr 6 Millionen Quadratkilometer. Der Großteil des Regenwalds liegt in Brasilien, erstreckt sich aber auch über andere Nachbarländer wie Peru, Bolivien und Kolumbien. Obwohl man oft davon ausgeht, dass Regenwälder dünn besiedelt sind, leben schätzungsweise 30 Millionen Menschen im Amazonas.\n\nMit der höchsten Pflanzenvielfalt der Erde enthält der Amazonas möglicherweise bis zu 80.000 Pflanzenarten. Erstaunliche 75 Prozent dieser Arten sind endemisch, also nur in diesem Gebiet zu finden, darunter auch 16.000 Baumarten. Zu den anderen einzigartigen Arten gehören die riesige Amazonas-Seerose, Kautschukbäume und Kakaobäume.\n\nHunderte von Tierarten sind ebenfalls im Regenwald zu finden. Der Amazonas ist eines der letzten Refugien für Jaguare, Harpyien und rosa Flussdelfine. Viele andere große Tiere leben im Amazonas, darunter Pumas, der schwarze Kaiman und sogar Caquetá-Titiäffchen, die wie eine Katze schnurren."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As a member of an elite club of natural landmarks that cover more than one percent of the planet’s surface, the Amazon rainforest covers approximately 2.3 million square miles. The majority of the rainforest is in Brazil, but it spills over into other neighboring countries including Peru, Bolivia, and Columbia. While it’s common to think of a rainforest as being sparsely populated, an estimated 30 million people live in the Amazon.\n\nWith the highest diversity of plant life on Earth, the Amazon may contain as many as 80,000 plant species. An astounding 75 percent of those species are endemic to the area, not being found anywhere else, including 16,000 trees species. Other unique species include giant Amazon water lily, rubber trees, and cacao trees.\n\nHundreds of animal species are also found in the rainforest. Notably, the Amazon is one of Earth’s last refuges for jaguars, harpy eagles, and pink river dolphins. Many other large animals live in the Amazon including cougars, the black caiman, and even the Caquetá titi monkey which purrs like a cat."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כחבר במועדון היוקרתי של פלאי עולם הטבע המכסים יותר מאחוז מפני כדור הארץ, יער האמזונאס מכסה קרוב ל-7.8 מיליוני קילומטרים רבועים. יער גשם זה נמצא ברובו בתחומי ברזיל, אך הוא מתפצל למדינות שכנות כולל פרו, בוליביה וקולומביה. נהוג לחשוב שיערות גשם מאוכלסים בדלילות, אך בסביבות האמזונאס חיים כ-30 מיליון בני אדם.\n\nיער האמזונאס ניחן בפלורה המגוונת ביותר על פני כדור הארץ וגדלים בו קרוב ל-80,000 מיני צמחים. שיעור מדהים של 75 אחוז ממינים אלה אנדמי לאזור, ולא נמצא בשום מקום אחר, לרבות 16,000 מיני עצים. מינים אחרים הייחודיים לאזור הם שושנת מים ענקית בשם ״ויקטוריה מלכותית״, הוואה ברזילאית (עץ הגומי) ועץ הקקאו.\n\nיער האמזונאס הוא גם ביתם של מאות מיני בעלי חיים, והוא ידוע בהיותו אחד מאזורי המחיה האחרונים של היגואר, עיט ההרפיה ודולפין האמזונאס. הרבה בעלי חיים גדולים אחרים חיים באמזונס, לרבות פומת ההרים, הקיימן השחור ואפילו קוף הקאקטה טיטי, שמגרגר כמו חתול."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ป่าฝนแอมะซอนเป็นสมาชิกของกลุ่มแลนด์มาร์กทางธรรมชาติที่ครอบคลุมพื้นที่มากกว่าหนึ่งเปอร์เซ็นของพื้นผิวโลก โดยครอบคลุมพื้นที่ประมาณ 2.3 ล้านตารางไมล์ ป่าฝนส่วนใหญ่อยู่ในบราซิล แต่แผ่ขยายออกไปยังประเทศเพื่อนบ้านอื่นๆ เช่น เปรู โบลิเวีย และโคลอมเบีย แม้ว่าจะเป็นเรื่องปกติที่จะคิดว่าป่าฝนมีประชากรเบาบาง แต่มีผู้คนอาศัยอยู่ในป่าแอมะซอนประมาณ 30 ล้านคน\n\nป่าแอมะซอนเป็นป่าที่มีความหลากหลายของพืชมากที่สุดในโลก โดยอาจมีพันธุ์พืชมากถึง 80,000 ชนิด ซึ่งน่าทึ่งมากที่ 75 เปอร์เซ็นต์ของพันธุ์พืชเหล่านี้มีถิ่นกำเนิดในพื้นที่นี้ ซึ่งไม่พบที่อื่น รวมถึงต้นไม้ 16,000 สายพันธุ์ สายพันธุ์ที่มีเอกลักษณ์เฉพาะตัวอื่นๆ ได้แก่ ดอกบัวแอมะซอนยักษ์ ต้นยาง และต้นโกโก้\n\nป่าฝนยังพบสัตว์ได้อีกหลายร้อยพันธุ์ โดยเฉพาะอย่างยิ่ง ป่าแอมะซอนเป็นแหล่งหลบภัยแห่งสุดท้ายแห่งหนึ่งของโลกสำหรับเสือจากัวร์ นกอินทรีฮาร์ปี และโลมาแม่น้ำสีชมพู สัตว์ขนาดใหญ่ชนิดอื่นๆ อีกหลายชนิดอาศัยอยู่ในป่าอเมซอน รวมถึงเสือพูมา เคแมนดำ และแม้แต่ลิงคาเกตาติติที่ส่งเสียงครางเหมือนแมว"
+          }
+        }
+      }
+    },
+    "AMAZON_RAINFOREST_LOCATION" : {
+      "comment" : "Location of the ‘Amazon Rainforest’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أمريكا الجنوبية"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Südamerika"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "South America"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אמריקה הדרומית"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อเมริกาใต้"
+          }
+        }
+      }
+    },
+    "AMAZON_RAINFOREST_NAME" : {
+      "comment" : "Name of the ‘Amazon Rainforest’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "غابة الأمازون المطيرة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Amazonas-Regenwald"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Amazon Rainforest"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "יער האמזונאס"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ป่าฝนอเมซอน"
+          }
+        }
+      }
+    },
+    "DEADVLEI_DESCRIPTION" : {
+      "comment" : "Description of the ‘Deadvlei’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يقع ديدفلي في منتزه ناميب نوكلوفت الوطني في ناميبيا، وهو مشهد خلاب يجمع بين أرضٍ طينية بيضاء باهتة، وأشجار شوك الجمل المتفحمة، وكثبان رملية حمراء برتقالية نارية. منذ أكثر من ٩٠٠ عام، كانت ديدفلي أرضًا مستنقعيةً مزدهرة، لكنها جفت بسبب الكثبان الرملية المتحركة التي قطعت إمدادات المياه عنها. وعلى الرغم من موقعها النائي، أصبحت ديدفلي وجهة سياحية شهيرة، وخاصة للمصورين، حيث تجذب الزوار من جميع أنحاء العالم لمشاهدة جمالها الفريد.\n\nتحتضن ديدفلي بعضًا من أعلى الكثبان الرملية في العالم - بعضها يصل ارتفاعه إلى ٣٣٥ متر - منحوتة بأشكال رشيقة تتغير باستمرار. ويعود اللون النابض بالحياة للكثبان الرملية إلى محتوى أكسيد الحديد في الرمال، والذي يتغير مع ضوء الشمس.\n\nوبسبب الظروف القاحلة القاسية، لا تتحلل أشجار الجمل الميتة، تاركة وراءها آثارًا مهيبة لنظام بيئي نابض بالحياة يعود تاريخه إلى آلاف السنين. وعلى الرغم من البيئة القاسية، تمكنت بعض أنواع النباتات مثل البطيخ الناري والروثا من التكيف وبقيت على قيد الحياة بفضل ضباب الصباح والأمطار النادرة."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die außerirdisch scheinende Landschaft mit kontrastierenden, ausgeblichenen weißen Lehmböden, versengten Kameldornbäumen und feuerroten bis orangen Dünen befindet sich im Namib-Naukluft-Nationalpark in Namibia. Vor über 900 Jahren war Deadvlei ein blühendes Sumpfgebiet, trocknete aber aus, als sich bewegende Sanddünen die Wasserzufuhr abkappten. Trotz seiner abgelegenen Lage ist Deadvlei zu einer bekannten Touristenattraktion geworden – insbesondere für Fotograf:innen – die Besucher:innen aus aller Welt anzieht, um die einzigartige Schönheit zu bewundern.\n\nHier befinden sich einige der höchsten Dünen der Welt – einige erreichen eine Höhe von bis zu 335 Metern –, die sich zu anmutigen, sich ständig verändernden Formen bilden. Der intensive Farbton der Dünen ist auf den Eisenoxidgehalt im Sand zurückzuführen und variiert mit dem Sonnenlicht.\n\nAufgrund der extremen Trockenheit zersetzen sich die toten Kameldornbäume nicht und hinterlassen gespenstische Überreste eines blühenden Ökosystems, das Jahrtausende zurückreicht. Trotz der rauen Umwelt haben sich einige Pflanzenarten wie Nara-Melonen und Salzkraut angepasst und überleben dank des Morgennebels und seltener Niederschläge."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An otherworldly landscape of contrasting bleached white claypan ground, blackened camel thorn trees, and fiery red-orange dunes, Deadvlei is located in Namibia’s Namib-Naukluft National Park. Over 900 years ago, Deadvlei was a thriving marshland, but dried up as shifting sand dunes cut off its water supply. Despite it’s remote location, Deadvlei has become a renown tourist attraction, especially for photographers, enticing visitors from around the world to witness it’s unique beauty.\n\nHome to some of highest dunes in the world — some reaching up to 1100 feet — are sculpted into graceful ever-changing shapes. The vibrant hue of the dunes is a result of the iron oxide content in the sand and shift with the sunlight.\n\nDue to extreme arid conditions, the dead camel trees don’t decompose, leaving behind ghostly reminders of a vibrant ecosystem dating back a millennia. Even with the harsh environment, some plant species such as nara melons and salsola have adapted and survive off the morning mist and rare rainfall."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הנוף בדדווליי כמו לקוח מעולם אחר: עצי שיטת הגמל שהשחירו עם הזמן ניצבים על רקע אדמת סוליה חרסיתית לבנה ודיונות אדומות-כתומות לוהטות. העמק ממוקם בפארק הלאומי נמיב-נאוקלופט שבנמיביה. לפני יותר מ-900 שנה, האדמה בדדווליי הייתה אדמת ביצות פורייה, אך אז העמק התייבש כתוצרה מנדידת דיונות חול שקטעו את אספקת המים שלו. למרות מיקומו המרוחק, דדווליי הפך לאטרקציה תיירותית ידועה, והוא מושך מבקרים מכל רחבי העולם, ובמיוחד צלמים, בזכות יופיו הייחודי.\n\nבמקום זה נמצאות כמה מהדיונות הגבוהות ביותר בעולם — חלקן מתנשאות לגובה של 335 מטר — המתגבשות ללא הרף לכדי מגוון צורות פיסוליות חינניות. הגוון העז של הדיונות הוא תוצאה של תכולת תחמוצת ברזל בחול והוא משתנה בהתאם לאור השמש.\n\nעקב תנאי היובש הקיצוניים השוררים במקום, עצי שיטת הגמל לא התפרקו אלא המשיכו להשתמר, וכיום עצי רפאים אלה משמשים תזכורת לאקוסיסטם משגשג מלפני אלף שנה. גם בסביבת החיים הקשה הזאת, מיני צמחים מסוימים, כגון מלוני נארה ומין של מלחית, הסתגלו ושורדים הודות לערפל הבוקר וגשמים נדירים."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เดดเฟลย์ตั้งอยู่ในอุทยานแห่งชาตินามิบ-เนาคลุฟต์ของประเทศนามิเบีย ซึ่งมีลักษณะเป็นภูมิประเทศที่แปลกตา เป็นแอ่งดินเหนียวสีขาวซีด มีต้นเขาอูฐสีดำ และเนินทรายสีแดงอมส้มดุจเปลวเพลิง เดดเฟลย์เคยเป็นพื้นที่หนองบึงที่อุดมสมบูรณ์เมื่อกว่า 900 ปีก่อน แต่กลับแห้งแล้งลงเมื่อแนวทะเลทรายเริ่มรุกล้ำจนปิดกั้นทางน้ำไหล แม้จะตั้งอยู่ในพื้นที่ห่างไกล แต่เดดเฟลย์ก็ได้กลายมาเป็นแหล่งท่องเที่ยวที่มีชื่อเสียง โดยเฉพาะอย่างยิ่งสำหรับช่างภาพ ซึ่งดึงดูดนักท่องเที่ยวจากทั่วโลกให้มาสัมผัสความงามที่เป็นเอกลักษณ์ของที่นี่\n\nที่แห่งนี้เป็นที่ตั้งของเนินทรายที่สูงที่สุดในโลก ซึ่งบางแห่งมีความสูงถึง 1,100 ฟุต ถูกแกะสลักเป็นรูปทรงที่งดงามและเปลี่ยนแปลงตลอดเวลา สีสันที่สดใสของเนินทรายเกิดจากเหล็กออกไซด์ในทรายและเปลี่ยนแปลงไปตามแสงแดด\n\nเนื่องจากสภาพอากาศที่แห้งแล้งอย่างรุนแรง ต้นอูฐที่ยืนต้นตายจึงไม่ย่อยสลาย ทิ้งสิ่งเตือนใจอันน่าสะพรึงกลัวของระบบนิเวศที่มีชีวิตชีวาซึ่งมีมายาวนานกว่าพันปีไว้เบื้องหลัง แม้จะอยู่ในสภาพแวดล้อมที่เลวร้าย แต่พันธุ์พืชบางชนิด เช่น เมล่อนนาราและซัลโซลา ก็ยังปรับตัวและอยู่รอดได้จากหมอกยามเช้าและฝนที่ตกไม่บ่อยนักได้"
+          }
+        }
+      }
+    },
+    "DEADVLEI_LOCATION" : {
+      "comment" : "Location of the ‘Deadvlei’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ناميبيا"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Namibia"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Namibia"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נמיביה"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "นามิเบีย"
+          }
+        }
+      }
+    },
+    "DEADVLEI_NAME" : {
+      "comment" : "Name of the ‘Deadvlei’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ديدفلي"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deadvlei"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deadvlei"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "דדווליי"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เดดเฟลย์"
+          }
+        }
+      }
+    },
+    "GRAND_CANYON_DESCRIPTION" : {
+      "comment" : "Description of the ‘Grand Canyon’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عندما تنظر من حافة الأخدود العظيم (أو غراند كانيون)، ستشاهد قصة بصرية عن ماضي الأرض العريق. يمتد الوادي، الذي نحته نهر كولورادو على مدى ملايين السنين، بطول ٤٤٥ كيلومتر، وعرض يصل إلى ٢٩ كيلومتر، ويصل عمقه إلى أكثر من ١٫٦ كيلومتر (١٦٠٩ متر). يُعدّ هذا الوادي، الذي ينبض بالحياة بألوان تتباين بين الأحمر والبرتقالي الداكن ودرجات أرجوانية رقيقة، من عجائب الطبيعة الأيقونية.\n\nتمتد القصة الجيولوجية التي يرويها الوادي إلى ما يقرب من ملياري عام. يُقدَّر عمر صخر فيشنو شيست في قاع المضيق الداخلي بـ ١.٧ مليار عام. أما تكوين حجر كايباب الجيري، الأحدث بكثير، على الحافة، فهو أعلى طبقة صخرية في الوادي، ويعود تاريخه إلى ٢٧٠ مليون عام فقط. بين هذين النقيضين، نحتت عوامل التعرية بفعل الرياح والمياه منحدرات وهضابًا وتلالًا خلابة، لتُشكِّل مشهدًا طبيعيًا معقدًا من أخاديد داخل الأخاديد. في كل عام، تستمر التغيرات الموسمية لتدفق نهر كولورادو في حفر أخاديد أعمق فأعمق.\n\nوكما تتغير التركيبة الجيولوجية مع تغير الارتفاع، يتغير التنوع النباتي والحيواني بشكل كبير. تتراوح النباتات من أنواع صحراوية مثل الصبار والعرعر إلى غابات مرتفعة من أشجار التنوب أو الصنوبر البونديروزا، والطحالب، واليارو، والتُّرمُس. ومن بين أنواع الحياة البرية التي تتخذ من هذا الكنز البيئي موطنًا لها، الأغنام الكبيرة والغزلان وأسد الجبال المراوغ."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wenn du vom Rand des Grand Canyon hinabschaust, siehst du eine visuelle Darstellung der alten Geschichte der Erde. Über Millionen von Jahren vom Colorado River geformt, erstreckt sich die Schlucht über 446 Kilometer, ist bis zu 29 Kilometer breit und bis zu 1,8 Kilometer tief (6.000 Fuß). Die farbenprächtige Kulisse des Canyons reicht von tiefem Rot und Orange bis hin zu dezenten Lilatönen und ist ein ikonisches Naturwunder.\n\nDie geologische Geschichte, die der Canyon erzählt, umfasst fast zwei Milliarden Jahre. Der Vishnu-Schiefer am Grund der inneren Schlucht wird auf 1,7 Milliarden Jahre geschätzt. Die viel jüngere Kaibab-Kalksteinformation am Rand ist die oberste Gesteinsschicht der Schlucht und ist nur 270 Millionen Jahre alt. Zwischen diesen beiden Extremen haben Wind- und Wassererosion atemberaubende Klippen, Hochebenen und Härtlinge geschaffen, die eine komplizierte Landschaft aus Schluchten innerhalb von Schluchten bilden. Jedes Jahr tragen die saisonalen Schwankungen des Colorado River dazu bei, die Schluchten tiefer und tiefer zu graben.\n\nSo wie sich die geologische Geschichte mit der Höhenlage ändert, ändert sich auch die Vielfalt der Pflanzen und Tiere dramatisch. Die Flora reicht von Wüstenarten wie Kakteen und Wacholder bis hin zu Wäldern in großer Höhe mit Fichten, Tannen oder Ponderosa-Kiefern, Jakobskreuzkraut, Schafgarbe und Lupinen. Dickhornschafe, Maultierhirsche und der schwer fassbare Berglöwe sind nur einige der Wildtierarten, die dieses ökologische Juwel ihr Zuhause nennen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When you look down from the rim of the Grand Canyon, you are looking at a visual story of Earth’s ancient past. Carved over millions of years by the Colorado River, the canyon stretches 277 miles in length, spans widths up to 18 miles, and reaches depths of over a mile (6,093 feet). The vibrant house of the canyon, ranging from deep reds and oranges to subtle shades of purple, it is an iconic natural wonder.\n\nThe geological story that the canyon tells spans nearly two billion years. Vishnu Schist at the bottom of the Inner Gorge is estimated to be 1.7 billion years old. The much younger Kaibab Limestone formation on the rim is the canyon’s top most rock layer, dating back a mere 270 million years. Between these two extremes, wind and water erosion have sculpted stunning cliffs, mesas, and buttes to create an intricate landscape of canyons within canyons. Every year, the seasonal variations in the Colorado River’s flow continue to carve the canyons deeper and deeper.\n\nJust as the geology story shifts with the altitude change, the plant and animal diversity changes dramatically. Flora ranges from desert species such as cacti and junipers to high-elevation forests of spruce fir or ponderosa pine, groundsels, yarrow, and lupine. Bighorn sheep, mule deer, and the elusive mountain lion are just some of the wildlife species that make their home in this ecological treasure."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כשעומדים על שפת הגרנד קניון ומביטים מטה נחשפים לסיפור חזותי על העבר העתיק של כדור הארץ. הקניון, שנחצב במשך מיליוני שנים על ידי נהר הקולורדו, משתרע לאורך 445 קילומטר ולרוחב 29 קילומטר, והעומק שלו מגיע עד ל-1.9 קילומטר (6,093 רגל). הקניון, על צבעיו הייחודיים שנעים מגוני אדום וכתום עמוקים לגוני סגול עדינים, הוא פלא טבע איקוני.\n\nהסיפור הגיאולוגי שמגולל הגרנד קניון נפרש על פני קרוב לשני מיליארד שנים. גילה של צפחת וישנו שבתחתית הערוץ הפנימי מוערך ב-1.7 מיליארדי שנים. צעירה ממנה בהרבה היא תצורת אבן הגיר קאיבאב שעל שפת הקניון - השכבה הסלעית הגבוהה ביותר באתר. גילה המשוער הוא ״רק״ 270 מיליון שנה. בין שני קצוות אלה, תהליכי סחיפה באמצעות מים ורוח פיסלו צוקים, הרי שולחן והרי כפתור מדהימים ביופיים, שיחד יצרו נוף מורכב של קניונים בתוך קניונים. מדי שנה, השינויים העונתיים בזרימת נהר הקולורדו ממשיכים לחצוב עמוק יותר ויותר בקניונים.\n\nבדיוק כפי שהסיפור הגיאולוגי משתנה בהתאם לשינוי בגובה הסלע, כך גם מגוון החי והצומח משתנה באופן דרמטי בהתאם לתנאים הסביבתיים. הפלורה נעה ממינים מדבריים, כגון קקטוסים וערערים, ועד יערות בגובה רב ובהם יערות אשוח ואשוחית או אורן הזפת, וצמחים כמו סביון, אכילאה אלף העלה ותורמוס. כבש גדול-קרניים, אייל פרדי שחור-זנב ופומת ההרים החמקמקה הם רק חלק ממיני חיות הבר שהפכו את האוצר האקולוגי הזה לביתן."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เมื่อมองลงมาจากขอบแกรนด์แคนยอน นั่นคือคุณกำลังมองดูเรื่องราวที่เป็นภาพอดีตอันเก่าแก่ของโลก ซึ่งถูกสลักเสลาด้วยแม่น้ำโคโลราโดเป็นเวลาหลายล้านปี โดยมีความยาว 277 ไมล์ กว้างถึง 18 ไมล์ และลึกลงไปกว่า 1 ไมล์ (6,093 ฟุต) หุบเขาแห่งนี้มีสีสันสดใสตั้งแต่สีแดงเข้มและสีส้มไปจนถึงเฉดสีม่วงอ่อน ถือเป็นสิ่งมหัศจรรย์ทางธรรมชาติที่โดดเด่น\n\nเรื่องราวทางธรณีวิทยาที่หุบเขาแห่งนี้บอกเล่ามายาวนานเกือบ 2,000 ล้านปี หินผลึกวิษณุที่ก้นหุบเขาด้านในมีอายุประมาณ 1.7 พันล้านปี กลุ่มหินปูนไคบับซึ่งมีอายุน้อยกว่ามากตามขอบเป็นชั้นหินที่อยู่ด้านบนสุดของหุบเขา โดยมีอายุเพียง 270 ล้านปีเท่านั้น ระหว่างสองขั้วนี้ การกัดเซาะจากลมและน้ำได้แกะสลักหน้าผา ยอดเขา และเนินสูงตระหง่านจนเกิดเป็นภูมิประเทศที่ซับซ้อนของหุบเขาภายในหุบเขา และในทุกๆ ปี กระแสน้ำของแม่น้ำโคโลราโดที่ผันแปรตามฤดูกาลยังคงสลักเสลาหุบเขาให้ลึกลงไปเรื่อยๆ\n\nเช่นเดียวกับเรื่องราวทางธรณีวิทยาที่เปลี่ยนไปตามการเปลี่ยนแปลงระดับความสูง ความหลากหลายของพืชและสัตว์ก็เปลี่ยนแปลงไปอย่างมาก พืชพรรณมีตั้งแต่พันธุ์ไม้ในทะเลทราย เช่น ต้นกระบองเพชรและต้นสนจูนิเปอร์ ไปจนถึงป่าสูงที่มีต้นสปรูซเฟอร์หรือต้นสนพอนเดอโรซา ต้นกราวด์เซล ยาร์โรว์ และลูพิน แกะเขาใหญ่ กวางม้า และสิงโตภูเขาที่หายาก เป็นเพียงบางส่วนของสายพันธุ์สัตว์ป่าที่อาศัยอยู่ในขุมทรัพย์ทางนิเวศแห่งนี้"
+          }
+        }
+      }
+    },
+    "GRAND_CANYON_LOCATION" : {
+      "comment" : "Location of the ‘Grand Canyon’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أريزونا، الولايات المتحدة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arizona, Vereinigte Staaten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arizona, United States"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אריזונה, ארצות הברית"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "รัฐแอริโซนา ประเทศสหรัฐอเมริกา"
+          }
+        }
+      }
+    },
+    "GRAND_CANYON_NAME" : {
+      "comment" : "Name of the ‘Grand Canyon’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الأخدود العظيم"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grand Canyon"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grand Canyon"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הגרנד קניון"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "แกรนด์แคนยอน"
+          }
+        }
+      }
+    },
+    "GREAT_BARRIER_REEF_DESCRIPTION" : {
+      "comment" : "Description of the ‘Great Barrier Reef’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يتألف الحيد المرجاني العظيم من أكثر من ٢٩٠٠ شعبة مرجانية فردية و٩٠٠ جزيرة، ويمتد على مساحة هائلة تزيد عن ٣٤ ألف كيلومتر مربع، وهو أكبر نظام للشعاب المرجانية في العالم. يقع في بحر المرجان قبالة ساحل كوينزلاند في أستراليا، وهو أكبر هيكل منفرد في العالم مكون من كائنات حية. إنه كبير بما يكفي لرؤيته من الفضاء.\n\nيدعم نظام الشعاب المرجانية مجموعة مذهلة من الكائنات الحية المتنوعة، بما في ذلك العديد من الأنواع المعرضة للخطر أو المهددة بالانقراض، وبعضها متوطن في المنطقة. تعيش هنا العشرات من الحيتانيات، بما في ذلك حوت المنك القزم، ودولفين المحيطين الهندي والهادي الأحدب، والحوت الأحدب. سمك المهرج، وسمك النهاش، وسمك التروت المرجاني ليست سوى بعض من ١٥٠٠ نوع من الأسماك الموجودة في المياه المحيطة بالشعاب المرجانية.\n\nيُطغى على الحيد المرجاني العظيم أحيانًا جمال الحياة البحرية الرائعة، وهو موطن لأكثر من ٢٠٠٠ نوع من النباتات المحلية. تُعد مروج الأعشاب البحرية من أهم مكونات الحياة النباتية في نظام الشعاب المرجانية. تزدهر مروج عشبة البحر أو عشبة السلاحف في المياه الساحلية الضحلة، وتُساعد في الحفاظ على التنوع البيولوجي واستقرار وإنتاجية الشعاب المرجانية."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Great Barrier Reef besteht aus über 2.900 einzelnen Riffen, 900 Inseln und erstreckt sich über eine Fläche von 344.400 Quadratkilometern. Es ist das größte Korallenriffsystem der Welt. Das Great Barrier Reef befindet sich in der Korallensee vor der Küste von Queensland, Australien, und ist die größte von lebenden Organismen geschaffene Struktur der Welt. Es ist so groß, dass es vom Weltraum aus sichtbar ist.\n\nDas Riffsystem beherbergt eine schwindelerregende Vielfalt an Leben, darunter viele gefährdete oder bedrohte Arten, von denen einige endemisch in diesem Gebiet vorkommen. Dutzende von Walarten, darunter der Zwergwal, indopazifische Buckeldelfin und Buckelwal, leben hier. Clownfische, Schnapper und Korallentrouten sind nur einige der 1.500 Fischarten, die in den Gewässern rund um das Riff vorkommen.\n\nDas Great Barrier Reef wird ab und an von der prächtigen Unterwasserwelt überschattet, beherbergt aber über 2.000 einheimische Pflanzenarten. Seegraswiesen sind einer der wichtigsten Bestandteile der Flora des Riffsystems. Seegras- oder Schildkrötengraswiesen gedeihen in den flachen Küstengewässern und tragen zur Erhaltung der Biodiversität, Stabilität und Produktivität des Riffs bei."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprised of over 2,900 individual reefs, 900 islands, and spanning a monumental 133,000 square miles, the Great Barrier Reef is the world’s largest coral reef system. Situated in the Coral Sea just off the coast of Queensland, Australia, the Great Barrier Reef is the world’s largest single structure made by living organisms. It’s large enough to be seen from space.\n\nThe reef system supports a dizzying range of diverse life, including many species that are vulnerable or endangered, and some are endemic to the area. Dozens of cetaceans including dwarf minke whale, Indo-Pacific humpback dolphin, and the humpback whale live here. Clownfish, snapper, and coral trout are just some of the 1,500 fish species found in the waters surrounding the reef.\n\nSometimes overshadowed by the magnificent aquatic animal life, the Great Barrier Reef is home to over 2,000 species of native plants. Seagrass meadows are one of the most fundamental parts of the flora found in the reef system. Eelgrass or Turtle grass meadows thrive in the shallow coastal waters and help to maintain the biodiversity, stability, and productivity of the reef."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שונית המחסום הגדולה מורכבת מיותר מ-2,900 שוניות נפרדות ו-900 איים, משתרעת על פני שטח עצום של 344,000 קילומטר רבוע ונחשבת למערכת שונית האלמוגים הגדולה ביותר בעולם. השונית שוכנת בים האלמוגים לא רחוק מהחוף של קווינסלנד, אוסטרליה, והיא המבנה היחיד הגדול ביותר שנוצר על ידי אורגניזמים חיים. היא כל כך גדולה עד שאפשר להבחין בה מהחלל.\n\nמערכת השונית תומכת במגוון עצום של יצורים חיים, כולל מינים רבים שמצב השימור שלהם הוא ״פגיע״ או ב״סכנת הכחדה״, ובעלי חיים האנדמיים לאזור. עשרות מיני לווייתנאים כולל לווייתן גוץ, סוסא גיבן ולווייתן גדול-סנפיר חיים כאן. דגי שושנונים, לוטיניים ודוקרן נמרי הם רק חלק מתוך 1,500 מיני דגים החיים במים המקיפים את השונית.\n\nלעתים שפע היצורים החיים בשונית המחסום הגדולה מאפיל על אוכלוסיית הצמחים המקומיים המרשימה לכשעצמה, הכוללת יותר מ-2,000 מיני צמחים. מרבדי עשב ים הם אחד החלקים החשובים ביותר בפלורה של מערכת השונית. מרבדי  עשב ים מסוג Eelgrass או Turtle משגשגים במים הרדודים לצד החוף ומסייעים בשימור המגוון הביולוגי, היציבות והפוריות של השונית."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เกรท แบร์ริเออร์ รีฟประกอบด้วยแนวปะการังเดี่ยวๆ มากกว่า 2,900 แนว เกาะ 900 แห่ง และมีพื้นที่กว้างใหญ่ถึง 133,000 ตารางไมล์ เกรท แบร์ริเออร์ รีฟถือเป็นระบบแนวปะการังที่ใหญ่ที่สุดในโลก ซึ่งตั้งอยู่ในทะเลคอรัลนอกชายฝั่งของรัฐควีนส์แลนด์ ประเทศออสเตรเลีย เกรท แบร์ริเออร์ รีฟเป็นโครงสร้างเดี่ยวที่ใหญ่ที่สุดในโลกที่สร้างขึ้นโดยสิ่งมีชีวิต แนวปะการังนี้มีขนาดใหญ่พอที่จะมองเห็นได้จากอวกาศ\n\nระบบแนวปะการังเป็นแหล่งอาศัยของสิ่งมีชีวิตหลากหลายชนิดที่น่าเวียนหัว รวมถึงสายพันธุ์ที่อ่อนแอหรือใกล้สูญพันธุ์ และบางสายพันธุ์ก็เป็นสายพันธุ์เฉพาะถิ่นในพื้นที่นี้ สัตว์จำพวกวาฬหลายสิบชนิด เช่น วาฬมิงค์แคระ โลมาหลังค่อมอินโดแปซิฟิก และวาฬหลังค่อมอาศัยอยู่ที่นี่ ปลาการ์ตูน ปลากะพง และปลาเทราต์ปะการังเป็นเพียงบางส่วนของสายพันธุ์ปลา 1,500 สายพันธุ์ที่พบในน่านน้ำรอบๆ แนวปะการัง\n\nเกรท แบร์ริเออร์ รีฟเป็นที่อยู่อาศัยของพืชพื้นเมืองมากกว่า 2,000 สายพันธุ์ ทำให้บางครั้งถูกบดบังด้วยสิ่งมีชีวิตใต้น้ำอันงดงาม ทุ่งหญ้าทะเลเป็นส่วนพื้นฐานที่สุดส่วนหนึ่งของพืชพรรณที่พบในระบบแนวปะการัง ทุ่งหญ้าทะเลหรือหญ้าเต่าเจริญเติบโตได้ดีในน้ำชายฝั่งตื้น และช่วยรักษาความหลากหลายทางชีวภาพ ความเสถียร และผลผลิตของแนวปะการัง"
+          }
+        }
+      }
+    },
+    "GREAT_BARRIER_REEF_LOCATION" : {
+      "comment" : "Location of the ‘Great Barrier Reef’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "كوينزلاند، أستراليا"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Queensland, Australien"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Queensland, Australia"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קווינסלנד, אוסטרליה"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "รัฐควีนส์แลนด์ ประเทศออสเตรเลีย"
+          }
+        }
+      }
+    },
+    "GREAT_BARRIER_REEF_NAME" : {
+      "comment" : "Name of the ‘Great Barrier Reef’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الحيد المرجاني العظيم"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Great Barrier Reef"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Great Barrier Reef"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שונית המחסום הגדולה"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เกรท แบร์ริเออร์ รีฟ"
+          }
+        }
+      }
+    },
+    "JOSHUA_TREE_DESCRIPTION" : {
+      "comment" : "Description of the ‘Joshua Tree’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "على مساحة تزيد عن ٣١٠٨ كيلومتر مربع، تقع حديقة شجرة جوشوا الوطنية في جنوب كاليفورنيا، بالقرب من بالم سبرينغز. تمتد الحديقة على صحراء موهافي وكولورادو، وتشتهر بتكويناتها الصخرية الوعرة وأشجار جوشوا الشائكة والملتوية. تتميز الصحراوان بخصائص مميزة. على الجانب الغربي من الحديقة، تُشكل موهافي الأعلى والأكثر برودة نظامًا بيئيًا صحراويًا مرتفعًا، بينما يتميز الجانب الشرقي من كولورادو بمناخ صحراوي منخفض.\n\nشكل النشاط البركاني القديم والتآكل وحركة الصدوع التكتونية المناظر الطبيعية الخلابة للحديقة. تُضفي التكوينات السريالية من صخور الغرانيت الضخمة والتلال الصخرية (المعروفة باسم إنسلبيرغ) والوديان الخفية وأشجار جوشوا الفريدة جمالًا من عالم آخر.\n\n\nعلى الرغم من المناخ الصحراوي القاسي، يمكن العثور على مجموعة متنوعة من الحيوانات البرية والنباتات المتكيفة. غالبًا ما تحفر الثدييات الأكبر حجمًا، مثل الذئب، وكبش الجبال الصحراوي، وأسد الجبال، أو تمكث في الكهوف خلال ساعات النهار الحارة، وتزداد نشاطًا في الليل. أشجار الصنوبر المخروطية القديمة، وشجيرات الكريوزوت، والزهور البرية الربيعية قصيرة العمر، هي بعض من أكثر من ألف نوع من النباتات الموجودة في حديقة شجرة جوشوا."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Joshua Tree Nationalpark erstreckt sich über eine Fläche von mehr als 3.000 Quadratkilometer und liegt in Südkalifornien unweit von Palm Springs. Der Park erstreckt sich über die Mojave- und die Colorado-Wüste und ist vor allem für seine rauen Felsformationen und die stacheligen, verdrehten Josua-Palmlilien bekannt. Die beiden Wüsten haben unterschiedliche Eigenschaften. Auf der westlichen Seite des Parks ist die kühlere Mojave-Wüste eine Hochwüste, während in der Colorado-Wüste auf der östlichen Seite Tieflandklima herrscht.\n\nAlte vulkanische Aktivität, Erosion und tektonische Verwerfungen haben die spektakuläre Landschaft des Parks geprägt. Die surrealen Formationen aus massiven Granitfelsen, Felshügeln (auch Inselberge genannt), versteckten Schluchten und den einzigartigen Josua-Palmen sind von außerirdischer Schönheit.\n\nTrotz des rauen Wüstenklimas gibt es eine Vielzahl von widerstandsfähigen Wildtieren und Pflanzen. Größere Säugetiere wie Kojoten, Wüstenschafen und Berglöwen graben sich oft ein oder bleiben tagsüber in Höhlen und werden nachts aktiv. Alte Wacholder, Creosotebüsche und kurzlebige Frühlingsblumen gehören zu den mehr als 1.000 Pflanzenarten, die im Joshua Tree Nationalpark zu finden sind."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spanning more than 1,200 square miles, the Joshua Tree National Park is located in Southern California not far from Palm Springs. The park spans both the Mojave and Colorado deserts and is most known for the rugged rock formations and the spiky, twisted Joshua trees. The two deserts have distinct characteristics. On the western side of the park, the higher and cooler Mojave is a high desert ecosystem while the eastern side’s Colorado is a low desert climate.\n\nAncient volcanic activity, erosion, and tectonic fault movement shaped the park’s dramatic landscape. Surreal formations of massive granite boulders, rock hills (known as inselbergs), hidden canyons, and the unique Joshua trees create an otherworldly beauty.\n\nDespite the harsh desert climates, a variety of resilient wildlife and plant life can be found. Larger mammals such as coyote, desert bighorn sheep, mountain lion often burrow or stay in caves during the hot day time hours, becoming more active at night. Ancient bristlecone pines, creosote bush, and ephemeral spring wildflowers are some of the more than 1,000 species of plant found Joshua Tree."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הפארק הלאומי ג׳ושוע טרי משתרע על פני יותר מ-3,106 קילומטר רבוע בדרום קליפורניה, לא רחוק מפאלם ספרינגס. הפרק חולש הן על מדבר מוהאבי והן על מדבר קולורדו, וידוע בעיקר בזכות תצורות הסלע המרתקות ועצי יהושע המפותלים והקוצניים שבו. שני המדבריות ניחנים במאפיינים ייחודיים. בצדו המערבי של הפארק, מדבר מוהאבי הגבוה והקריר יותר הוא אקוסיסטם מדברי, ואילו מדבר קולורדו שבצד המזרחי מתאפיין באקלים של מדבר נמוך.\n\nפעילות וולקנית קדומה, תהליכי שחיקה ותנועת העתק טקטונית עיצבו את פני השטח הדרמטיים של הפארק. תצורות סוריאליסטיות של בולדרים עצומים מגרניט, גבעות סלעיות (המכונות ״הרי בדד״ או ״אינזלברגים״), קניונים נסתרים ועצי ג׳ושוע טרי הייחודיים יוצרים יחד יופי שאינו מן העולם הזה.\n\nלמרות האקלים המדברי הקשוח, אפשר למצוא במקום מגוון של חיות בר וצמחים עמידים. יונקים גדולים יחסית כגון זאב ערבות, כבש גדול-קרניים מדברי ופומת הרים שוהים לעתים קרובות במחילות או במערות במהלך שעות היום החמות, ונעשים פעילים יותר בלילה. אורני אצטרובל זיפני עתיקים, לראה משולשת ופרחי בר אביביים וארעיים הם חלק קטן מתוך יותר מ-1,000 מיני צמחים הגדלים בפארק."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อุทยานแห่งชาติโจชัวทรีมีพื้นที่มากกว่า 1,200 ตารางไมล์ ตั้งอยู่ในแคลิฟอร์เนียตอนใต้ ไม่ไกลจากปาล์มสปริงส์ อุทยานแห่งนี้ครอบคลุมทั้งทะเลทรายโมฮาวีและทะเลทรายโคโลราโด รวมทั้งมีชื่อเสียงมากที่สุดในเรื่องหินรูปร่างขรุขระและต้นโจชัวที่บิดเบี้ยวและมีหนามแหลมคม ทะเลทรายทั้งสองแห่งนี้มีลักษณะเฉพาะไม่เหมือนใคร ทะเลทรายโมฮาวีที่อยู่สูงและมีอากาศเย็นกว่าทางฝั่งตะวันตกของอุทยานเป็นระบบนิเวศทะเลทรายที่สูง ในขณะที่ทะเลทรายโคโลราโดทางฝั่งตะวันออกเป็นภูมิอากาศทะเลทรายที่ต่ำ\n\nการปะทุของภูเขาไฟในสมัยโบราณ การกัดเซาะ และการเคลื่อนตัวของรอยเลื่อนเปลือกโลกทำให้ภูมิประเทศของอุทยานแห่งนี้สวยงามตระการตา หินแกรนิตขนาดใหญ่ที่ก่อตัวขึ้นอย่างเหนือจริง เนินหิน (เรียกว่าอินเซลเบิร์ก) หุบเขาที่ซ่อนเร้น และต้นโจชัวที่มีเอกลักษณ์พิเศษ ทำให้เกิดความงดงามเหนือจินตนาการ\n\nแม้จะมีสภาพอากาศแบบทะเลทรายที่เลวร้าย แต่ก็สามารถพบเห็นสัตว์ป่าและพืชพรรณต่างๆ ที่ทนทานต่อสภาพอากาศได้ สัตว์เลี้ยงลูกด้วยนมขนาดใหญ่ เช่น หมาป่าไคโยตี แกะเขาใหญ่ในทะเลทราย และสิงโตภูเขา มักจะขุดโพรงหรืออาศัยอยู่ในถ้ำในช่วงเวลากลางวันที่มีอากาศร้อน และจะออกหากินมากขึ้นในเวลากลางคืน ต้นสนบริสเทิลโคนโบราณ ต้นพุ่มกระเบื้อง และดอกไม้ป่าอายุสั้นในฤดูใบไม้ผลิเป็นเพียงสายพันธุ์บางส่วนจากพืชมากกว่า 1,000 สายพันธุ์ที่พบได้ในโจชัวทรี"
+          }
+        }
+      }
+    },
+    "JOSHUA_TREE_LOCATION" : {
+      "comment" : "Location of the ‘Joshua Tree’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "كاليفورنيا، الولايات المتحدة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalifornien, Vereinigte Staaten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "California, United States"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קליפורניה, ארצות הברית"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "รัฐแคลิฟอร์เนีย ประเทศสหรัฐอเมริกา"
+          }
+        }
+      }
+    },
+    "JOSHUA_TREE_NAME" : {
+      "comment" : "Name of the ‘Joshua Tree’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "شجرة جوشوا"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Joshua Tree"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Joshua Tree"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ג׳ושוע טרי"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "โจชัวทรี"
+          }
+        }
+      }
+    },
+    "KIRKJUFELL_MOUNTAIN_DESCRIPTION" : {
+      "comment" : "Description of the ‘Kirkjufell Mountain’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "كيركجوفيل، أو جبل الكنيسة، هو قمة بارتفاع ٤٦٣ متر تقع في شبه جزيرة سنيفيلسنيس، وهو أحد أكثر المواقع تصويرًا في آيسلندا. من زوايا مختلفة، يبدو الجبل كرأس سهم أو كنيسة. ومن الناحية الجيولوجية، لا يُعتبر هذا التل بركانًا، بل بقايا طبقات كانت موجودة قبل أن تُشكل الأنهار الجليدية المناظر الطبيعية المحيطة به.\n\nيُعد التل وجهةً شهيرةً للمشي الطويل، على الرغم من أن المسار يحتوي على أجزاء شديدة الانحدار تُصبح زلقة بشكل خطير في الطقس الممطر. يُنصح بشدة بالاستعانة بمرشد سياحي.\n\nفي مكان قريب، يُقدم شلال كيركجوفيلسفوس تركيبة فوتوغرافية مذهلة تجمع بين الشلال والجبل. توفر مدينة غروندارفيوردور الساحلية، وهي ميناء صيد، أماكن إقامة ومشهدًا فنيًا نابضًا بالحياة. تُعد غروندارفيوردور نقطة انطلاق لمسارات المشي الطويل التي توفر إطلالات ساحرة على وديان المنطقة وجبالها. قد يحظى المتنزه المحظوظ بلقاء مع الثعلب القطبي، أو النسر ذو الذيل الأبيض، أو طائر النورس القطبي."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kirkjufell, auch „Kirchenberg“ genannt, ist ein 463 Meter hoher Gipfel auf der Halbinsel Snæfellsnes und einer der meistfotografierten Orte in Island. Je nach Blickwinkel ähnelt der Berg einer Pyramide oder einer Kirche. Geologisch gesehen ist er kein Vulkan, sondern ein Überbleibsel jener Schichten, welche die umliegende Landschaft bildeten, bevor sie von Gletschern abgetragen wurde.\n\nDer Berg ist ein beliebtes Wanderziel, obwohl der Weg steile Abschnitte aufweist, die bei nassem Wetter gefährlich rutschig werden können. Es wird dringend empfohlen, eine:n Führer:in zu engagieren.\n\nIn der Nähe bietet der Wasserfall Kirkjufellsfoss eine spektakuläre Fotoperspektive und vereint den Blick auf den Wasserfall und den Berg. Die Küstenstadt Grundarfjörður, ein Fischereihafen, bietet Unterkünfte und eine aktive Kunstszene. Grundarfjörður ist ein Ausgangspunkt für Wanderungen, bei denen sich atemberaubende Blicke auf die Täler und Berge der Region ergeben. Mit etwas Glück kann man beim Wandern einem arktischen Fuchs, einem Seeadler oder einer arktischen Seeschwalbe begegnen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kirkjufell, or Church Mountain, is a 1,519-ft. high peak situated on the Snæfellsnes peninsula, and is one of the most photographed sites in Iceland. From varous angles the mountain is thought to resemble an arrow head, or a church. Geologically, the hill is not a volcano, but a remnant of the strata that existed before glaciers carved out the surrounding landscape.\n\nThe hill is a popular hiking destination, although the trail has steep sections that become dangerously slippery in wet weather. Hiring a guide is highly recommended.\n\nNearby, the Kirkjufellsfoss waterfall offers a spectacular photographic composition of both waterfall and mountain. The coastal town of Grundarfjörður, a fishing harbor, offers accommodations and an active arts scene. Grundarfjörður is a starting point for hiking trails that offer mesmerizing views of the valleys and mountains of the area. A lucky hiker might have an encounter with the arctic fox, white tailed eagle, or an arctic tern."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קירקיופל, או ״הר הכנסייה״, הוא הר בגובה 463 מטר בחצי האי סנייפלסנס, הנחשב לאחד האתרים המצולמים ביותר באיסלנד. מזוויות מסוימות ההר מזכיר במראהו ראש חץ או כנסייה. מבחינה גאולוגית, אין מדובר בהר געש אלא בשריד של רובד סלעי שהיה קיים לפני שקרחונים פיסלו את פני הנוף הסובבים.\n\nההר הוא יעד פופולרי למטיילים ומטפסי הרים, אף על פי שהמסלול כולל מקטעים תלולים שנעשים חלקלקים ומסוכנים במזג אוויר גשום. לכן מומלץ ביותר לשכור ליווי מקצועי לפני היציאה למסלול.\n\nבקרבת מקום, מפלי קירקיופל מציעים הזדמנות לקומפוזיציית צילום יוצאת מן הכלל של שני המפלים וההר. עיירת החוף גרונדרפיורדור, שבתחומה נמל דיג, מציעה מקומות לינה וסצנת אומנויות ענפה. גרונדרפיורדור משמשת נקודת מוצא למסלולי הליכה המשלבים נופים מהפנטים ביופיים של העמקים וההרים באזור. מטיילים בני מזל עשויים להיתקל בשועל שלג, בעיטם לבן-זנב או בשחפית הקוטב."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ภูเขาเคิร์กจูเฟลหรือภูเขาโบสถ์เป็นยอดเขาสูง 1,519 ฟุตที่ตั้งอยู่บนคาบสมุทรสไนล์แฟลส์เนสส์ และเป็นหนึ่งในสถานที่ที่นิยมถ่ายรูปกันมากที่สุดในไอซ์แลนด์ จากหลายๆ มุมทำให้ภูเขามีลักษณะคล้ายหัวลูกศรหรือโบสถ์ ในทางธรณีวิทยา เนินเขานี้ไม่ใช่ภูเขาไฟแต่เป็นเศษซากของชั้นหินที่เคยมีอยู่ก่อนที่ธารน้ำแข็งจะกัดเซาะจนเปลี่ยนแปลงสภาพภูมิประเทศโดยรอบ\n\nเนินเขานี้เป็นจุดหมายปลายทางยอดนิยมในการเดินเขา แม้ว่าเส้นทางการเดินเขาจะมีส่วนที่สูงชันซึ่งทำให้ลื่นและเป็นอันตรายในสภาพอากาศที่เปียกชื้นได้ก็ตาม การจ้างไกด์นำทางจึงเป็นสิ่งที่แนะนำอย่างยิ่ง\n\nในบริเวณใกล้กันมีน้ำตกเคิร์กจูเฟลล์สฟอสส์ที่มีองค์ประกอบภาพอันน่าตื่นตาตื่นใจของทั้งน้ำตกและภูเขา เมืองชายฝั่งของกรุนดาร์ฟยอร์ดูร์ซึ่งเป็นท่าเรือประมงมีที่พักและบรรยากาศราวกับภาพศิลปะที่มีชีวิตชีวา กรุนดาร์ฟยอร์ดูร์เป็นจุดเริ่มต้นของเส้นทางการเดินเขาที่มีทิวทัศน์สุดตราตรึงใจของหุบเขาและภูเขาในบริเวณนั้น นักเดินเขาที่โชคดีหน่อยอาจได้เห็นสุนัขจิ้งจอกอาร์กติก นกอินทรีหางขาว หรือนกนางนวลแกลบขั้วโลก"
+          }
+        }
+      }
+    },
+    "KIRKJUFELL_MOUNTAIN_LOCATION" : {
+      "comment" : "Location of the ‘Kirkjufell Mountain’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "آيسلندا"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Island"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iceland"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "איסלנד"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไอซ์แลนด์"
+          }
+        }
+      }
+    },
+    "KIRKJUFELL_MOUNTAIN_NAME" : {
+      "comment" : "Name of the ‘Kirkjufell Mountain’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جبل كيركجوفيل"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kirkjufell"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kirkjufell Mountain"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הר קירקיופל"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ภูเขาเคิร์กจูเฟล"
+          }
+        }
+      }
+    },
+    "LENÇÓIS_MARANHENSES_DESCRIPTION" : {
+      "comment" : "Description of the ‘Lençóis Maranhenses’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يغطي منتزه لينكويس مارانهينسيس الوطني مساحة تقارب ٣٨٠٠٠٠ فدان على الساحل الشمالي الشرقي للبرازيل، بما في ذلك ٦٩ كيلومترًا من الشريط الساحلي على طول المحيط الأطلسي. يتكون الجزء الداخلي من المنتزه من كثبان رملية متدحرجة يصل ارتفاعها إلى ٤٠ مترًا.\n\nعلى الرغم من مظهره الصحراوي، إلا أن المنطقة تتلقى حوالي ٤٧ بوصة من الأمطار سنويًا. خلال مواسم الأمطار، وتمتلئ المساحات بين قمم الكثبان الرملية ببحيرات المياه العذبة.\n\nبفضل موقعها الشبه صحراوي والرطب، تطور نظام بيئي فريد ومتنوع. توجد هنا نباتات متكيفة مع البيئات الساحلية وبيئات المياه العذبة مثل الرستينغا وأشجار المانغروف. تعيش أربعة أنواع من الحيوانات المهددة بالانقراض في المنتزه: أبو منجل القرمزي، وثعلب الماء الاستوائي الجديد، وقط الببر الشمالي، وخروف البحر الأمريكي. سمكة الذئب هي نوع فريد من الأسماك يحفر في الوحل الرطب خلال موسم الجفاف."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Nationalpark Lençóis Maranhenses erstreckt sich über eine Fläche von etwa 1.500 Quadratkilometer an der Nordostküste Brasiliens und erstreckt sich 70 Kilometer entlang des Atlantischen Ozeans. Das Innere des Parks besteht aus sanften Sanddünen, die bis zu 40 Meter hoch werden können.\n\nObwohl die Gegend wie eine Wüste erscheint, fallen hier jährlich etwa 120 cm Regen. Während der Regenzeit füllen sich die Flächen zwischen den Dünen mit Süßwasserseen.\n\nDurch die wüstenähnliche, aber feuchte Umgebung hat sich ein einzigartiges und vielfältiges Ökosystem entwickelt. Hier findet man Vegetation, die an Küsten- und Süßwasserumgebungen angepasst ist, wie die Restingas sowie Mangroven. Im Park leben vier gefährdete Tierarten: der Scharlachibis, der neotropische Otter, der Tigrillo und die westindische Seekuh. Der Wolfsfisch ist eine besondere Art, die sich während der Trockenzeit in den feuchten Schlamm gräbt."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lençóis Maranhenses National Park covers approximately 380,000 acres on the northeastern coast of Brazil, including 43 miles of coastline along the Atlantic Ocean. The interior of the park is composed of rolling sand dunes that reach as high as 130 feet.\n\nDespite looking like a desert environment, the area receives about 47 inches of rain per year. During the rainy seasons, the spaces between the dune peaks fill with freshwater lagoons.\n\nWith desert-like but wet locale, a unique and diverse ecosystem has evolved. Vegetation adapted to coastal and freshwater environments such as Restinga and mangrove are found here. Four endangered species of animals reside in the park: the scarlet ibis, neotropical otter, oncilla, and West Indian manatee. The wolf fish is a unique species that burrows into wet mud during the dry season."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הפארק הלאומי לנסויס מרניינסס מכסה קרוב ל-1,550 קילומטר רבוע בחוף הצפון-מזרחי של ברזיל, כולל 69 קילומטר של קו חוף לאורך האוקיינוס האטלנטי. החלק הפנימי של הפארק מורכב מחולות נודדים ודיונות שמגיעים לגובה של עד 40 מטר.\n\nאף על פי שהפארק נראה כמו סביבה מדברית, כמות המשקעים היורדת בו בשנה עומדת על כ-1,200 מ״מ. במהלך העונות הגשומות, המרווחים בין פסגות הדיונות מתמלאים בלגונות של מים מתוקים.\n\nבזכות השילוב בין סביבה מדברית לכמות משקעים נדיבה התפתח במקום אקוסיסטם ייחודי ומגוון. מיני הצמחים במקום הסתגלו לסביבות של קווי חוף ומים מתוקים, כמו החשטינגה והמנגרובים. ארבעה מינים של בעלי חיים בסכנת הכחדה חיים בפארק: מגלן שני, לוטרה נאוטרופית, נמרון מנוקד ותחש נהרות קריבי. דג הזאב הוא מין ייחודי המתחפר בבוץ רטוב במהלך העונה החמה."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อุทยานแห่งชาติแลงคอยส์ มารานฮานส์ครอบคลุมพื้นที่ประมาณ 380,000 เอเคอร์บนชายฝั่งตะวันออกเฉียงเหนือของประเทศบราซิล รวมถึงแนวชายฝั่งยาว 43 ไมล์ตามแนวมหาสมุทรแอตแลนติก ภายในอุทยานประกอบด้วยเนินทรายสูงชันที่สูงถึง 130 ฟุต\n\nแม้จะดูเหมือนสภาพแวดล้อมแบบทะเลทราย แต่พื้นที่นี้ได้รับน้ำฝนประมาณ 47 นิ้วต่อปี ในทุกๆ ฤดูฝน ช่องว่างระหว่างยอดเนินทรายจะเต็มไปด้วยทะเลสาบน้ำจืด\n\nด้วยสภาพแวดล้อมที่เหมือนทะเลทรายแต่ชื้นแฉะ ระบบนิเวศที่เป็นเอกลักษณ์เฉพาะและหลากหลายจึงได้รับการพัฒนา พืชพรรณที่ปรับตัวให้เข้ากับสภาพแวดล้อมชายฝั่งและน้ำจืด เช่น เรสติงกาและป่าชายเลน พบได้ในอุทยานแห่งนี้ สัตว์ใกล้สูญพันธุ์สี่สายพันธุ์อาศัยอยู่ในอุทยาน ได้แก่ นกช้อนหอยสีแดง นากเขตร้อนชื้น แมวออนซิลลา และพะยูนแมนนาทีในอินเดียตะวันตก ส่วนปลาหมาป่าเป็นสายพันธุ์พิเศษที่ขุดรูในโคลนเปียกในช่วงฤดูแล้ง"
+          }
+        }
+      }
+    },
+    "LENÇÓIS_MARANHENSES_LOCATION" : {
+      "comment" : "Location of the ‘Lençóis Maranhenses’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "شمال شرق مارانهاو، البرازيل"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nordöstliches Maranhão, Brasilien"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Northeastern Maranhão, Brazil"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "צפון-מזרח מרניאו, ברזיל"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "รัฐมารันเยาทางตะวันออกเฉียงเหนือ ประเทศบราซิล"
+          }
+        }
+      }
+    },
+    "LENÇÓIS_MARANHENSES_NAME" : {
+      "comment" : "Name of the ‘Lençóis Maranhenses’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لينسويس مارنيانسيس"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lençóis Maranhenses"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lençóis Maranhenses"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "לנסויס מרניינסס"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อุทยานแห่งชาติแลงคอยส์ มารานฮานส์"
+          }
+        }
+      }
+    },
+    "MONUMENT_VALLEY_DESCRIPTION" : {
+      "comment" : "Description of the ‘Monument Valley’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يقدم وادي مونيومنت عرضًا مذهلًا من تلال الحجر الرملي الشاهقة، وتكوينات من الصخور الحمراء النابضة بالحياة، والسهول المفتوحة الشاسعة، وهو منظر طبيعي مميز لهضبة كولورادو، الواقعة بالقرب من حدود ولايتي أريزونا ويوتا. ترتفع التلال الطبقية بشكل كبير من قاع الوادي لتصل إلى ارتفاعات تصل إلى ٣٠٤ متر. يتكون الوادي، الذي تشكل بفعل الأنهار والرياح والجليد، في معظمه من رواسب الحجر الغريني والرمل. تآكلت المواد الأكثر ليونة، تاركةً تلال الحجر الرملي الضخمة التي لا تزال قائمة حتى اليوم.\n\nالغطاء النباتي في وادي مونيومنت نادر ولكنه جميل. تُضفي نباتات مثل المريمية الأرجوانية لوحة ألوان مثيرة للاهتمام، حيث تُكمل تكوينات الصخور الحمراء ببقع من الزهور الأرجوانية والأوراق البيضاء أو الرمادية. يُضفي نبات الأرنب البري أزهارًا صفراء وأوراقًا خضراء. وتتميز نباتات اليوكا الموهافي بشعر ناعم وطبقة شمعية تحبس الرطوبة وتعكس ضوء الشمس لمساعدتها على البقاء.\n\nتتميز الحياة الحيوانية بتنوعها، حيث تضم ثدييات كبيرة مثل أسود الجبال والقيوط والأرانب البرية. تشمل الزواحف السحالي، مثل سحلية النمر طويلة الأنف والإغوانا ومختلف أنواع الثعابين. وتحلق فوقها عيون يقظة، مثل الصقور حمراء الذيل والعصفور الشجري، وغيرها."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monument Valley ist eine faszinierende Landschaft im Colorado-Plateau, die sich in der Nähe der Grenze zwischen Arizona und Utah befindet. Sie bietet eine spektakuläre Kulisse aus hoch aufragenden Sandsteinkuppen, leuchtend roten Felsformationen und weitläufigen offenen Ebenen. Die geschichteten Kuppen ragen dramatisch aus dem Talboden empor und erreichen Höhen von bis zu 300 Metern. Das Tal besteht größtenteils aus Schluffstein- und Sandablagerungen, die durch Flüsse, Wind und Eis geformt wurden. Weicheres Material wurde abgetragen, sodass die massiven Sandsteinkuppen übrig blieben.\n\nDie Vegetation in Monument Valley ist spärlich, aber wunderschön. Pflanzen wie der lila Salbei tragen mit ihren lila Blüten und silbrigen Blättern zu einer interessanten Farbpalette bei, oder der Kaninchenbusch mit seinen gelben Blüten und grünen Blättern. Die Mojave-Yucca hat feine Haare und eine Wachsschicht, um Feuchtigkeit zu halten und sich durch Reflexion vor dem Sonnenlicht zu schützen, damit sie überleben kann.\n\nDas Tierleben ist vielfältig und umfasst große Säugetiere wie Berglöwen, Kojoten und Kaninchen. Zu den Reptilien gehören Eidechsen wie die Langnasenleopardeneidechse sowie Leguane und verschiedene Schlangen. Über all dem schweben mit wachsamen Augen Rotschwanzbussarde, Baumspatzen und mehr."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Presenting a spectacular display of towering sandstone buttes, vibrant red rock formations, and expansive open plains, Monument Valley is an iconic landscape of the Colorado Plateau, located near the Arizona-Utah border. The stratified buttes rise dramatically from the valley floor reaching heights up to 1,000 feet. Formed by rivers, wind, and ice, the valley is comprised largely of siltstone and sand deposits. Softer material eroded away, leaving the massive sandstone buttes that remain today.\n\nVegetation in Monument Valley is sparse but beautiful. Contributing to an interesting palette, plants like purple sage complement the red rock formations with splashes of purple flowers and white or gray leaves. Rabbitbrush brings in yellow flowers and green leaves. Mojave yucca plants have fine hairs and a wax coating to trap moisture and reflect sunlight to help it survive.\n\nAnimal life is diverse, with large mammals like the mountain lions, coyotes, and jackrabbits. Reptiles include lizards such as the long-nose leopard lizard as well as iguanas and various snakes. With watchful eyes soaring above all of this are red-tailed hawks, tree sparrows, and more."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "במוניומנט ואלי נמצא מגוון יוצא מן הכלל של הרי כפתור מאבן חול המתנשאים אל על, תצורות סלע בגוני אדום עזים ומישורים פתוחים רחבי ידיים. זהו אוצר טבע איקוני השוכן ברמת קולורדו, ליד גבול אריזונה-יוטה. The הרי הכפתור המרובדים מזדקרים בדרמטיות מקרקעית העמק ומתנשאים לגובה של עד 305 מטר. זרימת נהרות, הרוח והקרח עיצבו את פני העמק, המורכבים ברובם מאבן טין ומרבצי חול. חומרים רכים יותר נעלמו בתהליכי סחיפה והשאירו אחריהם הרי כפתור עצומים מאבן חול, הקיימים עד היום.\n\nהצמחייה במוניומנט ואלי דלילה אך יפהפייה. לפלטת הצבעים המעניינת תורמים צמחים כמו מרווה סגולה, הצובעת את תצורות הסלע האדומות בכתמים של פרחים סגולים ועלים לבנים או אפורים. הכריזותמנוס מציע את פרחיו הצהובים ועליו הירוקים. צמחי יוקה מדברית ניחנים בשערות דקיקות ובציפוי שעווה ללכידת לחות ומחזירים את אור השמש כדי לשרוד.\n\nחיי הבר מגוונים, וכוללים יונקים גדולים כמו פומות הרים, זאבי ערבות וארנבות. חיים במקום גם זוחלים כמו לטאות, למשל הלטאה הנמרית ארוכת האף, וכן איגואנות ומגוון נחשים. מעל כולם דואים ומשגיחים היטב בנעשה למטה עקב אדום-זנב , דרור הרים ועוד."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "หุบเขาโมนูเมนต์เป็นภูมิประเทศที่มีเอกลักษณ์เฉพาะของที่ราบสูงโคโลราโด ซึ่งตั้งอยู่ใกล้กับชายแดนรัฐแอริโซนา-ยูทาห์ โดยมีเนินหินทรายสูงตระหง่าน หินสีแดงสดใส และที่ราบโล่งกว้างใหญ่ เนินหินเหล่านี้ตั้งตระหง่านขึ้นอย่างตระการตาจากพื้นหุบเขา โดยมีความสูงถึง 1,000 ฟุต หุบเขาแห่งนี้เกิดจากแม่น้ำ ลม และน้ำแข็ง โดยประกอบด้วยหินทรายแป้งและทรายเป็นส่วนใหญ่ วัสดุที่อ่อนนุ่มถูกกัดเซาะจนเหลือเพียงเนินหินทรายขนาดใหญ่ที่ยังคงอยู่มาจนถึงทุกวันนี้\n\nพืชพันธุ์ในหุบเขาโมนูเมนต์นั้นค่อนข้างเบาบางแต่สวยงาม พืชต่างๆ เช่น เสจสีม่วงช่วยเสริมสีสันที่น่าสนใจให้กับหินสีแดงด้วยดอกไม้สีม่วงและใบสีขาวหรือสีเทา แรบบิทบรัชช่วยเพิ่มสีสันให้กับดอกไม้สีเหลืองและใบสีเขียว ต้นยัคคาโมฮาวีมีขนละเอียดและเคลือบด้วยขี้ผึ้งเพื่อกักเก็บความชื้นและสะท้อนแสงแดดเพื่อให้อยู่รอดได้\n\nชีวิตสัตว์มีความหลากหลาย โดยมีสัตว์เลี้ยงลูกด้วยนมขนาดใหญ่ เช่น สิงโตภูเขา หมาป่าไคโยตี และกระต่ายป่า สัตว์เลื้อยคลาน รวมถึงกิ้งก่า เช่น กิ้งก่าเสือดาวจมูกยาว อิกัวนา และงูชนิดต่างๆ นอกจากนี้ยังมีเหยี่ยวหางแดง นกกระจอกบ้าน และสัตว์อื่นๆ อีกมากมายที่ทะยานอยู่เหนือฟ้าคอยจับตามองจากด้านบน"
+          }
+        }
+      }
+    },
+    "MONUMENT_VALLEY_LOCATION" : {
+      "comment" : "Location of the ‘Monument Valley’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يوتا وأريزونا، الولايات المتحدة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utah und Arizona, Vereinigte Staaten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utah and Arizona, United States"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "יוטה ואריזונה, ארצות הברית"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "รัฐยูทาห์และรัฐแอริโซนา ประเทศสหรัฐอเมริกา"
+          }
+        }
+      }
+    },
+    "MONUMENT_VALLEY_NAME" : {
+      "comment" : "Name of the ‘Monument Valley’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وادي مونيومنت"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monument Valley"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monument Valley"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מוניומנט ואלי"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "หุบเขาโมนูเมนต์"
+          }
+        }
+      }
+    },
+    "MOUNT_EVEREST_DESCRIPTION" : {
+      "comment" : "Description of the ‘Mount Everest’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بالإضافة إلى كونه ربما أشهر جبل في العالم، يُعد جبل إيفرست أعلى قمة في العالم فوق مستوى سطح البحر. بارتفاع يزيد قليلًا عن ٨٨٤٩ مترًا، يجذب الجبل المتسلقين وخبراء تسلق الجبال من جميع أنحاء العالم. تخترق قمم إيفرست الجليدية السماء، محاطة بالغيوم الدوامة والرياح العاتية.\n\nجيولوجيًا، يُعد جبل إيفرست جزءًا من سلسلة جبال الهيمالايا التي تشكلت من الصفائح التكتونية الأوراسية والهندية. بدأت حركة هذه الصفائح منذ حوالي ٥٠ مليون سنة، ولا تزال تدفع إيفرست إلى أعلى. تُذكرنا طبقات الصخور المتحولة والرسوبية، التي يعلوها الحجر الجيري البحري الذي كان في قاع المحيط، بتاريخ الأرض الحيوي.\n\nعلى الرغم من الظروف القاسية الموجودة في المرتفعات العالية على إيفرست، إلا أن الجبل موطن لنظام بيئي فريد من نوعه على ارتفاعات عالية. تستطيع الطحالب والأشنات البقاء على قيد الحياة في ظل المناخ القاسي، إلى جانب نباتات المرتفعات العالية، مثل عرعر الهيمالايا، والردندرة القزمة، ولوتس الثلج. أما الحيوانات التي تعيش في المرتفعات المنخفضة، فتشمل طهر الهيمالايا، ونمر الثلج، والدب الأسود الهيمالايا، والباندا الحمراء."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Mount Everest ist nicht nur der bekannteste Berg der Welt, sondern auch der höchste Gipfel über dem Meeresspiegel. Mit einer Höhe von knapp 8.850 Meter zieht der Berg Kletterer und erfahrene Bergsteiger:innen aus aller Welt an. Die eisigen Gipfel des Everest ragen in den Himmel und sind von wirbelnden Wolken und starken Winden umgeben.\n\nGeologisch gesehen ist der Mount Everest Teil des Himalaya-Gebirges, das durch die eurasische und indische tektonische Platte gebildet wird. Die Bewegung dieser Platten begann vor etwa 50 Millionen Jahren und drückt den Everest bis heute noch weiter in die Höhe. Schichten aus metamorphem Gestein und Sedimentgestein werden von Meereskalkstein gekrönt, der einst am Meeresgrund lag und uns an die dynamische Geschichte der Erde erinnert.\n\nTrotz der extremen Bedingungen in den Höhenlagen des Everest beherbergt der Berg ein einzigartiges Hochgebirgsökosystem. Moose und Flechten können das extreme Klima überleben, ebenso wie Hochgebirgspflanzen wie der Himalaya-Wacholder, Zwerg-Rhododendron und der Schneelotus. Zu den Tieren, die in den tieferen Lagen zu finden sind, gehören der Himalaya-Tahr, der Schneeleopard, der Himalaya-Schwarzbär und der Rote Panda."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In addition to perhaps being the world’s most well-known mountain, Mount Everest is the world’s tallest above sea level. With an altitude just over 29,031 feet, the mountain attracts climbers and experienced mountaineers from all over the world. Everest’s icy peaks pierce the sky, surrounded by swirling clouds and intensely strong winds.\n\nGeologically, Mount Everest is part of the Himalayan mountain range which is formed by the Eurasian and Indian tectonic plates. Movement of these plates began around 50 million years ago and continues to push Everest even higher. Layers of metamorphic and sedimentary rock are topped by marine limestone that was once at the bottom of the ocean remind us of the Earth’s dynamic history.\n\nDespite the extreme conditions found at the high altitudes on Everest, the mountain is home to a unique high-altitude ecosystem. Mosses and lichens can survive the extreme climate along with high altitude plants such as the Himalayan juniper, dwarf rhododendrons, and the snow lotus. Animals found in the lower elevations include the Himalayan tahr, snow leopard, Himalayan black bear, and the red panda."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הר אוורסט אינו רק ההר הידוע ביותר בעולם, הוא גם ההר הגבוהה ביותר בעולם מעל לפני הים. עם גובה מקסימלי של יותר מ-8,849 מטר, ההר מושך מטפסי הרים מכל רחבי העולם. פסגות הקרח של האוורסט מנקבות את השמים, ומוקפות בעננים מסתחררים וברוחות חזקות במיוחד.\n\nמבחינה גיאולוגית, הר אוורסט הוא חלק מרכס הרי ההימלאיה שנוצר כתוצאה מהתנגשות הלוח הטקטוני ההודי בלוח הטקטוני האירואסייתי. תנועת הלוחות הללו החלה לפני כ-50 מיליון שנה והיא ממשיכה לדחוף את האוורסט גבוה יותר ויותר. שכבות של סלעים מותמרים וסלעי משקע מכוסות בשכבת אבן גיר ימית שפעם שכנה בתחתית האוקיינוס ומזכירות לנו את ההיסטוריה הדינמית של כדור הארץ.\n\nלמרות התנאים הקיצוניים השוררים בגבהים של האוורסט, ההר משמש בית לאקוסיסטם הייחודי לגובה רב. טחבי עלים וחזזיות יכולים לשרוד באקלים הקיצוני לצד צמחים של סביבות גובה רב כמו ערער הימלאי, רודודנדרון ננסי ולוטוס השלג. בגבהים הנמוכים יותר אפשר למצוא בעלי חיים כמו טאר ההימלאיה, נמר השלג, דוב שחור ההימלאיה ופני אדומה."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "นอกจากภูเขาเอเวอเรสต์จะเป็นภูเขาที่มีชื่อเสียงที่สุดในโลกแล้ว ยังเป็นภูเขาที่สูงที่สุดในโลกเหนือระดับน้ำทะเลอีกด้วย ด้วยความสูงกว่า 29,031 ฟุต ภูเขาแห่งนี้ดึงดูดนักปีนเขาและนักไต่เขาที่มีประสบการณ์จากทั่วทุกมุมโลก ยอดเขาเอเวอเรสต์ที่ปกคลุมด้วยน้ำแข็งสูงเสียดฟ้า ล้อมรอบด้วยเมฆที่หมุนวนและลมแรงจัด\n\nในทางธรณีวิทยา ภูเขาเอเวอเรสต์เป็นส่วนหนึ่งของเทือกเขาหิมาลัยซึ่งก่อตัวขึ้นจากแผ่นเปลือกโลกยูเรเซียและอินเดีย การเคลื่อนตัวของแผ่นเปลือกโลกเหล่านี้เริ่มขึ้นเมื่อประมาณ 50 ล้านปีก่อนและยังคงผลักดันให้เอเวอเรสต์สูงขึ้นไปอีก ชั้นหินแปรและหินตะกอนปกคลุมไปด้วยหินปูนในทะเลซึ่งครั้งหนึ่งเคยอยู่ที่ก้นมหาสมุทรทำให้เรานึกถึงประวัติศาสตร์อันไม่หยุดนิ่งของโลก\n\nแม้ว่าภูเขาเอเวอเรสต์จะมีสภาพที่เลวร้ายในระดับความสูงที่สูง แต่ภูเขาแห่งนี้ก็ยังคงรักษาระบบนิเวศบนระดับความสูงที่ไม่เหมือนใครเอาไว้ มอสและไลเคนสามารถอยู่รอดได้ในสภาพอากาศที่รุนแรงพร้อมกับพืชที่อยู่บนที่สูง เช่น ต้นสนจูนิเปอร์หิมาลัย โรโดเดนดรอนแคระ และบัวหิมะ สัตว์ที่พบในพื้นที่ต่ำ เช่น ทาร์หิมาลัย เสือดาวหิมะ หมีดำหิมาลัย และแพนด้าแดง"
+          }
+        }
+      }
+    },
+    "MOUNT_EVEREST_LOCATION" : {
+      "comment" : "Location of the ‘Mount Everest’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مقاطعة كوشي، نيبال، ومنطقة التبت ذاتية الحكم، الصين"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Provinz Koshi, Nepal, und Autonome Region Tibet, China"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koshi Province, Nepal, and Tibet Autonomous Region, China"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "פרובינציית קושי, נפאל, והמחוז האוטונומי הטיבטי, סין"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "รัฐโกศี ประเทศเนปาล และเขตปกครองตนเองทิเบต ประเทศจีน"
+          }
+        }
+      }
+    },
+    "MOUNT_EVEREST_NAME" : {
+      "comment" : "Name of the ‘Mount Everest’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جبل إفرست"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mount Everest"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mount Everest"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הר אוורסט"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ภูเขาเอเวอเรสต์"
+          }
+        }
+      }
+    },
+    "MOUNT_FUJI_DESCRIPTION" : {
+      "comment" : "Description of the ‘Mount Fuji’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عند النظر إليه من مسافة بعيدة، يُظهر جبل فوجي منظرًا جميلًا، شبه متماثل، وغالبًا ما يكون مغطى بالثلوج، وهو أعلى جبل في اليابان وأكثرها شهرة. يرتفع المخروط البركاني برشاقة إلى ما يزيد قليلًا عن ٣٦٥٨ مترًا. في الأيام الصافية، يُمكن رؤية الجبل من مسافات بعيدة تصل إلى طوكيو. وعلى الرغم من وجوده البعيد الذي يبدو هادئًا، إلا أن جبل فوجي بركان نشط. كان آخر ثوران له عام ١٧٠٧.\n\nومثل الجبال الشاهقة الأخرى، يُعد جبل فوجي موطنًا للعديد من المناطق البيئية من قاعدته إلى قمته. في المرتفعات المنخفضة، تنتشر الأشجار المتساقطة والصنوبرية مثل البلوط الياباني والأرز. مع الصعود، يصبح المناخ أكثر قسوة، وتتحول الحياة النباتية إلى نباتات وشجيرات جبال الألب التي تكيفت مع درجات الحرارة المنخفضة. في أعلى المرتفعات، توجد بيئة صحراوية بركانية.\n\nتعيش العديد من الثدييات والطيور في غابات جبل فوجي. مثل الدببة السوداء، على الرغم من أن السناجب والثعالب أكثر شيوعًا. السيرو الياباني هو نوع نادر ومحمي من ظباء الماعز، يتجول سرًا عبر الغابات الكثيفة. توجد طيور الارتفاعات العالية، مثل طائري إيواهيباري وهوشيغاراسو، على ارتفاعات تزيد عن ٢٥٠٠ متر، بينما تعيش أنواع عديدة من الطيور المغردة، وصائدات الذباب، وبوم الأورال والسكوبس، في ارتفاعات أقل."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus der Ferne betrachtet, präsentiert sich der Berg Fuji mit einem schönen, fast symmetrischen und oft schneebedeckten Profil und ist sowohl Japans höchster als auch bekanntester Berg. Der pyroklastische Kegel erhebt sich anmutig auf über 3.700 Meter. An klaren Tagen ist der Berg bis nach Tokio zu sehen. Trotz seiner scheinbar friedlichen Erscheinung ist der Berg Fuji ein aktiver Vulkan. Sein letzter Ausbruch fand im Jahr 1707 statt.\n\nÄhnlich wie andere außergewöhnlich hohe Berge beherbergt der Fuji-san von seinem Fuß bis zum Gipfel viele ökologische Zonen. In den tieferen Lagen sind Laub- und Nadelbäume wie die japanische Eiche und Zedern verbreitet. Mit zunehmender Höhe wird das Klima rauer und die Pflanzenwelt wechselt zu alpinen Pflanzen und Sträuchern, die sich an kältere Temperaturen angepasst haben. In den höchsten Lagen herrscht eine vulkanische Wüstenumgebung.\n\nIn den Wäldern des Berg Fuji leben viele Säugetiere und Vögel. Schwarze Bären leben dort, obwohl man häufiger Eichhörnchen und Füchse sieht. Der Japanische Serow ist eine seltene und geschützte Ziegenantilopenart, die sich heimlich durch dichte Wälder bewegt. Vögel der Hochgebirge wie der Iwahibari und der Hoshigarasu sind über 2.500 Metern zu finden, während mehrere Arten von Grasmücken, Fliegenschnäppern sowie Ural- und Zwergohren in tieferen Lagen leben."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When seen at a distance, Mount Fuji presents a beautiful, nearly symmetric, often snow-capped profile and is Japan’s tallest and most iconic mountain. The volcanic cone rises gracefully up to slightly more than 12,000 feet. On clear days, the mountain is visible as far away as Tokyo. Despite its seemingly peaceful distant existence, Mount Fuji is an active volcano. Its last eruption was in 1707.\n\nSimilar to other exceptionally tall mountains, Fuji-san is home to many ecological zones from its base to its summit. In the lower elevations, deciduous and coniferous trees such as the Japanese oak and cedars are common. As you climb in elevation, the climate becomes harsher and plant life transitions to alpine plants and shrubs that have adapted to colder temperatures. At the highest altitudes, a volcanic desert environment exists.\n\nMany mammals and birds are found in the forests on Mount Fuji. Black bears live there, although squirrels and fox are more likely to be seen. The Japanese serow is a rare and protected species of goat-antelope that roams secretively through dense forests. High altitude birds such as the Iwahibari and Hoshigarasu are found above 8,200 feet, while several species of warblers, flycatchers, and Ural and scops owls live in lower altitudes."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כשמשקיפים ממרחק על הר פוג׳י, ההר הגבוה והאיקוני ביותר ביפן, הוא נראה סימטרי כמעט, בעל פרופיל יפהפה ופסגה המכוסה שלג לעתים קרובות. החרוט הוולקני מתנשא בחינניות לגובה של קצת יותר מ-3,700 מטר. בימים של ראות טובה, אפשר לראות את ההר גם מטוקיו. למרות מראהו השלו והפסטורלי, הר פוג׳י הוא הר געש פעיל. ההתפרצות האחרונה אירעה ב-1707.\n\nבדומה להרים אחרים הגבוהים במיוחד, בפוג׳י-סאן קיימים אזורים אקולוגיים רבים, מבסיסו ועד הפסגה שלו. בגבהים הנמוכים יותר נפוצים עצים נשירים ומחטניים כגון אלון יפני וארזים. ככל שמעפילים במעלה ההר, האקלים נעשה קשה יותר והצמחייה מתחלפת בשיחים ובצמחים אלפיניים שהסתגלו לטמפרטורות נמוכות יותר. בתנאי גובה רב, קיימת סביבת מדבר וולקני.\n\nציפורים ויונקים רבים חיים ביערות שעל הר פוג׳י. חיים שם דובים שחורים, אם כי הסיכוי לראות סנאים ושועלים גדול יותר. הסרו היפני הוא מין נדיר ומוגן של אנטילופת-עז המשוטט בחשאיות ביערות עבותים. ציפורים של סביבות גובה רב כגון זרעית השדה וקיק אגוזים מנוקד נמצאות בגובה 2.5 קילומטרים, בעוד מינים מסוימים של דמויי-דרור, טירניים, שעירים וליליות אורל חיים בגבהים הנמוכים יותר."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เมื่อมองจากระยะไกล ภูเขาไฟฟูจิมีลักษณะสวยงาม เกือบสมมาตร มักปกคลุมไปด้วยหิมะ และเป็นภูเขาที่สูงที่สุดและโดดเด่นที่สุดของญี่ปุ่น กรวยภูเขาไฟตั้งตระหง่านอย่างสง่างามสูงถึง 12,000 ฟุต ในวันที่อากาศแจ่มใส สามารถมองเห็นภูเขาลูกนี้ได้ไกลถึงโตเกียว แม้จะดูเงียบสงบแต่ภูเขาไฟฟูจิก็เป็นภูเขาไฟที่ยังคุกรุ่นอยู่ โดยภูเขาไฟระเบิดครั้งสุดท้ายเมื่อปี พ.ศ. 2250\n\nเช่นเดียวกับภูเขาสูงอื่นๆ ฟูจิซังเป็นที่ตั้งของเขตนิเวศน์มากมายตั้งแต่ฐานถึงยอดเขา ในพื้นที่ที่ต่ำกว่านั้น ต้นไม้ผลัดใบและต้นสน เช่น ต้นโอ๊กญี่ปุ่นและซีดาร์เป็นต้นไม้ที่พบเห็นได้ทั่วไป เมื่อคุณปีนขึ้นไปบนที่สูง สภาพอากาศจะเลวร้ายลงและพืชพรรณต่างๆ จะเปลี่ยนไปเป็นพืชและพุ่มไม้บนภูเขาที่ปรับตัวให้เข้ากับอุณหภูมิที่เย็นลงได้ แม้ในระดับความสูงที่สูงที่สุดนั้น ก็ยังคงมีสภาพแวดล้อมของทะเลทรายภูเขาไฟอยู่\n\nสัตว์เลี้ยงลูกด้วยนมและนกหลายชนิดพบได้ในป่าบนภูเขาไฟฟูจิ หมีดำก็อาศัยอยู่ในป่านี้เช่นกันแม้ว่าจะมีโอกาสพบเห็นกระรอกและจิ้งจอกมากกว่าก็ตาม เลียงผาญี่ปุ่นเป็นสายพันธุ์วงศ์ย่อยแกะและแพะที่หายากและได้รับการคุ้มครอง ซึ่งมักจะแอบซ่อนตัวอยู่ในป่าทึบ นกที่อาศัยอยู่บนที่สูง เช่น อิวาฮิบาริและโฮชิการาสึ พบได้เหนือระดับ 8,200 ฟุต ในขณะที่นกกระจิ๊ด นกจับแมลง นกฮูกอูราล รวมทั้งนกเค้าแมวหลายสายพันธุ์อาศัยอยู่ในพื้นที่ที่ระดับความสูงต่ำกว่า"
+          }
+        }
+      }
+    },
+    "MOUNT_FUJI_LOCATION" : {
+      "comment" : "Location of the ‘Mount Fuji’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "منتزه فوجي-هاكوني-إيزو الوطني، اليابان"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nationalpark Fuji-Hakone-Izu, Japan"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuji-Hakone-Izu National Park, Japan"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הפארק הלאומי פוג׳י-האקונה-איזו, יפן"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อุทยานแห่งชาติฟูจิ-ฮาโกเนะ-อิซุ ประเทศญี่ปุ่น"
+          }
+        }
+      }
+    },
+    "MOUNT_FUJI_NAME" : {
+      "comment" : "Name of the ‘Mount Fuji’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جبل فوجي"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Berg Fuji"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mount Fuji"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הר פוג׳י"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ภูเขาไฟฟูจิ"
+          }
+        }
+      }
+    },
+    "MUIR_WOODS_DESCRIPTION" : {
+      "comment" : "Description of the ‘Muir Woods’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "غالبًا ما يغطي الضباب المتكون بسبب الطبقة الساحلية للمحيط الهادئ النصب التذكاري الوطني في غابات موير، وهو غابة من أشجار الخشب الأحمر القديمة. تقع غابة موير على بُعد ١٩ كيلومترًا شمال سان فرانسيسكو، وتغطي مساحة ٥٥٨ فدانًا، وتضم ١٠ كيلومترات من مسارات المشي الطويل الرائعة، وهي جزء من منطقة جولدن جيت الوطنية الترفيهية.\n\nتعزز بيئتها الرطبة نمو مجتمع غني من النباتات المهمة، مُرتبة في ثلاث طبقات. الطبقة السفلى هي الطبقة العشبية، وهي مليئة بالحياة التي تحب الظل. الطبقة التالية هي الطبقة السفلى، حيث تنمو الشجيرات والأشجار مثل خليج كاليفورنيا والبلوط الأسمر. أما الطبقة العليا، أو المظلة، فتُوفر مأوى ومنصات لمختلف أنواع الأشجار.\n\nداخل هذه البيئة الكثيفة متعددة الطبقات، من السهل أن تظل الحياة البرية غير مرئية، مما يجعل الغابة تبدو خالية أحيانًا. ومع ذلك، فإن المظاهر خادعة. تستضيف غابة موير أكثر من ٥٠ نوعًا من الطيور، بما في ذلك البوم المرقط ونقار الخشب ذي المنقار. تتراوح أحجام الثدييات بين الخلد الأمريكي الصغير والأيل الآذن أسود الذيل. معظم الثدييات حيوانات ليلية أو تحفر جحورًا، مما يُسهم في الشعور بالفراغ في الغابة."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Muir Woods National Monument ist ein Wald mit Küstenmammutbäumen, der häufig vom Schichtnebel der Pazifikküste verhüllt ist. Er liegt 20 Kilometer nördlich von San Francisco, umfasst eine Fläche von mehr als 2 Quadratkilometern und verfügt über knapp 10 Kilometer an wunderschönen Wanderwegen. Muir Woods ist Teil von Golden Gate National Recreation Area.\n\nDie feuchte Umgebung befördert eine reiche Pflanzengesellschaft, die sich in drei Schichten anordnet. Die unterste Schicht ist die Krautschicht voller schattenliebender Pflanzen. Die nächste Schicht ist das Unterholz, in dem Sträucher und Bäume wie die Kalifornische Lorbeerbeere und die Kalifornische Eiche wachsen. Die oberste Schicht, das Blätterdach, bietet verschiedenen Baumbewohnern Schutz und Wohnraum.\n\nIn dem vielschichtigen und dichten Lebensraum können sich Wildtiere gut verstecken, weshalb der Wald manchmal leer erscheinen kann. Das ist jedoch ein Trugschluss. Muir Woods beherbergt über 50 Vogelarten, darunter Fleckeneulen und Helmspechte. Die Säugetiere reichen in der Größe von der kleinen amerikanischen Spitzmaus bis zum Schwarzschwanzhirsch. Die meisten Säugetiere sind nachtaktiv oder Wühltiere, was zum Eindruck eines leeren Waldes beiträgt."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frequently shrouded in coastal marine layer fog from the Pacific Ocean, Muir Woods National Monument is an old-growth redwood forest. Located 12 miles north of San Francisco, covering 558 acres, and containing 6 miles of gorgeous hiking trails, Muir Woods is part of the Golden Gate National Recreation Area.\n\nThe moist environment promotes a rich community of interesting plants, organized into three layers. The lowest layer is the herbaceous layer and is full of shade-loving life. The next layer is the understory, where shrubs and tress such as the California bay and tan oak grow. Providing shelter and platforms for various tree-dwelling species is the topmost layer, or canopy.\n\nWithin the multilayered, dense habitat, it’s easy for wildlife to remain unseen, making the forest sometimes appear empty. Looks, however, are deceiving. Muir Wood hosts over 50 species of birds including spotted owls and pileated woodpeckers. Mammals range in size from the small American shrew mole to the black-tailed mule deer. Most mammals are nocturnal or burrowing animals, contributing to the sense of emptiness in the forest."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "יער מיור, האפוף לעתים קרובות בשכבת ערפל מרינית מהאוקיינוס השקט, הוא יער סקויה עתיק יומין. היער הוא חלק מאזור הפנאי הלאומי גולדן גייט, והוא ממוקם כ-20 קילומטר צפונית לסן פרנסיסקו, מכסה שטח של 558 אקרים ומכיל כעשרה קילומטרים של מסלולי טיול יפהפיים.\n\nהסביבה הלחה מקדמת אוכלוסייה משגשגת של צמחים מעניינים, המסודרים בשלוש שכבות. השכבה הנמוכה ביותר היא שכבה עשבונית המלאה בצמחים חובבי צל. השכבה באה היא השכבה שמתחת לחופת היער, ובה גדלים שיחים ועצים כגון אמבלולריה קליפורניקה ונותוליתוקרפוס דנסיפלורוס. השכבה העליונה, חופת היער, מספקת מחסה ופלטפורמות מחיה למגוון מיני בעלי חיים החיים על העצים.\n\nבבית גידול עבות ורב-שכבתי זה, קל לחיות הבר להישאר מוסוות, באופן שגורם ליער להיראות לפעמים ריק. עם זאת, מראה יכול להטעות. יער מיור מאוכלס ביותר מ-50 מיני ציפורים, כולל לילית מנוקדת ונקר בעל כרבולת. גם מגוון היונקים במקום גדול, ונע בין חפרפרת החדף האמריקאית הקטנה לאייל פרדי שחור-זנב קולומביאני. רוב היונקים פעילי לילה או שוהים במאורות באדמה, ובכך תורמים למראה הריק לכאורה של היער."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อนุสรณ์สถานแห่งชาติเมียร์วูดส์เป็นป่าเรดวูดเก่าแก่ที่ปกคลุมไปด้วยหมอกทะเลชายฝั่งจากมหาสมุทรแปซิฟิก โดยตั้งอยู่ห่างจากซานฟรานซิสโกไปทางเหนือ 12 ไมล์ ครอบคลุมพื้นที่ 558 เอเคอร์ และมีเส้นทางเดินเขาที่สวยงามยาว 6 ไมล์ เมียร์วูดส์เป็นส่วนหนึ่งของเขตพื้นที่สันทนาการแห่งชาติโกลเดนเกต\n\nสภาพแวดล้อมที่ชื้นแฉะส่งเสริมชุมชนที่อุดมสมบูรณ์ของพืชพรรณที่น่าสนใจ โดยแบ่งออกเป็น 3 ชั้น ชั้นที่ต่ำที่สุดเป็นชั้นไม้ล้มลุกซึ่งเต็มไปด้วยชีวิตที่ชอบร่มเงา ชั้นถัดมาคือชั้นไม้พุ่มซึ่งมีพุ่มไม้และต้นไม้ เช่น ต้นแคลิฟอร์เนียเบย์และต้นโอ๊กสีแทนขึ้นอยู่ ชั้นบนสุดหรือร่มไม้เป็นที่พักพิงและชานชาลาสำหรับสายพันธุ์ที่อาศัยอยู่ตามต้นไม้ต่างๆ\n\nภายในแหล่งที่อยู่อาศัยที่มีหลายชั้นและหนาแน่น มักทำให้มองไม่เห็นสัตว์ป่า จนบางครั้งดูเหมือนว่าป่าว่างเปล่า อย่างไรก็ตาม เมื่อมองดูก็อาจเข้าใจผิดได้ เมียร์วูดส์เป็นที่อยู่อาศัยของนกมากกว่า 50 สายพันธุ์ รวมทั้งนกเค้าจุดและนกหัวขวานปากใหญ่ สัตว์เลี้ยงลูกด้วยนมมีขนาดตั้งแต่ตุ่นปากเป็ดอเมริกันสายพันธุ์เล็กไปจนถึงกวางล่อหางดำ สัตว์เลี้ยงลูกด้วยนมส่วนใหญ่มักหากินเวลากลางคืนหรือขุดโพรง ทำให้รู้สึกเหมือนอยู่ในป่าที่ว่างเปล่า"
+          }
+        }
+      }
+    },
+    "MUIR_WOODS_LOCATION" : {
+      "comment" : "Location of the ‘Muir Woods’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "كاليفورنيا، الولايات المتحدة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalifornien, Vereinigte Staaten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "California, United States"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קליפורניה, ארצות הברית"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "รัฐแคลิฟอร์เนีย ประเทศสหรัฐอเมริกา"
+          }
+        }
+      }
+    },
+    "MUIR_WOODS_NAME" : {
+      "comment" : "Name of the ‘Muir Woods’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "غابات موير"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muir Woods"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muir Woods"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "יער מיור"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เมียร์วูดส์"
+          }
+        }
+      }
+    },
+    "NIAGARA_FALLS_DESCRIPTION" : {
+      "comment" : "Description of the ‘Niagara Falls’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تتكون شلالات نياغرا من ثلاث شلالات منفصلة: شلالات هورس شو (حدوة الفرس)، والشلالات الأمريكية، وشلالات برايدال ڤيل (طرحة العروس). تقع على الحدود بين كندا والولايات المتحدة. وتنبع ملايين الغالونات من المياه التي تتدفق على حافتها من بحيرة إيري في منطقة البحيرات العظمى. يُنتج تدفق المياه شلالًا هادرًا، يملأ الهواء بالضباب، ويخلق أقواس قزح نابضة بالحياة. إنها واحدة من أشهر وأقوى الشلالات في العالم.\n\nبدأ تكوين الشلالات في نهاية العصر الجليدي الأخير، واستغرق تطورها الكامل أكثر من ١٢ ألف سنة. وتستمر هذه العملية حتى اليوم حيث يواصل تدفق المياه تآكل الطبقات الرسوبية من الصخور لتشكيل وإعادة تشكيل المنظر الطبيعي. وقد بُذلت أعمال حماية للحفاظ على الشلالات، وانخفض حجم المياه بسبب تحويلها إلى طاقة كهرومائية، والتي تولد ما يقرب من ٤٫٩ مليون كيلوواط من الطاقة.\n\nيوجد نظام بيئي حيوي حول الشلالات. تزدهر الحياة السمكية في نهر نياغرا، بما في ذلك أنواع مثل سمك القاروص والحفش. ومن بين الطيور التي يمكن رؤيتها تحلق فوق الشلالات طيور النورس والنسور الصلعاء وصقور الشاهين، بينما تنمو النباتات الخضراء على طول ضفاف النهر."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Niagarafälle bestehen aus drei separaten Fällen: den Horseshoe Falls, den American Falls und den Bridal Veil Falls. Sie liegen an der Grenze zwischen Kanada und den USA. Die Millionen Liter Wasser, die über den Rand stürzen, stammen aus dem Eriesee, einem Teil der Großen Seen. Der Wasserstrom erzeugt eine tosende Kaskade, füllt die Luft mit Nebel und erzeugt leuchtende Regenbögen. Sie sind einer der berühmtesten und gewaltigsten Wasserfälle der Welt.\n\nDie Fälle begannen sich am Ende der letzten Eiszeit zu bilden und benötigten mehr als 12.000 Jahre, um sich vollständig zu entwickeln. Dieser Prozess dauert bis heute an, da der Wasserstrom weiterhin Sedimentschichten des Gesteins erodiert und die Landschaft formt und umformt. Es wurden Maßnahmen zum Schutz der Fälle ergriffen und das Wasservolumen wurde aufgrund der Umleitung für die Wasserkraftproduktion reduziert, die fast 4,9 Millionen Kilowatt Strom erzeugt.\n\nRund um die Fälle existiert ein dynamisches Ökosystem. Im Niagara River leben zahlreiche Fischarten, darunter Barsche und Störe. Möwen, Weißkopfseeadler und Wanderfalken sind einige der Vogelarten, die über den Fällen fliegen, während üppige Vegetation entlang der Flussufer wächst."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niagara Falls is comprised of three separate falls, Horseshoe Falls, American Falls, and Bridal Veil Falls. It lies at the border between Canada and the United States. The millions of gallons of water that plunge over its edge originates from Lake Erie in the Great Lakes. The flow of water produces a roaring cascade, fills the air with mist, and creates vibrant rainbows. It is one of the most famous and powerful waterfalls in the world.\n\nThe Falls began to form at the end of the last Ice Age, taking more than 12,000 years to fully develop. The process continues today as the flow of water continues to erode sedimentary layers of rock to shape and reshape the landscape. Preservation work has been done to preserve the Falls, and the volume of water has reduced due to diversion for hydroelectric power, which generates nearly 4.9 million kilowatts of power.\n\nA dynamic ecosystem exists around the Falls. Fish life thrives in the Niagara River, including species such as bass and sturgeon. Gulls, bald eagles, and peregrine falcons are some of the avian wildlife that can be seen flying above the Falls, while lush vegetation grows along the riverbanks."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מפלי הניאגרה מורכבים משלושה מפלים שונים: ״מפלי הפרסה״, המפלים האמריקאיים ו״מפלי הינומת הכלה״. הם ממוקמים בגבול שבין קנדה לארצות הברית. מיליוני גלוני המים הנשפכים מהם מקורם בימת אירי, אחת מחמש ״הימות הגדולות״. זרימת המים מפיקה מפל שואג, ממלאת את האוויר בערפל ויוצרת קשתות ססגוניות. מפלי הניאגרה הם בין המפלים המפורסמים והעוצמתיים ביותר בעולם.\n\nהמפלים החלו להיווצר בסוף עידן הקרח האחרון, תהליך שהושלם לחלוטין רק לאחר יותר מ-12,000 שנה. למעשה התהליך נמשך גם כיום, מאחר שזרימת המים ממשיכה לשחוק שכבות של סלעי משקע ולעצב מחדש את תוואי הנוף. עבודות שימור נערכו כדי לשמר את המפלים, וכמות המים הנופלים בהם הוקטנה עקב הסטת חלק מהם לייצור אנרגיה הידרואלקטרית. בתהליך זה נוצרים קרוב ל-4.9 מיליוני קילוואט חשמל.\n\nאקוסיסטם דינמי מתקיים סביב המפלים. הדגה משגשגת בנהר הניאגרה, כולל מינים כמו בס וחדקן. שחפים, עיטמים לבני ראש, ובזים נודדים הם רק חלק משלל העופות המעופפים להם מעל המפלים, וצמחייה עשירה גדלה לאורך גדות הנהר."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "น้ำตกไนแองการาประกอบด้วยน้ำตกสามแห่ง ได้แก่ น้ำตกฮอร์สชู น้ำตกอเมริกัน และน้ำตกไบรดัลเวล น้ำตกไนแองการาตั้งอยู่บนพรมแดนระหว่างแคนาดาและสหรัฐอเมริกา น้ำนับล้านแกลลอนที่ไหลลงมาจากขอบน้ำตกมีต้นกำเนิดมาจากทะเลสาบอีรีในเกรตเลกส์ กระแสน้ำที่ไหลลงมาทำให้เกิดน้ำตกที่เชี่ยวกราก กระจายตัวเป็นละอองน้ำในอากาศ และเกิดเป็นสายรุ้งที่สีสันสดใส น้ำตกแห่งนี้เป็นหนึ่งในน้ำตกที่โด่งดังและทรงพลังที่สุดในโลก\n\nน้ำตกนี้เริ่มก่อตัวขึ้นในช่วงปลายยุคน้ำแข็งครั้งสุดท้าย โดยใช้เวลามากกว่า 12,000 ปีในการก่อตัวอย่างสมบูรณ์ กระบวนการนี้ยังคงดำเนินต่อมาจนถึงปัจจุบัน โดยกระแสน้ำยังคงกัดเซาะชั้นหินตะกอนเพื่อสร้างรูปร่างและปรับภูมิทัศน์ใหม่ มีการดำเนินการอนุรักษ์เพื่ออนุรักษ์น้ำตกแห่งนี้ และปริมาณน้ำได้ลดลงเนื่องจากมีการเปลี่ยนเส้นทางเพื่อผลิตไฟฟ้าพลังน้ำ ซึ่งผลิตไฟฟ้าได้เกือบ 4.9 ล้านกิโลวัตต์\n\nมีระบบนิเวศแบบไดนามิกอยู่รอบๆ น้ำตก แม่น้ำไนแองการาเต็มไปด้วยปลาหลากหลายสายพันธุ์ เช่น ปลากะพงและปลาสเตอร์เจียน นกนางนวล นกอินทรีหัวโล้น และเหยี่ยวเพเรกริน เป็นสัตว์ป่าบางส่วนที่สามารถพบเห็นได้ว่าบินอยู่บริเวณเหนือน้ำตกในขณะที่พืชพรรณเขียวชอุ่มเติบโตอยู่ตามริมฝั่งแม่น้ำ"
+          }
+        }
+      }
+    },
+    "NIAGARA_FALLS_LOCATION" : {
+      "comment" : "Location of the ‘Niagara Falls’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أونتاريو، كندا ونيويورك، الولايات المتحدة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ontario, Kanada, und New York, Vereinigte Staaten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ontario, Canada and New York, United States"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אונטריו, קנדה, וניו יורק, ארצות הברית"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "รัฐออนแทริโอ ประเทศแคนาดา และรัฐนิวยอร์ก ประเทศสหรัฐอเมริกา"
+          }
+        }
+      }
+    },
+    "NIAGARA_FALLS_NAME" : {
+      "comment" : "Name of the ‘Niagara Falls’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "شلالات نياغرا"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niagarafälle"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niagara Falls"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מפלי הניאגרה"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "น้ำตกไนแองการา"
+          }
+        }
+      }
+    },
+    "ROCKY_MOUNTAINS_DESCRIPTION" : {
+      "comment" : "Description of the ‘Rocky Mountains’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تمتد جبال روكي على مسافة ٤٨٢٨ كيلومتر من شمال غرب كندا إلى جنوب غرب الولايات المتحدة، وهي موطن لبعضٍ من أروع المناظر الطبيعية في أمريكا الشمالية. بقممها الشاهقة، وجبالها الوعرة، ومراعيها الجبلية، وغاباتها الكثيفة، وبحيراتها الصافية، تُعد جبال روكي موطنًا لمجموعة واسعة من النباتات والحيوانات. تدعم المساكن الجبلية مجموعة واسعة من الحيوانات البرية، بما في ذلك الذئاب والأيائل والموظ وكبش الجبال والدببة الرمادية والوشق. كما تتميز النباتات الموجودة في جبال روكي بتنوعها، حيث تضم أكثر من ٩٠٠ نوع من الزهور البرية والصنوبريات، مثل الصنوبر وراتينجية والشوح. تُساهم الأشجار متساقطة الأوراق، المعروفة بأوراقها الخريفية الزاهية، في تكوين بعض أكثر المساكن المتنوعة بيولوجيًا في منتزه جبال روكي الوطني. توفر جميع هذه العناصر البيئية والممرات المائية موطنًا مهمًا للطيور المهاجرة في أمريكا الشمالية.\n\nيعود التاريخ الجيولوجي لجبال روكي إلى ما يقرب من ٦٠ إلى ٧٠ مليون سنة، عندما بدأت عدة صفائح تكتونية في التحرك تحت صفيحة أمريكا الشمالية. وكانت النتيجة حزامًا جبليًا طويلًا وعريضًا يمتد على طول غرب أمريكا الشمالية. وقد تشكلت القمم والوديان الهائلة التي نراها اليوم نتيجة للنشاط التكتوني وتآكل الأنهار الجليدية. وتقع معظم القمم الأعلى في كولورادو. تحمي العديد من المتنزهات العامة جزءًا كبيرًا من سلسلة الجبال، مما يوفر للسياح العديد من الأنشطة على مدار العام."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Rocky Mountains erstrecken sich knapp 5000 Kilometer von Nordwestkanada bis in den Südwesten der USA und bieten einige der atemberaubendsten Landschaften Nordamerikas. Mit ihren schroffen Gipfeln, sanften Almwiesen, dichten Wäldern und kristallklaren Seen beherbergen die Rocky Mountains eine Vielzahl an Flora und Fauna. Die Berglandschaften bieten Lebensraum für zahlreiche Wildtiere, darunter Wölfe, Hirsche, Elche, Dickhornschafe, Grizzlybären und Vielfraße. Die Vielfalt der Pflanzen in den Rocky Mountains ist ähnlich groß und umfasst über 900 Wildblumenarten sowie Nadelbäume wie Kiefern, Fichten und Tannen. Laubbäume, die für ihre farbenprächtigen Blätter im Herbst bekannt sind, bieten einige der biologisch vielfältigsten Lebensräume im Rocky Mountain National Park. All diese ökologischen Komponenten sowie die Wasserwege bieten einen wichtigen Lebensraum für die Zugvögel Nordamerikas.\n\nDie geologische Geschichte der Rocky Mountains reicht etwa 60 bis 70 Millionen Jahre zurück, als sich mehrere tektonische Platten unter die Nordamerikanischen Platte bewegten. Das Ergebnis war ein langer, breiter Gebirgsgürtel entlang der Westküste Nordamerikas. Die dramatischen Gipfel und Täler, die wir heute sehen, wurden durch tektonische Aktivität sowie Erosion durch Gletscher weiter geformt. Die meisten der höchsten Gipfel befinden sich in Colorado. Zahlreiche öffentliche Parks schützen einen Großteil des Gebirgszugs und es gibt ganzjährig zahlreiche Aktivitäten für Touristen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stretching 3,000 miles from northwest Canada to southwest United States, the Rocky Mountains are the setting for some of North America’s most stunning scenery. With soaring peaks, jagged summits, pastoral alpine meadows, dense forests, and crystal clear lakes, the Rockies are home to a wide range of flora and fauna. The mountain habitats support a wide range wildlife including wolves, elk, moose, bighorn sheep, grizzly bears, and wolverines. The variety of plants found in the Rocky Mountains is similarly diverse including over 900 species of wildflowers and conifers such as pine, spruce, and fir. Deciduous trees, known for their brilliant colorful autumn leaves contribute to some of the most biologically diverse habitats in the Rocky Mountain National Park. All of these ecological elements and waterways provide an important habitat for North America migratory birds.\n\nThe geological history of the Rocky Mountains dates back approximately 60 to 70 million years when several tectonic plates began shifting under the North American plate. The result was a long, broad belt of mountains running along western North America. The dramatic peaks and valleys we see today were further formed by tectonic activity and erosion by glaciers. The majority of the highest peaks are found in Colorado. Numerous public parks protect much of the mountain range, providing tourists plenty of year-round activities."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הרי הרוקי משתרעים לאורך 4,800 קילומטר מצפון-מערב קנדה לדרום-מערב ארצות הברית, ומשמשים תפאורה לכמה מן הנופים המדהימים ביותר של אמריקה הצפונית. עם פסגות נישאות, חלקן משוננות, כרי דשא אלפיניים פסטורליים, יערות עבותים ואגמים צלולים כבדולח, הרי הרוקי משמשים בית למגוון רחב של מיני חי וצומח. בית הגידול ההררי תומך במגוון רחב של חיי בר כולל זאבים, דישונים, איילים קוראים, כבשים גדולי-קרניים, דובי גריזלי וגרגרנים. מגוון הצמחים בהרי הרוקי מגוון אף הוא וכולל יותר מ-900 מינים של פרחי בר ומחטנאים כגון אורנים, אשוחיות ואשוחים. עצים נשירים, הידועים בעלי הסתיו הצבעוניים והמרשימים שלהם, תורמים לכמה מבתי הגידול המגוונים ביותר מבחינה ביולוגית בפארק הלאומי הרי הרוקי. כל האלמנטים האקולוגיים האלה ונתיבי המים מספקים בית גידול חשוב לציפורים נודדות באמריקה הצפונית.\n\nהסיפור הגיאולוגי של הרי הרוקי מתחיל בערך לפני 60 עד 70 מיליון שנה, כשכמה לוחות טקטוניים החלו לנוע מתחת ללוח הצפון-אמריקאי. התוצאה הייתה רצועת הרים ארוכה ורחבה של הרים שהשתרעה לאורך מערב אמריקה הצפונית. הפסגות והעמקים הדרמטיים שאנו רואים כיום נוצרו בשלב מאוחר יותר בפעילות טקטונית ובתהליכי שחיקה קרחונית. מרבית הפסגות הגבוהות ביותר מצויות בקולורדו. פארקים ציבוריים רבים מגנים על מרבית רכס ההרים ומספקים לתיירים פעילויות רבות לאורך כל השנה."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เทือกเขาร็อกกีทอดยาวจากตะวันตกเฉียงเหนือของแคนาดาไปจนถึงตะวันตกเฉียงใต้ของสหรัฐอเมริกาเป็นระยะทาง 3,000 ไมล์ นับเป็นทัศนียภาพที่น่าทึ่งที่สุดแห่งหนึ่งของอเมริกาเหนือ เทือกเขาร็อกกีมียอดเขาสูงตระหง่าน ยอดเขาสูงชัน ทุ่งหญ้าบนภูเขาอันเงียบสงบ ป่าทึบ และทะเลสาบน้ำใสดุจคริสตัล เทือกเขาแห่งนี้เป็นแหล่งที่อยู่อาศัยของพืชพรรณและสัตว์นานาชนิด ที่อยู่อาศัยบนภูเขาเป็นแหล่งอาศัยของสัตว์ป่านานาชนิด เช่น หมาป่า กวางเอลก์ กวางมูส แกะเขาใหญ่ หมีกริซลี และวูล์ฟเวอรีน พืชพรรณต่างๆ ที่พบในเทือกเขาร็อกกีก็มีความหลากหลายเช่นกัน รวมถึงดอกไม้ป่าและต้นสนกว่า 900 สายพันธุ์ เช่น ต้นสน ต้นสปรูซ และต้นเฟอร์ ต้นไม้ผลัดใบซึ่งขึ้นชื่อในเรื่องใบไม้สีสันสวยงามสดใสในฤดูใบไม้ร่วง มีส่วนช่วยสร้างแหล่งที่อยู่อาศัยที่มีความหลากหลายทางชีวภาพมากที่สุดแห่งหนึ่งในอุทยานแห่งชาติเทือกเขาร็อกกี องค์ประกอบทางนิเวศและทางน้ำทั้งหมดนี้เป็นแหล่งที่อยู่อาศัยที่สำคัญของนกอพยพในอเมริกาเหนือ\n\nประวัติศาสตร์ทางธรณีวิทยาของเทือกเขาร็อกกีมีอายุประมาณ 60 ถึง 70 ล้านปี เมื่อแผ่นเปลือกโลกหลายแผ่นเริ่มเคลื่อนตัวใต้แผ่นเปลือกโลกของอเมริกาเหนือ ผลที่ตามมาคือเทือกเขาที่ยาวและกว้างทอดยาวไปตามแนวตะวันตกของอเมริกาเหนือ ยอดเขาและหุบเขาสุดตระการตาที่เราเห็นในปัจจุบันเกิดจากการเคลื่อนตัวของเปลือกโลกและการกัดเซาะของธารน้ำแข็ง ยอดเขาที่สูงที่สุดส่วนใหญ่อยู่ในรัฐโคโลราโด สวนสาธารณะหลายแห่งปกป้องเทือกเขาส่วนใหญ่ ทำให้มีกิจกรรมต่างๆ มากมายให้นักท่องเที่ยวได้ร่วมสนุกตลอดทั้งปี"
+          }
+        }
+      }
+    },
+    "ROCKY_MOUNTAINS_LOCATION" : {
+      "comment" : "Location of the ‘Rocky Mountains’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أمريكا الشمالية"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nordamerika"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "North America"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אמריקה הצפונית"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อเมริกาเหนือ"
+          }
+        }
+      }
+    },
+    "ROCKY_MOUNTAINS_NAME" : {
+      "comment" : "Name of the ‘Rocky Mountains’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جبال روكي"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rocky Mountains"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rocky Mountains"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הרי הרוקי"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เทือกเขาร็อกกี"
+          }
+        }
+      }
+    },
+    "SAHARA_DESERT_DESCRIPTION" : {
+      "comment" : "Description of the ‘Sahara Desert’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تمتد الصحراء الكبرى مترامية الأطراف على مساحة تزيد عن ٩ مليون كيلومتر مربع، وهي أكبر صحراء حارة في العالم. تغطي الصحراء الكبرى جزءًا كبيرًا من شمال إفريقيا، وتصل إلى ثلاثة مسطحات مائية رئيسية: المحيط الأطلسي غربًا، والبحر الأحمر شرقًا، والبحر الأبيض المتوسط شمالًا. وفي جنوبها تقع منطقة ساهي. تتميز بيئة الصحراء القاسية بكثبان رملية شاسعة، وسهول قاحلة، وهضاب صخرية. يقع أعلى كثيب رملي في منطقة عرق الشبي جنوب شرق المغرب، ويصل ارتفاعه إلى حوالي ١٠٠ متر. وتلعب الصحراء دورًا مهمًا في تشكيل أنماط المناخ والأنظمة البيئية.\n\nتشكلت الصحراء الكبرى على مدى ملايين السنين، ويعود تاريخها إلى عصر ما قبل الكمبري، وكانت في يوم من الأيام منطقة خضراء خصبة مليئة بالبحيرات والأنهار. وعلى مر السنين، نحتت عوامل التعرية بفعل الرياح منحدرات شاهقة، وأقواسًا صخرية، وأودية عميقة، والعديد من التضاريس الخلابة والمذهلة. تحت سطحها المكون من سهول حصوية وبحار رملية، توجد طبقات جوفية شاسعة تخزن مياهًا قديمة، وتُخلِّد بقايا زمن كانت فيه الصحراء الكبرى مكانًا أكثر ملاءمةً للحياة.\n\nفي حين تشهد الصحراء الكبرى درجات حرارةٍ قصوى وندرةً في هطول الأمطار، إلا أنها تدعم مجموعةً متنوعةً من الحياة النباتية والحيوانية التي تكيفت مع الظروف القاسية. تشمل النباتات المتناثرة أنواعًا تتحمل الجفاف، مثل أعشاب الصحراء، وعشبة الحب، التي تخزن الماء في جذورها وتساعد على منع تآكل التربة. تشمل النباتات الأخرى أشجار الأكاسيا ونخيل التمر وأشجار الزيتون. كما تكيفت الحياة الحيوانية لتتحمل الحرارة الشديدة لفترات طويلة من الزمن مع ندرة الماء أو انعدامه. ثعالب الفنك والإبل والمها العربي والعقارب هي بعض الأمثلة على الأنواع الموجودة في الصحراء الكبرى. وقد تكيفت العديد من الحيوانات الليلية على البقاء مختبئة في درجات الحرارة المرتفعة خلال النهار. تمر العديد من الطيور المهاجرة عبر المنطقة وتستفيد من مصادر المياه الموسمية والواحات."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die weitläufige Sahara erstreckt sich über mehr als 9 Millionen Quadratkilometer und ist die größte heiße Wüste der Welt. Sie erstreckt sich über einen Großteil Nordafrikas und reicht bis an drei große Gewässer: den Atlantik im Westen, das Rote Meer im Osten und das Mittelmeer im Norden. Im Süden liegt die Sahelzone. Die raue Umgebung der Sahara ist geprägt von riesigen Sanddünen, trockenen Ebenen und felsigen Plateaus. Die höchste Sanddüne befindet sich in der Region Erg Chebbi im Südosten Marokkos und erreicht eine Höhe von etwa 100 Metern. Die Wüste spielt eine wichtige Rolle für Klimamuster und Ökosysteme.\n\nDie Sahara entstand über Millionen von Jahren und stammt aus dem Präkambrium. Sie war einst eine üppige, grüne Landschaft mit Seen und Flüssen. Im Laufe der Jahre hat die Winderosion steile Klippen, Felsbögen, tiefe Schluchten und viele markante und malerische Landschaftsformen geschaffen. Unter einer Oberfläche aus Kiesebenen und Sandmeeren liegen riesige Grundwasserreserven, in denen seit langen Zeiten Wasser lagert und die verborgene Überreste einer Zeit sind, als die Sahara noch ein viel lebensfreundlicherer Ort war.\n\nObwohl die Sahara extremen Temperaturen ausgesetzt ist und nur selten Niederschläge auftreten, beherbergt sie eine Vielzahl von Pflanzen und Tieren, die sich an die rauen Bedingungen angepasst haben. Die spärliche Vegetation umfasst dürretolerante Arten wie Wüstengräser, z. B. Liebesgras, sowie Pflanzen, die Wasser in ihren Wurzeln speichern und zur Verhinderung von Bodenerosion beitragen können. Weiterhin findet man Akazienbäume, Dattelpalmen und Olivenbäume. Auch die Tierwelt hat sich angepasst, um die extremen Temperaturen und längeren Zeiträume mit wenig oder gar keinem Wasser zu trotzen. Fennecfüchse, Kamele, Addax und Skorpione sind einige Beispiele für die Arten, die in der Sahara vorkommen. Viele Tiere haben sich an die Nacht angepasst, um sich während der hohen Tagestemperaturen zu verstecken. Zahlreiche Zugvögel ziehen durch die Region und nutzen saisonale Wasserquellen und Oasen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The sprawling Sahara Desert spans more than 3.5 million square miles and is the largest hot desert in the world. Covering much of northern Africa, it reaches three major bodies of water: the Atlantic Ocean in the west, the Red Sea in the east, and the Mediterranean Sea to the north. To the south is the Sahei region. The Sahara’s harsh environment is characterized by vast sand dunes, arid plains, and rocky plateaus. The tallest sand dune is located in the Erg Chebbi region of southeastern Morocco and reaches a height of roughly 330 feet. The desert plays an important role in shaping climate patterns and ecological systems.\n\nFormed over the course of millions of years and dating back to the Precambrian era, the Sahara was once a lush, verdant landscape with lakes and rivers. Over many years, wind erosion has sculpted towering cliffs, rock arches, deep canyons and many striking and picturesque landforms. Beneath a surface composed of gravel plains and sand seas lies vast underground aquifers that store ancient water, hidden remnants of a time when the Sahara was a much more hospitable place.\n\nWhile the Sahara experiences extreme temperatures and has scarce rainfall, it supports a variety of plant and animal life that have adapted to the harsh conditions. The sparse vegetation includes drought-tolerant varieties such as desert grasses such as Lovegrass that can store water in their roots and help prevent soil erosion. Other vegetation includes Acacia trees, date palms, and olive trees. Animal life has also adapted to be able to endure the extreme heat and extended periods of time with little or no water. Fennec foxes, camels, addax, and scorpions are some examples of the species found in the Sahara. Many animals have made nocturnal adaptations in order to remain hidden during the high daytime temperatures. Many migratory birds pass through the region and take advantage of seasonal water sources and oases."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מדבר סהרה ההולך ומתפשט חולש על יותר מ-9 מיליוני קילומטרים רבועים ונחשב למדבר החם הגדול ביותר בעולם. הוא מכסה את מרבית צפון אפריקה וגובל בשלושה גופי מים חשובים: האוקיינוס האטלנטי במערב, הים אדום במזרח והים התיכון בצפון. דרומית לו נמצא חבל סאהל. סביבת החיים הקשוחה במדבר סהרה מאופיינת בדיונות חול עצומות, במישורים צחיחים וברמות סלעיות. דיונת החול הגבוהה ביותר ממוקמת באזור ארג צ׳בי שבדרום-מזרח מרוקו ומתנשאת לגובה של כ-100 מטר. המדבר ממלא תפקיד חשוב בעיצוב תבניות האקלים והמערכות האקולוגיות.\n\nמדבר סהרה נוצר לאורך מיליוני שנים, החל מעידן הפרקמבריון. תחילה היה סהרה אתר עשיר בצמחייה, באגמים ובנהרות. במרוצת שנים רבות, שחיקת רוח פיסלה בנוף צוקים נישאים, קשתות סלע, קניונים עמוקים וצורות נוף ציוריות רבות. מתחת לפני השטח, המורכבים ממישורי חצץ וימות חול, שוכנים אקוויפרים תת-קרקעיים עצומים האוגרים מים עתיקי יומין, שרידים נסתרים מזמנים שבהם הסהרה היה מקום הרבה יותר מסביר פנים.\n\nאמנם הטמפרטורות בסהרה קיצוניות וכמעט לא יורדים בו גשמים, אך הוא תומך במגוון בעלי חיים וצמחים שהסתגלו לתנאי הסביבה הקשים. הצמחייה הדלילה כוללת מינים עמידי בצורת כמו דגניים מדבריים דוגמת בן חילף, שיכולים לאגור מים בשורשים ולסייע במניעת סחיפת קרקע. סוגי צמחים אחרים כוללים עצי שיטה, תמר מצוי וזית. חיות הבא הסתגלו אף הן לתנאי החום הקיצוני ולפי זמן ממושכים עם מעט מאוד מים או ללא מים בכלל. שועלי פנק, גמלים, דישונים מקראיים ועקרבים הם רק חלק מהדוגמאות למינים החיים בסהרה. בעלי חיים רבים הסתגלו לסביבה בכך שהפכו לפעילי לילה כדי להימנע מיציאה בזמן השעות החמות. ציפורים נודדות רבות חולפות באזור ומנצלות את נאות המדבר ומקורות המים העונתיים."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ทะเลทรายสะฮาราที่กว้างใหญ่มีพื้นที่มากกว่า 3.5 ล้านตารางไมล์และเป็นทะเลทรายร้อนที่ใหญ่ที่สุดในโลก ครอบคลุมพื้นที่ส่วนใหญ่ของแอฟริกาตอนเหนือ โดยทอดยาวไปถึงแหล่งน้ำหลักสามแห่ง ซึ่งได้แก่ มหาสมุทรแอตแลนติกทางตะวันตก ทะเลแดงทางตะวันออก และทะเลเมดิเตอร์เรเนียนทางเหนือ ทางใต้คือเขตซาเฮล สภาพแวดล้อมที่เลวร้ายของทะเลทรายสะฮารามีลักษณะเด่นคือเนินทรายอันกว้างใหญ่ ที่ราบแห้งแล้ง และที่ราบสูงหิน เนินทรายที่สูงที่สุดตั้งอยู่ในภูมิภาคเอิร์ก เชบบีทางตะวันออกเฉียงใต้ของประเทศโมร็อกโก และมีความสูงถึงประมาณ 330 ฟุต ทะเลทรายแห่งนี้มีบทบาทสำคัญในการกำหนดรูปแบบสภาพภูมิอากาศและระบบนิเวศ\n\nสะฮาราเกิดขึ้นในช่วงเวลานับล้านปีและย้อนกลับไปในยุคพรีแคมเบรียน โดยครั้งหนึ่งเคยเป็นภูมิประเทศที่อุดมสมบูรณ์ไปด้วยต้นไม้เขียวขจี มีทะเลสาบและแม่น้ำ ตลอดหลายปีที่ผ่านมา การกัดเซาะของลมได้สลักเสลาให้เกิดเป็นหน้าผาสูงตระหง่าน ซุ้มหิน หุบเขาลึก และลักษณะภูมิประเทศที่โดดเด่นและงดงามอีกหลายแห่ง ภายใต้พื้นผิวที่ประกอบด้วยที่ราบกรวดและทะเลทราย มีแหล่งน้ำใต้ดินขนาดใหญ่ที่กักเก็บน้ำโบราณซึ่งเป็นซากที่ซ่อนอยู่จากสมัยที่ทะเลทรายสะฮาราเป็นสถานที่ที่น่าอยู่อาศัยมากกว่านี้มาก\n\nแม้ว่าทะเลทรายสะฮาราจะต้องเผชิญกับอุณหภูมิที่รุนแรงและมีปริมาณน้ำฝนน้อย แต่ก็เป็นแหล่งอาศัยของพืชและสัตว์หลากหลายชนิดที่สามารถปรับตัวเข้ากับสภาวะที่เลวร้ายได้ พืชพรรณที่พบไม่บ่อยรวมถึงพันธุ์ที่ทนแล้งอย่างหญ้าทะเลทราย เช่น หญ้าเจ้าชู้ ที่สามารถกักเก็บน้ำไว้ในรากและช่วยป้องกันการกัดเซาะของดินได้ พืชพรรณอื่นๆ ได้แก่ ต้นอะคาเซีย ต้นอินทผลัม และต้นมะกอก สัตว์ต่างๆ ก็ได้ปรับตัวให้สามารถทนต่อความร้อนจัดและช่วงเวลาอันยาวนานโดยแทบไม่มีน้ำหรือไม่มีน้ำเลย สุนัขจิ้งจอกจิ๋วทะเลทราย อูฐ แอดแดกซ์ และแมงป่อง เป็นตัวอย่างส่วนหนึ่งของสายพันธุ์ที่พบในทะเลทรายสะฮารา สัตว์หลายชนิดได้ปรับตัวให้หากินเวลากลางคืนเพื่อที่จะซ่อนตัวในช่วงที่มีอุณหภูมิในเวลากลางวันสูง นกอพยพจำนวนมากบินผ่านภูมิภาคนี้และใช้ประโยชน์จากแหล่งน้ำและโอเอซิสตามฤดูกาล"
+          }
+        }
+      }
+    },
+    "SAHARA_DESERT_LOCATION" : {
+      "comment" : "Location of the ‘Sahara Desert’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إفريقيا"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afrika"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Africa"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אפריקה"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "แอฟริกา"
+          }
+        }
+      }
+    },
+    "SAHARA_DESERT_NAME" : {
+      "comment" : "Name of the ‘Sahara Desert’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الصحراء الكبرى"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sahara"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sahara Desert"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מדבר סהרה"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ทะเลทรายสะฮารา"
+          }
+        }
+      }
+    },
+    "SERENGETI_DESCRIPTION" : {
+      "comment" : "Description of the ‘Serengeti’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تقع سيرينغيتي في شمال تنزانيا وجنوب غرب كينيا، وهي مزيج من الغابات النهرية وغابات الأكاسيا والمراعي، وتغطي مساحة تقارب ٣١٠٨٠ كيلومتر مربع. مع سهولها المفتوحة الممتدة على مد البصر، تُشكل خلفيةً خلابةً لأحد أروع أحداث الحياة البرية على وجه الأرض: الهجرة العظمى المُذهلة.\n\nشكَّل النشاط البركاني من مرتفعات نغورونغورو القريبة جزءًا كبيرًا من المنطقة، حيث ترسبت تربة غنية بالعناصر الغذائية نتيجةً للانفجارات البركانية السابقة. تقع سيرينغيتي فوق تكوينات صخرية تعود إلى عصر ما قبل الكمبري، وتدعم قطعانًا هائلة من الحيوانات العاشبة بمساحاتها العشبية الوفيرة. يشقّ نهرا مارا وغروميتي طريقهما عبر السهول، موفرين بذلك مصادر مائية حيوية لاستدامة الحياة البرية على مدار العام.\n\nتُعد سيرينغيتي موطنًا لأحد أعلى تجمعات الثدييات الكبيرة في أفريقيا، بما في ذلك الفيلة والزرافات والضباع والأسود والحمير الوحشية. في كل عام، يهاجر أكثر من مليون حيوان بري عبر سهول سيرينغيتي، بعد هطول الأمطار الموسمية. تساعد هذه الحيوانات على نمو الأعشاب الجديدة بالتغذي على الأعشاب والسير عليها، بينما تساعد فضلاتها في تخصيب التربة."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Serengeti erstreckt sich über ca. 30.000 Quadratkilometer im Norden Tansanias und im Südwesten Kenias und besteht aus einer Mischung aus Uferwäldern, Akazienwäldern und Grasland. Mit ihren endlos weiten Ebenen bietet sie die atemberaubende Kulisse für eines der spektakulärsten Wildtierereignisse der Welt: die beeindruckende Große Wanderung.\n\nEin Großteil der Region ist geprägt von der Vulkanaktivität in den Ngorongoro Highlands. Eruptionen in der Vergangenheit haben nährstoffreiche Böden abgelagert. Die Serengeti liegt auf präkambrischen Felsformationen und bietet großen Herden pflanzenfressender Tiere dank üppiger Gräser ausreichend Nahrung. Die Flüsse Mara und Grumeti winden sich durch die Ebenen und stellen das ganze Jahr über eine wichtige Wasserquelle für die Wildtiere dar.\n\nDie Serengeti beherbergt mit die höchste Dichte der großen Säugetierarten in Afrika, darunter Elefanten, Giraffen, Hyänen, Löwen und Zebras. Jedes Jahr wandern mehr als eine Million Gnus in einem Kreis über die Ebenen der Serengeti und folgen den saisonalen Regenfällen. Durch ihr Weiden und Trampeln sowie dem nährstoffreichen Mist kann sich das Gras erneuern."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Located in northern Tanzania and southwestern Kenya, the Serengeti is a mix of riparian forests, acacia woodlands, and grasslands that covers nearly 12,000 square miles. With open plains that stretch seemingly forever, it creates a breathtaking backdrop for one of the most spectacular wildlife events on Earth: the awe-inspiring Great Migration.\n\nVolcano activity from the nearby Ngorongoro Highlands shaped much of the region, depositing nutrient-rich soil as a result of past eruptions. The Serengeti sits atop Precambrian rock formations and supports vast herds of herbivores with abundant grasses. The Mara and Grumeti rivers carve their way through he plains, providing crucial water supplies to sustain wildlife year-round.\n\nThe Serengeti is home to one of Africa’s highest concentrations of large mammal species, including elephants, giraffes, hyenas, lions, and zebras. Every year, more than a million wildebeest make a circular migration across the Serengeti Plains, following seasonal rains. Their grazing and trampling of grass allow new grasses to grow, while their wast helps fertilize the soil."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "סוואנת הסרנגטי, הממוקמת בצפון טנזניה ובצפון-מערב קניה, משלבת בתוכה יערות גדות (riparian forests), יערות שיטה וערבות דשא, וחולשת על קרוב ל-30,000 קילומטר רבוע. עם המישורים הפתוחים שלה המשתרעים עד קצה האופק, היא יוצרת רקע עוצר נשימה לאחד האירועים המופלאים ביותר בחיי הבר על פני כדור הארץ: הנדידה הגדולה מעוררת היראה.\n\nהתפרצויות געשיות ברמות נגורונגורו הסמוכות עיצבו את מרבית פני השטח באזור, והעשירו את הקרקע בנוטריאנטים. הסרנגטי שוכנת בקצה תצורות סלע פרקמבריוני ותומכת במגוון עדרים של אוכלי צמחים בזכות מישורי העשב העצומים שלה. נהר המארה ונהר הארומטי חוצבים את דרכים דרך המישורים ומבטיחים אספקת מים חיונית לקיום חיי הבר לכל אורך השנה.\n\nהסרנגטי משמשת בית לריכוזים הגדולים ביותר באפריקה של מיני יונקים גדולים, כולל פילים, ג׳יפות, צבועים, אריות וזברות. מדי שנה, יותר ממיליון גנואים משלימים הגירה מעגלית לאורך מישורי הסרנגטי, בעקבות הגשמים העונתיים. פעולות הרעייה והדריכה שלהם במישורי העשב מאפשרות צמיחה של עשב חדש, והגללים שלהם מסייעים בדישון הקרקע."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เซเรนเกติตั้งอยู่ในตอนเหนือของแทนซาเนียและทางตะวันตกเฉียงใต้ของเคนยา โดยเป็นการผสมผสานของป่าริมแม่น้ำ ป่าอะเคเซีย และทุ่งหญ้าที่ปกคลุมพื้นที่เกือบ 12,000 ตารางไมล์ ด้วยพื้นที่ราบโล่งที่ทอดยาวไปอย่างไม่มีที่สิ้นสุด จึงเกิดเป็นฉากหลังอันน่าทึ่งให้กับปรากฏการณ์สัตว์ป่าที่น่าตื่นตาตื่นใจที่สุดเหตุการณ์หนึ่งของโลก นั่นก็คือ การอพยพครั้งใหญ่ที่น่าเกรงขาม\n\nการปะทุของภูเขาไฟจากที่ราบสูงอึงโกรองโกโรที่อยู่ใกล้เคียง ก่อให้เกิดเป็นพื้นที่ส่วนใหญ่ของภูมิภาคนี้ โดยพัดพาเอาดินที่อุดมด้วยสารอาหารอันเป็นผลจากการปะทุของภูเขาไฟในอดีต เซเรนเกติตั้งอยู่บนหินมหายุคพรีแคมเบรียนและมีหญ้าที่อุดมสมบูรณ์ให้กับเหล่าสัตว์กินพืชจำนวนมาก แม่น้ำมาราและแม่น้ำกรูเมติสลักเสลาทางน้ำไปตามแนวที่ราบ ทำให้มีแหล่งน้ำที่สำคัญสำหรับการดำรงอยู่ของสัตว์ป่าตลอดทั้งปี\n\nเซเรนเกติเป็นที่อยู่อาศัยของสัตว์เลี้ยงลูกด้วยนมขนาดใหญ่ที่มีความหนาแน่นสูงที่สุดสายพันธุ์หนึ่งของแอฟริกา ซึ่งได้แก่ ช้าง ยีราฟ ไฮยีนา สิงโต และม้าลาย ในทุกๆ ปี ไวลเดอร์บีสกว่าล้านตัวจะอพยพเป็นวงกลมข้ามที่ราบเซเรนเกติหลังฝนตกตามฤดูกาล การแทะเล็มและเหยียบย่ำหญ้าของไวลเดอร์บีสช่วยให้หญ้าใหม่เจริญเติบโต ในขณะเดียวกัน มูลของไวลเดอร์บีสก็เป็นปุ๋ยช่วยบำรุงดินได้"
+          }
+        }
+      }
+    },
+    "SERENGETI_LOCATION" : {
+      "comment" : "Location of the ‘Serengeti’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تنزانيا"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tansania"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tanzania"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "טנזניה"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "แทนซาเนีย"
+          }
+        }
+      }
+    },
+    "SERENGETI_NAME" : {
+      "comment" : "Name of the ‘Serengeti’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سيرينغيتي"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serengeti"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serengeti"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "סרנגטי"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เซเรนเกตี"
+          }
+        }
+      }
+    },
+    "SOUTH_SHETLAND_ISLANDS_DESCRIPTION" : {
+      "comment" : "Description of the ‘South Shetland Islands’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تتكون جزر شيتلاند الجنوبية من ١١ جزيرة رئيسية وعدة جزر صغيرة، وتبلغ مساحتها أكثر من ٣٦٢٦ كيلومتر مربع. تقع سلسلة جزر القطب الجنوبي في مضيق دريك. تغطي الأنهار الجليدية معظم مساحة اليابسة بشكل دائم. وتُوفر الفتحات الحرارية الأرضية النشطة والينابيع الساخنة توازنًا بين النقيضين المتعارضين كالنار والجليد.\n\nتكيفت نباتات مختلفة مع الظروف القاسية، بما في ذلك نباتان مزهران - عشبة الشعر القطبية الجنوبية ونبات اللؤلؤ القطبي الجنوبي. ومن الأمثلة الأخرى على النباتات المتكيفة الطحالب وحشيشة الكبد والأشنات والفطريات. ومن بين أنواع البطاريق البارزة: الأديلي والشنستراب والجنتو. ومن بين سكان الجزيرة الآخرين: آكل السلطعون والفهد المرقط والويدل وفقمات الفراء."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Süd-Shetland-Inseln bestehen aus 11 größeren und mehreren kleineren Inseln und haben eine Gesamtfläche von mehr als 3.600 Quadratkilometern. Die antarktische Inselkette befindet sich in der Drake Passage. Fast die gesamte Landfläche ist dauerhaft von Gletschern bedeckt. Heiße Quellen bilden einen Ausgleich zu den beiden gegensätzlichen Extremen – Feuer und Eis.\n\nVerschiedene Pflanzen haben sich an die rauen Bedingungen angepasst, darunter zwei Blütenpflanzen – das Antarktis-Haargras und die Antarktis-Perlwurz. Weitere Beispiele für angepasste Pflanzen sind Moose, Lebermoose, Flechten und Pilze. Zu den bemerkenswerten Pinguinarten gehören Adélie-, Kinnriemen- und Gentoo-Pinguine. Verschiedene Robbenarten wie Leoparden-, Weddell- oder Pelzrobben sowie der Krabbenfresser gehören zu den weiteren Bewohnern der Inseln."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The South Shetland Islands consist of 11 major islands and several minor ones, making up more than 1,400 square miles of land area. The Antarctic island chain is located in the Drake Passage. Almost all of the land area is permanently covered by glaciers.  Active geothermal vents and hot springs provide balance the two contrasting extremes of fire and ice.\n\nVarious plants have adapted to the harsh conditions, including two flowering plants — the Antarctic hair grass and Antarctic pearlwort. Other examples of adapted plants include mosses, liverworts, lichens, and fungi. Notable penguin species include Adélie, Chinstrap, and Gentoo. Crabeater, Leopard, Weddell, and fur seals are some of the island’s other inhabitants."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "איי שטלנד הדרומיים מורכבים מ-11 איים עיקריים ומכמה איים קטנים נוספים, ומשתרעים על שטח כולל של כ-3,600 קילומטר רבוע. שרשרת איים זו הסמוכה לאנטארקטיקה ממוקמת במעבר דרייק. כמעט כל השטח היבשתי מכוסה בקרח באופן קבוע.  נביעות גיאותרמיות פעילות ומעיינות חמים מספקים איזון בין שני אלמנטים מנוגדים - קרח ואש.\n\nמגוון צמחים הסתגלו לתנאים הקשים, כולל שני צמחים בעלי פרחים — Deschampsia antarctica ו-Colobanthus quitensis. דוגמאות אחרות לצמחים שהסתגלו הן טחבי עלים, טחבי כבד, חזזיות, ופטריות. מיני פינגווינים ידועים כוללים את פינגווין אדלי, פינגווין רצועת-הסנטר ופינגווין לבן-אוזן. לובודון הסרטנים, כלב ים נמרי, כלב ים ודל ודובי ים הם חלק מתושבי האיים האחרים."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "หมู่เกาะเชตแลนด์ใต้ประกอบด้วยเกาะใหญ่ 11 เกาะและเกาะเล็กอีกหลายเกาะ โดยครอบคลุมพื้นที่กว่า 1,400 ตารางไมล์ หมู่เกาะแอนตาร์กติกตั้งอยู่ในช่องแคบเดรก พื้นที่เกือบทั้งหมดถูกปกคลุมด้วยธารน้ำแข็งอย่างถาวร ปล่องความร้อนใต้พิภพที่ยังคุกรุ่นอยู่และน้ำพุร้อนช่วยสร้างสมดุลระหว่างไฟและน้ำแข็งที่ต่างกันสุดขั้ว\n\nพืชหลายชนิดปรับตัวให้เข้ากับสภาพแวดล้อมที่เลวร้ายได้ รวมทั้งพืชดอกสองชนิด ได้แก่ หญ้าขนแอนตาร์กติกและเพิร์ลเวิร์ตแอนตาร์กติก ตัวอย่างอื่นๆ ของพืชที่ปรับตัวได้ ได้แก่ มอส ลิเวอร์เวิร์ต ไลเคน และเชื้อรา สายพันธุ์นกเพนกวินที่โดดเด่น ได้แก่ อาเดลี ชินสแตรป และเจนทู ส่วนสัตว์อื่นๆ ที่อาศัยอยู่ในเกาะนี้ ได้แก่ แมวน้ำกินปู แมวน้ำเสือดาว แมวน้ำเวดเดลล์ และแมวน้ำขนปุย"
+          }
+        }
+      }
+    },
+    "SOUTH_SHETLAND_ISLANDS_LOCATION" : {
+      "comment" : "Location of the ‘South Shetland Islands’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "القارة القطبية الجنوبية"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Antarktis"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Antarctica"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אנטארקטיקה"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "แอนตาร์กติกา"
+          }
+        }
+      }
+    },
+    "SOUTH_SHETLAND_ISLANDS_NAME" : {
+      "comment" : "Name of the ‘South Shetland Islands’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جزر شيتلاند الجنوبية"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Südliche Shetlandinseln"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "South Shetland Islands"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "איי שטלנד הדרומיים"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "หมู่เกาะเชตแลนด์ใต้"
+          }
+        }
+      }
+    },
+    "UYUNI_SALT_FLAT_DESCRIPTION" : {
+      "comment" : "Description of the ‘Uyuni Salt Flat’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "على ارتفاع يقارب ١٢٠٠٠ قدم فوق مستوى سطح البحر، وبالقرب من قمة سلسلة جبال الأنديز في جنوب غرب بوليفيا، يُعد سالار دو أويوني أكبر مسطح ملحي في العالم. يتميز هذا المسطح باستوائه الاستثنائي، حيث لا يتجاوز تباين الارتفاع مترًا واحدًا على مساحة تقارب ١٠٣٦٠ كيلومتر مربع، وقد تشكل نتيجة تبخر عدة بحيرات ما قبل التاريخ على مدار الأربعين ألف سنة الماضية. وتبلغ سماكة القشرة الملحية الناتجة عدة أمتار، وهي غنية بالليثيوم.\n\nعلى الرغم من أصله الذي يعود إلى ما قبل التاريخ، فقد وجدت التكنولوجيا الحديثة استخدامًا مهمًا لأويوني. ولأن المسطحات الملحية تتميز بأسطحها الكبيرة والمستقرة، فهي مثالية لمعايرة الأقمار الصناعية. ويُعد أويوني مناسبًا تمامًا لهذه المهمة نظرًا لقلة الصناعات فيه، وطول فترات الأمطار القليلة، وهوائه الجاف الصافي. وخلال موسم الأمطار، يتحول المسطح إلى بحيرة ضحلة ذات سطح زجاجي، ليصبح أكبر مرآة طبيعية في العالم.\n\nيحتوي السهل الملحي على أنواع قليلة من النباتات، منها الصبار العملاق، إكينوبسيس باساكانا وإكينوبسيس تاريجنسيس، التي يصل ارتفاعها إلى ١٢ مترًا فوق مسطحات أويوني. ومن النباتات الأخرى الموجودة في أويوني: البيتايا (أو فاكهة التنين)، ونباتات الكينوا، وشجيرات الكينوا."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auf einer Höhe von fast 3.700 Metern über dem Meeresspiegel nahe dem Kamm der Anden im Südwesten Boliviens befindet sich die Salar de Uyuni, die größte Salzwüste der Welt. Mit einem maximalen Höhenunterschied von einem Meter auf einer Fläche von fast 10.000 Quadratkilometern ist die Salar außergewöhnlich flach. Sie entstand, als vor 40.000 Jahren mehrere prähistorische Seen austrockneten. Die daraus resultierende Salzkruste ist mehrere Meter dick und reich an Lithium.\n\nTrotz ihrer prähistorischen Entstehung ist die Uyuni für moderne Technologien interessant. Da Salzwüsten große, kaum veränderliche Oberflächen sind, sind sie ideal zur Satellitenkalibrierung. Die Uyuni ist aufgrund fehlender Industrie, langer Trockenperioden und sehr klarer Luft besonders gut dazu geeignet. Während der Regenzeit verwandelt sich die Salzwüste in einen flachen See mit einer glasartigen Oberfläche. Dadurch wird sie zum größten natürlichen Spiegel der Welt.\n\nEs gibt nur wenige Pflanzenarten in der Salzwüste, darunter die riesigen Kakteen Echinopsis pasacana und Echinopsis tarijensis, die bis zu 12 Meter in der Uyuni-Salzwüste aufragen. Andere Pflanzen, die dort zu finden sind, sind Pitaya (oder Drachenfrucht), Quinoa-Pflanzen und Queñua-Sträucher."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At an elevation of nearly 12,000 feet above sea level near the crest of the Andes mountain range in southwestern Bolivia, the Salar de Uyuni is the world’s largest salt flat. Extraordinarily flat, with elevation variation no more than one meter over the nearly 4,000 square mile area, the Salar was formed by several prehistoric lakes evaporating over the last 40,000 years. The resulting salt crust is several meters thick and rich in lithium.\n\nDespite its prehistoric origin, modern technology has found an important use for the Uyuni. Because salt flats are large, stable surfaces, they are ideal for satellite calibration. Uyuni is especially well suited for this task due to the lack of industry, long low rain periods, and very clear dry air. During the rainy season, the flat turns into a shallow lake with a glass-like surface and becomes the world’s largest natural mirror.\n\nThe salt flat has few forms of plant life, which includes the giant cacti, Echinopsis pasacana and Echinopsis tarijensis, which tower up to 40 feet over the Uyuni flats. Other plants found in Uyuni include pitaya (or dragon fruit), quinoa plants, and queñua bushes."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בגובה של קרוב ל-3,650 מטר מעל פני הים, ליד פסגת רכס הרי האנדים בדרום-מערב בוליביה, סאלאר דה אויוני הוא מישור המלח הגדול בעולם. מישור זה שטוח במיוחד, עם שינויים בגובה של לא יותר ממטר אחד על פני שטח של יותר מ-10.000 קילומטר רבוע. הסאלאר נוצר על ידי מספר אגמים פרהיסטוריים שהתאדו במהלך 40,000 השנים האחרונות. קרום המלח שנוצר הוא בעובי של כמה מטרים ועשיר בליתיום.\n\nלמרות מוצאו הפרהיסטורי, הטכנולוגיה המודרנית מצאה שימוש חשוב לאויוני. מכיוון שמשטחי המלח גדולים ויציבים, הם אידיאליים לכיול לווייני. אויוני מתאים במיוחד למשימה זו בשל היעדר תעשייה, תקופות ארוכות של גשם מועט ואוויר יבש צלול מאוד. במהלך העונה הגשומה, השטח הופך לאגם רדוד עם משטח דמוי זכוכית והופך למראה הטבעית הגדולה בעולם.\n\nבמישור המלח קיימות מעט צורות של צמחים, כולל הקקטוסים הענקיים Echinopsis pasacana ו-Echinopsis tarijensis, המתנשאים לגובה של עד 12 מטר מעל מישורי אויוני. צמחים אחרים שגדלים באויוני הם פיטאיה (או ״פרי הדרקון״), צמחי קינואה ושיחי Polylepis rugulosa."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ซาลาร์ เดอ อูยูนีเป็นทะเลเกลือที่ใหญ่ที่สุดในโลก โดยอยู่ที่ระดับความสูงเกือบ 12,000 ฟุตเหนือระดับน้ำทะเล และใกล้กับเทือกเขาแอนดีสทางตะวันตกเฉียงใต้ของประเทศโบลิเวีย ทะเลเกลือแห่งนี้เกิดจากทะเลสาบยุคก่อนประวัติศาสตร์หลายแห่งที่ระเหยไปในช่วง 40,000 ปีที่ผ่านมา และมีลักษณะราบเรียบมากเป็นพิเศษ โดยระดับความสูงจะแตกต่างกันไม่เกินหนึ่งเมตรในพื้นที่เกือบ 4,000 ตารางไมล์ เปลือกเกลือที่เกิดขึ้นจึงมีความหนาหลายเมตรและอุดมไปด้วยลิเธียม\n\nแม้จะมีต้นกำเนิดในยุคก่อนประวัติศาสตร์ แต่เทคโนโลยีสมัยใหม่ก็ได้นำทะเลเกลืออูยูนีไปใช้ประโยชน์อย่างมีนัยสำคัญ เนื่องจากทะเลเกลือมีพื้นผิวขนาดใหญ่และมีความคงตัว จึงเหมาะอย่างยิ่งสำหรับการปรับเทียบดาวเทียม ทั้งนี้ทะเลเกลืออูยูนีมีความเหมาะสมเป็นพิเศษสำหรับงานนี้เนื่องจากขาดอุตสาหกรรม มีช่วงฝนตกน้อยเป็นเวลานาน และมีอากาศแจ่มใสแต่แห้งมาก ในช่วงฤดูฝน ทะเลเกลือแห่งนี้จะกลายเป็นทะเลสาบตื้นที่มีพื้นผิวเหมือนกระจกและกลายเป็นกระจกธรรมชาติที่ใหญ่ที่สุดในโลก\n\nทะเลเกลือมีพืชพรรณอยู่เพียงไม่กี่ชนิด ซึ่งรวมถึงต้นกระบองเพชรยักษ์พันธุ์อิชินอปซิส ปาซาคานาและพันธุ์อิชินอปซิส ทาริเจนซิส ซึ่งมีความสูงถึง 40 ฟุตเหนือทะเลเกลืออูยูนี พืชชนิดอื่นๆ ที่พบในทะเลเกลืออูยูนี ได้แก่ พิทายา (หรือแก้วมังกร) ต้นควินัว และพุ่มเกวญัว"
+          }
+        }
+      }
+    },
+    "UYUNI_SALT_FLAT_LOCATION" : {
+      "comment" : "Location of the ‘Uyuni Salt Flat’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مقاطعة بوتوسي، بوليفيا"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Departamento Potosí, Bolivien"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potosi Department, Bolivia"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מחוז פוטוסי, בוליביה"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "แคว้นโปโตซี ประเทศโบลิเวีย"
+          }
+        }
+      }
+    },
+    "UYUNI_SALT_FLAT_NAME" : {
+      "comment" : "Name of the ‘Uyuni Salt Flat’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سالار دو أويوني"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uyuni-Salzwüste"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uyuni Salt Flat"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "סאלאר דה אויוני"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ทะเลเกลืออูยูนี"
+          }
+        }
+      }
+    },
+    "WHITE_CLIFFS_OF_DOVER_DESCRIPTION" : {
+      "comment" : "Description of the ‘White Cliffs of Dover’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تحمي منحدرات دوفر البيضاء أضيق جزء من قناة المانش، وتمثل واجهة خلابة من الحجر الطباشيري المخطط بلمسات من الحجر الأسود. على مدى ملايين السنين، استقرت هياكل طحالب دقيقة ومخلوقات بحرية أخرى في الطين الأبيض تحت البحر. بعد أن انضغطت هذه الرواسب لتشكل الحجر الطباشيري، وبسبب حدث كبير أدى إلى تكوين جبال من الكتل البحرية فوق مستوى سطح البحر لتتشكل تلك المنحدرات.\n\nفوق المنحدرات، تدعم مروج الطباشير العديد من أنواع الزهور البرية والفراشات والطيور. توجد هنا بساتين الفاكهة والسمفير الصخري والعشب الأخضر غير العادي. في الربيع والخريف، يمكن رؤية فراشة أدونيس الزرقاء النادرة في المراعي، وكذلك فراشة الطباشير الزرقاء المشابهة لها. تستخدم العديد من الطيور المهاجرة المنحدرات كنقطة هبوط أولى لها بعد عبور قناة المانش. صقور الشاهين والطائر السمائي من بين الطيور التي تتخذ من المنحدرات موطنًا لها."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die weißen Klippen von Dover bewachen den schmalsten Teil des Ärmelkanals und stellen eine markante Kreidefassade mit schwarzen Bändern aus Feuerstein dar. Über Millionen von Jahren wurden Skelette winziger Algen und anderer Meeresbewohner im weißen Schlamm am Meeresgrund abgelagert. Nachdem diese Ablagerungen zu Kreide verfestigt waren, wurden die Schichten am Meeresgrund durch gewaltige Gebirgsbildungsprozesse über den Meeresspiegel gehoben und die Klippen entstanden.\n\nOberhalb den Klippen erstreckt sich eine Kreidewiese, die vielen Wildblumen-, Schmetterlings- und Vogelarten Lebensraum bietet. Hier wachsen Orchideen, Felsen-Meerkohl und die ungewöhnliche Ochsenzungen-Krähenbeere. Im Frühling und Herbst kann man den seltenen Adonisblau-Schmetterling auf den Wiesen sehen, ebenso wie den ähnlich aussehenden Bläuling. Viele Zugvögel nutzen die Klippen als ersten Landepunkt nach der Überquerung des Ärmelkanals. Wanderfalken und die Feldlerche sind einige der Vögel, die entlang der Klippen leben."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standing guard over the narrowest part of the English Channel, the White Cliffs of Dover present a striking façade of chalk streaked with accents of black flint. Over millions of years, skeletons of tiny algae and other sea creatures settled into the white mud under the sea. After these deposits compacted to form chalk, a major mountain building event forced the undersea masses above sea level to form the cliffs.\n\nAbove the cliffs, a chalk grassland supports many species of wildflowers, butterflies, and birds. Orchids, rock samphire, and the unusual oxtongue broomrape are found here. In spring and autumn, the rare Adonis blue butterfly can be seen in the grasslands, as can the similar looking chalk hill blue. Many migratory birds use the cliffs as their first landing point after crossing the English Channel. Peregrine falcons and the skylark are some of the birds that make their homes along the cliffs."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "כשהם עומדים על המשמר בחלק הצר ביותר של תעלת למאנש, הצוקים הלבנים של דובר מציגים חזית מרשימה של סלעי קירטון המודגשים על ידי אבן צור שחורה. במשך מיליוני שנים, שלדים של אצות זעירות ויצורי ים אחרים שקעו בבוץ הלבן שבקרקעית הים. לאחר שהמשקעים הללו נדחסו לכדי שכבת קירטון, אירוע גיאולוגי גדול דחף את השכבות התת-ימיות אל מעל לפני הים באופן שיצר את הצוקים.\n\nמעל הצוקים, מישור הקירטון תומך במינים רבים של פרחי בר, פרפרים וציפורים. סחלבים, קריתמון ימי וצמח עלקת יוצא דופן מסוג Orobanche picridis נמצאים כאן. באביב ובסתיו ניתן לראות את הפרפר אדוניס הכחול הנדיר באזורי העשב, כמו גם את Lysandra coridon הדומה במראהו. ציפורים נודדות רבות משתמשות בצוקים כנקודת הנחיתה הראשונה שלהן לאחר חציית תעלת למאנש. בזים נודדים וזרעית השדה הם חלק מהציפורים החיות לאורך הצוקים."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "หน้าผาสีขาวแห่งโดเวอร์ซึ่งตั้งตระหง่านเป็นปราการป้องกันอยู่บริเวณช่องแคบอังกฤษ เป็นหน้าผาที่โดดเด่นด้วยหินปูนสีดำที่เรียงรายอยู่ ซากของสาหร่ายขนาดเล็กและโครงกระดูกของสัตว์ทะเลอื่นๆ จมอยู่ในโคลนสีขาวใต้ท้องทะเลมาหลายล้านปี หลังจากที่ตะกอนเหล่านี้อัดแน่นกันจนกลายเป็นหินปูน เหตุการณ์สำคัญในการสร้างภูเขาทำให้มวลใต้น้ำเหนือระดับน้ำทะเลต้องรวมตัวกันเป็นหน้าผา\n\nเหนือหน้าผาขึ้นไปมีทุ่งหญ้าหินปูนซึ่งเป็นแหล่งอาศัยของดอกไม้ป่า ผีเสื้อ และนกนานาพันธุ์ กล้วยไม้ ร็อคแซมไฟร์ และออกซ์ทัง บรูมเรปพันธุ์แปลกประหลาดก็สามารถพบได้ที่นี่ ในฤดูใบไม้ผลิและฤดูใบไม้ร่วง ผีเสื้ออโดนิสบลูที่หายากสามารถพบได้ในทุ่งหญ้าเช่นเดียวกับผีเสื้อชอล์กฮิลล์บลูที่มีลักษณะคล้ายกัน นกอพยพจำนวนมากใช้หน้าผาเป็นจุดลงสู่พื้นครั้งแรกหลังจากข้ามช่องแคบอังกฤษ เหยี่ยวเพเรกรินและนกจาบฝนเป็นสายพันธุ์นกบางส่วนที่อาศัยอยู่ตามหน้าผา"
+          }
+        }
+      }
+    },
+    "WHITE_CLIFFS_OF_DOVER_LOCATION" : {
+      "comment" : "Location of the ‘White Cliffs of Dover’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "كِنت، إنجلترا"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kent, England"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kent, England"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קנט, אנגליה"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "มณฑลเคนต์ ประเทศอังกฤษ"
+          }
+        }
+      }
+    },
+    "WHITE_CLIFFS_OF_DOVER_NAME" : {
+      "comment" : "Name of the ‘White Cliffs of Dover’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "المنحدرات البيضاء في دوفر"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weiße Klippen von Dover"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "White Cliffs of Dover"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הצוקים הלבנים של דובר"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "หน้าผาสีขาวแห่งโดเวอร์"
+          }
+        }
+      }
+    },
+    "WULINGYUAN_DESCRIPTION" : {
+      "comment" : "Description of the ‘Wulingyuan’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يتميز منتزه ولينغيوان بأكثر من ٣٠٠٠ عمود وقمة من الحجر الرملي، وهو موقع خلاب وتاريخي في مقاطعة هونان الصينية. غالبًا ما يكتنفه الضباب، مما يخلق مشهدًا سرياليًا من الأعمدة المحاطة بالغابات على مساحة تزيد عن ١٦٠ كيلومتر مربع. وبين البحيرات والأنهار والشلالات الخلابة، يحتوي الموقع أيضًا على ٤٠ كهفًا وأحد أعلى الجسور الطبيعية في العالم، والذي يُسمى تيانكيا شينغ كونغ.\n\nبسبب الأمطار الغزيرة والغابات الكثيفة، خلق متنزه ولينغيوان بيئة مثالية لتنوع الحياة الحيوانية والنباتية. تعيش أنواع فريدة مثل النمر الملطخ، والسلمندر الصيني العملاق، والكلب البري الآسيوي، والدب الأسود الآسيوي، بين الغابات. وتتضمن الحيوانات الأخرى قرودًا مختلفة - بما في ذلك قرود الريسوس - بالإضافة إلى الغزلان والطيور والزواحف. كما تشمل الأنواع النباتية البارزة شجرة اليمام والجنكة."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wulingyuan ist ein landschaftlich reizvoller und historischer Ort in der chinesischen Provinz Hunan. Dort befinden sich mehr als 3.000 Sandsteinsäulen und -gipfel. Die surreale Landschaft aus von Wäldern umgebenen Säulen ist oft in Nebel gehüllt und erstreckt sich über eine Fläche von mehr als 250 Quadratkilometern. Neben malerischen Seen, Flüssen und Wasserfällen umfasst die Stätte auch 40 Höhlen und eine der höchsten natürlichen Brücken der Welt, die Tianqiashengkong.\n\nDuch reichliche Niederschläge und dichte Wälder bietet Wulingyuan einer vielfältigen Tier- und Pflanzenwelt einen guten Lebensraum. Zu den einzigartigen Tierarten gehören der Nebelparder, der chinesische Riesensalamander, der asiatische Wildhund und der asiatische Schwarzbär. Weiterhin leben dort verschiedene Affenarten – darunter Rhesusaffen – sowie Hirsche, Vögel und Reptilien. Zu den bemerkenswerten Pflanzenarten gehören der Taubenbaum und der Ginkgo."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Featuring more than 3,000 sandstone pillars and peaks, Wulingyuan is a scenic and historic site in China’s Hunan Province. Often shrouded in mist, the surreal landscape of pillars surrounded by forests spans over 100 square miles. Among the picturesque lakes, rivers, and waterfalls, the site also contains 40 caves and one of the world’s highest natural bridges, named Tianqiashengkong.\n\nWith plentiful rainfall and dense forests, Wulingyuan has created a good environment for varied animal and plant life. Unique species like the clouded leopard, Chinese giant salamander, Asiatic wild dog, and Asiatic black bear live among the forests. Other animals include various monkeys — including rhesus monkeys — as well as deer, birds, and reptiles. Notable plant species include the dove tree and ginkgo."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "וולינגיואן, המתהדר ביותר מ-3,000 פסגות ועמודי אבן חול, הוא אתר נופי והיסטורי שנמצא במחוז חונאן שבסין. הנוף הסוריאליסטי של עמודים מוקפים ביערות משתרע על פני 100 קילומטרים רבועים ואפוף לעתים קרובות בערפל. מלבד האגמים, הנהרות והמפלים הציוריים, האתר כולל גם 40 מערות ואת אחד מהגשרים הטבעיים הגבוהים בעולם, המכונה ״טיינשייה דיי צ׳ייאו״ - ״גשר על פני שמים״.\n\nעם שפע של משקעים ויערות עבותים, וולינגיואן יצר סביבה טובה לחי וצומח מגוונים. מינים ייחודיים כמו נמר ערפילי מצוי, סלמנדרת ענק סינית, דול מצוי ודוב שחור אסייתי חיים ביערות. בעלי חיים אחרים כוללים קופים שונים - כולל קופי רזוס - וכן צבאים, ציפורים וזוחלים. מיני צמחים בולטים כוללים את עץ היונה והגינקו."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อู่หลิงหยวนเป็นแหล่งท่องเที่ยวทางประวัติศาสตร์ที่มีเสาหินทรายและยอดเขามากกว่า 3,000 ต้นในมณฑลหูหนานของจีน ทิวทัศน์เหนือจริงของเสาหินที่ล้อมรอบด้วยป่าไม้ซึ่งมักถูกปกคลุมไปด้วยหมอกครอบคลุมพื้นที่กว่า 100 ตารางไมล์ ท่ามกลางทะเลสาบ แม่น้ำ และน้ำตกที่งดงามตระการตา ยังมีถ้ำอีก 40 แห่งและสะพานธรรมชาติที่สูงที่สุดแห่งหนึ่งของโลกชื่อเทียนเฉียเฉิงคง (สะพานข้ามฟากฟ้า)\n\nเนื่องจากอู่หลิงหยวนมีปริมาณน้ำฝนที่อุดมสมบูรณ์และป่าทึบ จึงเกิดเป็นสภาพแวดล้อมที่ดีให้กับสัตว์และพืชพรรณต่างๆ หลากหลายสายพันธุ์ที่มีเอกลักษณ์เฉพาะก็อาศัยอยู่ในป่าเหล่านี้ เช่น เสือลายเมฆ ซาลาแมนเดอร์ยักษ์จีน สุนัขป่าเอเชีย และหมีดำเอเชีย สัตว์อื่นๆ ได้แก่ ลิงพันธุ์ต่างๆ รวมทั้งลิงแสม กวาง นก และสัตว์เลื้อยคลาน สายพันธุ์พืชที่โดดเด่น ได้แก่ พิลาปขาวและแปะก๊วย"
+          }
+        }
+      }
+    },
+    "WULINGYUAN_LOCATION" : {
+      "comment" : "Location of the ‘Wulingyuan’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "خونان، الصين"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hunan, China"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hunan, China"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "חונאן, סין"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "มณฑลหูหนาน ประเทศจีน"
+          }
+        }
+      }
+    },
+    "WULINGYUAN_NAME" : {
+      "comment" : "Name of the ‘Wulingyuan’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ولينغيوان"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wulingyuan"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wulingyuan"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "וולינגיואן"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อุทยานอู่หลิงหยวน"
+          }
+        }
+      }
+    },
+    "YELLOWSTONE_NATIONAL_PARK_DESCRIPTION" : {
+      "comment" : "Description of the ‘Yellowstone National Park’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "كان يلوستون أول متنزه وطني في الولايات المتحدة، حيث تأسس عام ١٨٧٢. ويشتهر المتنزه بالعديد من خصائصه الحرارية الأرضية، بما في ذلك أكثر من نصف الينابيع الحارة في العالم. ومن بين هذه الينابيع، يُعد أولد فيثفول أشهرها، وقد سُمي بهذا الاسم لجدوله الزمني الموثوق الذي يتراوح بين ٦٥ و ٩١ دقيقة تقريبًا بين كل انفجار. ويعود هذا النشاط الحراري الأرضي الوفير إلى البركان العملاق الذي شكلت فوهته متنزه يلوستون. وقد تشكلت الفوهة خلال آخر ثوران بركاني، والذي حدث قبل ٦٤٠ ألف سنة.\n\nإلى جانب الينابيع الحارة، يشتهر متنزه يلوستون بالحياة البرية، بما في ذلك قطعان البيسون والأيائل. أما بالنسبة للحيوانات المفترسة، فإن الذئاب الرمادية تزدهر منذ إعادة إدخالها إلى الحديقة في تسعينيات القرن الماضي. ومن الحيوانات الأخرى التي يتطلع السياح إلى رؤيتها الدببة السوداء والرمادية. وكلما تواجدت الحيوانات بالقرب من طرق الحديقة، تتوقف عشرات السيارات، وتسلط عدسات الكاميرات من نوافذها. مع أن قطعان الدببة تُعد من الصور المفضلة لدى زوار الحديقة، إلا أنه من المهم الحفاظ على مسافة آمنة منها. كما يضم المتنزه العديد من مسارات المشي الطويل الشهيرة والبحيرات والأنهار التي تتدفق عبر وديانه."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Yellowstone Nationalpark wurde 1872 gegründet und ist der erste Nationalpark der Vereinigte Staaten. Der Park ist bekannt für seine zahlreichen geothermischen Phänomene, darunter mehr als die Hälfte der weltweiten Geysire. Der bekannteste Geysir ist Old Faithful, der für seine regelmäßigen Eruptionen im Abstand von ungefähr 65 oder 91 Minuten berühmt ist. Diese intensive geothermische Aktivität ist auf den Supervulkan zurückzuführen, dessen Caldera den Yellowstone Nationalpark bildet. Die Caldera entstand bei der letzten Eruption vor 640.000 Jahren.\n\nNeben den Geysiren ist der Yellowstone für seine Tierwelt bekannt, darunter Bison- und Elchherden. Die Raubtierpopulation, z. B. Grauwölfe, gedeiht seit deren Wiedereinführung in den Park in den 1990er-Jahren. Andere Tiere, die Touristen sehen möchten, sind Schwarz- und Grizzlybären. Wann immer sich Tiere in der Nähe der Parkstraßen befinden, halten Dutzende Autos an und Kameras richten sich aus den Fenstern auf die Tiere. Auch wenn die Herden und die Bären beliebte Fotomotive für die Besucher des Parks sind, ist es wichtig, sicheren Abstand zu ihnen zu halten. Der Park verfügt außerdem über zahlreiche beliebte Wanderwege, Seen und Flüsse, die durch die Canyons fließen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yellowstone was the first national park in the United States, established in 1872. The park is well known for the many geothermal features, including more than half the world’s geysers. Of these, Old Faithful is the most famous geyser, so named for its dependable schedule of roughly 65 or 91 minutes between eruptions. This abundant geothermal activity is thanks to the supervolcano whose caldera forms Yellowstone. The caldera was formed during the last eruption, which took place 640,000 years ago.\n\nBesides the geysers, Yellowstone is well known for its wildlife, including herds of bison and elk. As for predators, gray wolves are thriving since their reintroduction to the park in the 1990s. Other animals that tourists look forward to seeing are black and grizzly bears. Whenever animals are present near the park’s roads, dozens of cars park, and camera lenses point out of their windows. While the herds and the bears are prized photo subjects of the park’s visitors, it is important to keep a safe distance from them. The park also has many popular hiking trails, lakes, and rivers coursing through its canyons."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ילוסטון היה הפארק הלאומי הראשון שהוכרז בארצות הברית, ב-1872. הפארק ידוע במיוחד במאפיינים הגאותרמיים שלו, ובתחומו נמצאים יותר ממחצית הגייזרים בעולם כולו. מתוך אותם גייזרים, ״אולד פיית׳פול״ הוא המפורסם ביותר, ונקרא כך בזכות מרווחי ההתפרצויות הקבועים שלו הנעים בין 65 עד 91 דקות. הפעילות הגאותרמית העשירה הזאת נובעת ממערכת געשית, ״הר געש-על״, שהקלדרה שלה יצרה את ילוסטון. הקלדרה נוצרה במהלך ההתפרצות האחרונה, שהתרחשה לפני 640,000 שנה.\n\nמלבד הגייזרים, ילוסטון ידוע גם בחיי הבר שלו, כולל עדרים של ביזונים ואיילים קנדים. מבחינת בעלי חיים טורפים, הזאב המצוי משגשג במקום מאז החדרתו מחדש לפארק בשנות ה-90 של המאה הקודמת. בעלי חיים אחרים שתיירים מקווים לראות בפארק הם דובים שחורים אמריקאים ודובי גריזלי. בכל פעם שבעלי חיים מופיעים בקרבת הכבישים בפארק, עשרות מכוניות חונות בצד ועדשות המצלמות מציצות מבעד לחלונותיהן. אמנם צילום של העדרים או הדובים ייחשב על ידי מבקרי הפארק כצילום מוצלח במיוחד, אך חשוב לשמור על מרחק בטוח מהם. הפארק כולל גם מסלולי הליכה פופולריים רבים, אגמים ונהרות הזורמים דרך הקניונים שלו."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เยลโลสโตนเป็นอุทยานแห่งชาติแห่งแรกของประเทศสหรัฐอเมริกาซึ่งสร้างขึ้นในปี 1872 อุทยานแห่งนี้โด่งดังด้านพลังงานความร้อนใต้พิภพมากมาย ซึ่งรวมถึงการมีน้ำพุร้อนมากกว่าครึ่งหนึ่งของโลก ในบรรดาน้ำพุร้อนเหล่านั้น โอลด์ เฟธฟูลถือเป็นน้ำพุร้อนที่มีชื่อเสียงที่สุดเนื่องจากปะทุอย่างสม่ำเสมอประมาณทุกๆ 65 หรือ 91 นาที ปรากฏการณ์ความร้อนใต้พิภพมากมายนี้เกิดขึ้นได้เนื่องจากหลุมปล่องภูเขาไฟขนาดใหญ่ของภูเขาไฟยักษ์ที่ก่อให้เกิดเยลโลสโตน โดยหลุมปล่องภูเขาไฟขนาดใหญ่นี้เกิดขึ้นในระหว่างการระเบิดครั้งสุดท้าย ซึ่งเกิดขึ้นเมื่อ 640,000 ปีก่อน\n\nนอกจากน้ำพุร้อนแล้ว เยลโลสโตนยังเป็นที่รู้จักในแง่ของสัตว์ป่า ซึ่งรวมถึงฝูงควายป่าไบซันและกวางมูสอีกด้วย และสำหรับสัตว์นักล่าแล้ว หมาป่าสีเทามีจำนวนมากขึ้นนับตั้งแต่ที่นำกลับเข้ามาในอุทยานในช่วงปี 1990 ส่วนสัตว์อื่นๆ ที่นักท่องเที่ยวตั้งตารอชมคือหมีดำและหมีกริซลี ทุกครั้งที่มีสัตว์อยู่ใกล้ถนนของอุทยาน รถมากมายจะจอดและหันเลนส์กล้องไปที่นอกหน้าต่างรถ แม้ว่าฝูงสัตว์และหมีเป็นสัตว์ที่ใครๆ ต่างหมายปองในการถ่ายภาพ แต่การรักษาระยะห่างจากสัตว์เหล่านั้นก็เป็นสิ่งสำคัญเช่นกัน นอกจากนี้อุทยานยังมีเส้นทางเดินเขา ทะเลสาบ และแม่น้ำที่ไหลผ่านตลอดแคนยอนที่เป็นที่นิยมมากมายอีกด้วย"
+          }
+        }
+      }
+    },
+    "YELLOWSTONE_NATIONAL_PARK_LOCATION" : {
+      "comment" : "Location of the ‘Yellowstone National Park’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وايومنغ، الولايات المتحدة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyoming, Vereinigte Staaten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyoming, United States"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ויומינג, ארצות הברית"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "รัฐไวโอมิง ประเทศสหรัฐอเมริกา"
+          }
+        }
+      }
+    },
+    "YELLOWSTONE_NATIONAL_PARK_NAME" : {
+      "comment" : "Name of the ‘Yellowstone National Park’ landmark.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "متنزه يلوستون الوطني"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yellowstone Nationalpark"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yellowstone National Park"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הפארק הלאומי ילוסטון"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "อุทยานแห่งชาติเยลโลสโตน"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.1"
+}

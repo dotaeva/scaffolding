@@ -101,6 +101,8 @@ public struct ScaffoldableMacro: MemberMacro {
             return .root
         } else if inheritanceTypes.contains("FlowCoordinatable") {
             return .flow
+        } else if inheritanceTypes.contains("SplitCoordinatable") {
+            return .split
         }
         return nil
     }
@@ -583,7 +585,7 @@ public struct ScaffoldableMacro: MemberMacro {
 // MARK: - Supporting Types
 
 enum CoordinatableType {
-    case flow, tab, root
+    case flow, tab, root, split
 
     /// Maps a state-container type name to the coordinator kind that owns it.
     init?(stateContainerName: String) {
@@ -591,6 +593,7 @@ enum CoordinatableType {
         case "FlowStack": self = .flow
         case "TabItems": self = .tab
         case "Root": self = .root
+        case "SplitColumns": self = .split
         default: return nil
         }
     }
@@ -704,7 +707,7 @@ enum ScaffoldingMacroError: Error, CustomStringConvertible {
         case .onlyApplicableToClass:
             return "@Scaffold can only be applied to classes"
         case .mustConformToCoordinatable:
-            return "@Scaffold can only be applied to classes that conform to FlowCoordinatable, TabCoordinatable, or RootCoordinatable"
+            return "@Scaffold can only be applied to classes that conform to FlowCoordinatable, TabCoordinatable, RootCoordinatable, or SplitCoordinatable"
         case .invalidParameter:
             return "Invalid function parameter"
         case .codeGenerationFailed:

@@ -44,6 +44,19 @@ public final class NavigationStateNode: Codable {
     /// ``tabRoutes`` (tab coordinators).
     var tabChildren: [NavigationStateNode?] = []
 
+    /// The encoded routes of the split-view columns (split coordinators).
+    /// All optional so snapshots taken by older versions keep decoding.
+    var sidebarRoute: Data?
+    var contentRoute: Data?
+    var detailRoute: Data?
+    /// Captured state of each column's child coordinator (split
+    /// coordinators).
+    var sidebarChild: NavigationStateNode?
+    var contentChild: NavigationStateNode?
+    var detailChild: NavigationStateNode?
+    /// The captured column visibility (split coordinators).
+    var splitVisibility: String?
+
     init() { }
 }
 
@@ -292,6 +305,122 @@ public extension TabCoordinatable where Destinations: Codable {
         }
 
         restoreModalEntries(node.entries, using: decoder)
+    }
+}
+
+// MARK: - SplitCoordinatable
+
+@MainActor
+public extension SplitCoordinatable where Destinations: Codable {
+    func _captureNavigationStateNode() -> NavigationStateNode? {
+        let node = NavigationStateNode()
+        let encoder = JSONEncoder()
+        let items = anySplitColumns
+
+        if let sidebar = items.sidebar {
+            if let source = sidebar.source as? Destinations {
+                node.sidebarRoute = try? encoder.encode(source)
+            }
+            node.sidebarChild = sidebar.materializedCoordinatable?._captureNavigationStateNode()
+        }
+        if let content = items.content {
+            if let source = content.source as? Destinations {
+                node.contentRoute = try? encoder.encode(source)
+            }
+            node.contentChild = content.materializedCoordinatable?._captureNavigationStateNode()
+        }
+        if let detail = items.detail {
+            if let source = detail.source as? Destinations {
+                node.detailRoute = try? encoder.encode(source)
+            }
+            node.detailChild = detail.materializedCoordinatable?._captureNavigationStateNode()
+        }
+
+        node.splitVisibility = _encodeSplitVisibility(items.columnVisibility)
+
+        node.entries = items.modals.compactMap { destination in
+            guard let source = destination.source as? Destinations,
+                  let route = try? encoder.encode(source),
+                  let presentation = NavigationStateNode.Presentation(destination.pushType)
+            else { return nil }
+            return .init(
+                route: route,
+                presentation: presentation,
+                child: destination.materializedCoordinatable?._captureNavigationStateNode()
+            )
+        }
+
+        return node
+    }
+
+    func _restoreNavigationStateNode(_ node: NavigationStateNode) {
+        _ = anySplitColumns // ensure setup
+        let decoder = JSONDecoder()
+
+        restoreColumn(.sidebar, route: node.sidebarRoute, child: node.sidebarChild, using: decoder)
+        restoreColumn(.content, route: node.contentRoute, child: node.contentChild, using: decoder)
+        restoreColumn(.detail, route: node.detailRoute, child: node.detailChild, using: decoder)
+
+        if let visibility = node.splitVisibility.flatMap(_decodeSplitVisibility) {
+            anySplitColumns.columnVisibility = visibility
+        }
+
+        restoreModalEntries(node.entries, using: decoder)
+    }
+}
+
+@MainActor
+private extension SplitCoordinatable where Destinations: Codable {
+    func restoreColumn(
+        _ column: SplitColumn,
+        route: Data?,
+        child: NavigationStateNode?,
+        using decoder: JSONDecoder
+    ) {
+        if let route,
+           let decoded = try? decoder.decode(Destinations.self, from: route) {
+            let currentMeta = columns.destination(for: column)?.meta as? Destinations.Meta
+            if currentMeta != decoded.meta {
+                _ = performSetColumn(column, to: decoded)
+            }
+        }
+        if let child {
+            columns.destination(for: column)?.coordinatable?._restoreNavigationStateNode(child)
+        }
+    }
+
+    func restoreModalEntries(_ entries: [NavigationStateNode.Entry], using decoder: JSONDecoder) {
+        for entry in entries {
+            guard let route = try? decoder.decode(Destinations.self, from: entry.route) else { continue }
+            let destination = performPresent(route, as: entry.presentation.modalType, onDismiss: { })
+            if let child = entry.child {
+                destination.coordinatable?._restoreNavigationStateNode(child)
+            }
+        }
+    }
+}
+
+/// `NavigationSplitViewVisibility` is not `Codable` — round-trip the known
+/// values through a stable string.
+@MainActor
+private func _encodeSplitVisibility(_ visibility: NavigationSplitViewVisibility) -> String? {
+    switch visibility {
+    case .automatic: return "automatic"
+    case .all: return "all"
+    case .doubleColumn: return "doubleColumn"
+    case .detailOnly: return "detailOnly"
+    default: return nil
+    }
+}
+
+@MainActor
+private func _decodeSplitVisibility(_ value: String) -> NavigationSplitViewVisibility? {
+    switch value {
+    case "automatic": return .automatic
+    case "all": return .all
+    case "doubleColumn": return .doubleColumn
+    case "detailOnly": return .detailOnly
+    default: return nil
     }
 }
 
