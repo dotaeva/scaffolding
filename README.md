@@ -116,46 +116,30 @@ the same ground in one file.
 
 ---
 
-## Example Projects
+## Example Project
 
-[`Example/Demo`](Example/Demo) is a banking-style app that exercises the whole
-API surface — a root coordinator with an auth swap, a tab coordinator with a
-custom glass tab bar and a gated tab, four independent flows, sheet
-configuration, awaited results, deep links, snapshot save/restore, and
-[44 unit tests](Example/Demo/Tests). It's a plain Xcode project with no
-generators or extra tooling:
-
-```sh
-open Example/Demo/Demo.xcodeproj
-```
-
-⌘R runs the app, ⌘U runs the tests.
-
-[`Example/Orbit`](Example/Orbit) is an iPad-first solar-system browser built on
-`SplitCoordinatable` — a `NavigationSplitView` with the planet list in the
-sidebar and a flow coordinator in the detail column. It shows detail-column
-replacement with a `.distinct` re-selection guard, pushes inside a column, a
-settings sub-flow presented above the split view, `orbit://` deep links that
-walk sidebar → detail → pushed moon, and free compact collapse on iPhone:
+[`Example/Weather`](Example/Weather) is a Weather-style app that exercises the
+whole library from a single multiplatform target — iPhone, iPad, and native
+macOS. iPhone gets a `TabCoordinatable` shell (tab tuples with labels and a
+`TabRole`, a badge, a dynamic Radar tab, `shouldSelect` interception); iPad and
+macOS get a `SplitCoordinatable` shell (sidebar → detail replacement, a runtime
+Hourly content column, visibility control, split-hosted sheets). Both shells
+feed the same flows: pushes with every `RoutePolicy`, `replaceLast`, every pop
+variant, awaited results (`routeAndWait`, `presentAndWait`,
+`present(_:awaiting:)` + `dismissCoordinator(returning:)`), presenter-side
+sheet configuration and dismissal, an atomic onboarding root swap, `weather://`
+deep links through both layouts, whole-tree state restoration, and the
+orientation/debug surface. Every source file stays under 100 lines, and
+[40 unit tests](Example/Weather/Tests) run against the shipping coordinators on
+both platforms:
 
 ```sh
-open Example/Orbit/Orbit.xcodeproj
+open Example/Weather/Weather.xcodeproj
 ```
 
-[`Example/Landmarks`](Example/Landmarks) is a port of Apple's
-[Landmarks: Building an app with Liquid Glass](https://developer.apple.com/documentation/swiftui/landmarks-building-an-app-with-liquid-glass)
-sample to Scaffolding coordinators — the data model, views, and Liquid
-Glass styling stay Apple's; the `NavigationPath`-in-the-model navigation
-layer becomes a `SplitCoordinatable` with a flow per sidebar page — and
-the same target builds for iPad, iPhone, and native macOS. Requires the
-iOS 26 SDK;
-ships with generated placeholder art (Apple's sample-code license
-excludes the photographs — `Scripts/import-apple-assets.sh` swaps in the
-real ones from a local copy of the sample):
-
-```sh
-open Example/Landmarks/Landmarks.xcodeproj
-```
+⌘R runs the app (pick an iPhone, iPad, or My Mac destination), ⌘U runs the
+tests. Shake (⌃⌘Z in the simulator) or ⇧⌘D on macOS dumps the live
+coordinator tree.
 
 ---
 
