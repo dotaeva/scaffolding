@@ -24,11 +24,20 @@ struct ReadyView: View {
                 Button("Start Using Checklist") { coordinator.finish() }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
-                Button("Start Over") { coordinator.startOver() }
-                    .font(.footnote)
+                Button { coordinator.startOver() } label: {
+                    // A tappable target, not a 16pt line of text.
+                    Text("Start Over")
+                        .font(.footnote)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .padding(.horizontal, 16)
+                        .contentShape(.rect)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.tint)
             }
         }
         .padding(28)
-        .navigationTitle("Ready")
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.groupedBackground.ignoresSafeArea())
     }
 }

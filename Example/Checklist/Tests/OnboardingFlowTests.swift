@@ -3,60 +3,73 @@ import Scaffolding
 import ScaffoldingTesting
 @testable import Checklist
 
-/// Pushes, the `.distinct` guard, `onDismiss`, and result delivery through
-/// the presenter-installed closure.
+/// Onboarding is a paged `TabCoordinatable`: the buttons select pages,
+/// swiping does the same thing through the selection binding, and the
+/// result reaches the presenter through its installed closure.
 @MainActor
-@Suite("Onboarding flow")
+@Suite("Onboarding pages")
 struct OnboardingFlowTests {
-    private func makeFlow(
+    private func makePages(
         onComplete: @escaping @MainActor () -> Void = { }
     ) -> OnboardingCoordinator {
         OnboardingCoordinator(store: TodoStore(), onComplete: onComplete).activated()
     }
 
-    @Test("steps push in order and popToRoot restarts the flow")
-    func steps() {
-        let flow = makeFlow()
+    @Test("three pages, starting on welcome, with the native bar hidden")
+    func initialPage() {
+        let pages = makePages()
 
-        flow.showPreferences()
-        flow.showReady()
-
-        #expect(flow.depth == 2)
-        #expect(flow.topDestination == .ready)
-
-        flow.startOver()
-        #expect(flow.depth == 0)
-        #expect(flow.topDestination == .welcome)
+        #expect(pages.tabItems.tabs.count == 3)
+        #expect(pages.tabItems.tabBarVisibility == .hidden)
+        #expect(pages.hierarchyContains(
+            OnboardingCoordinator.self, .welcome, as: .tab(index: 0, isSelected: true)
+        ))
     }
 
-    @Test(".distinct swallows a double tap of the same step")
-    func distinctGuard() {
-        let flow = makeFlow()
+    @Test("the buttons move forward one page at a time")
+    func forward() {
+        let pages = makePages()
 
-        flow.showPreferences()
-        flow.showPreferences()
+        pages.showPreferences()
+        #expect(pages.hierarchyContains(
+            OnboardingCoordinator.self, .preferences, as: .tab(index: 1, isSelected: true)
+        ))
 
-        #expect(flow.count(of: .preferences) == 1)
+        pages.showReady()
+        #expect(pages.hierarchyContains(
+            OnboardingCoordinator.self, .ready, as: .tab(index: 2, isSelected: true)
+        ))
     }
 
-    @Test("onDismiss fires exactly once, however the screen leaves")
-    func onDismissOnce() {
-        let flow = makeFlow()
-        var dismissals = 0
-        flow.route(to: .preferences) { dismissals += 1 }
+    @Test("start over returns to the first page")
+    func startOver() {
+        let pages = makePages()
+        pages.showReady()
 
-        flow.popToRoot()   // not pop() — the callback must still fire
-        flow.popToRoot()   // already at the root: no second call
+        pages.startOver()
 
-        #expect(dismissals == 1)
+        #expect(pages.hierarchyContains(
+            OnboardingCoordinator.self, .welcome, as: .tab(index: 0, isSelected: true)
+        ))
+    }
+
+    @Test("selecting the same page again changes nothing")
+    func idempotentSelection() {
+        let pages = makePages()
+        pages.showPreferences()
+        let selected = pages.tabItems.selectedTab
+
+        pages.showPreferences()
+
+        #expect(pages.tabItems.selectedTab == selected)
     }
 
     @Test("finishing calls the completion exactly once")
     func completion() {
         var completions = 0
-        let flow = makeFlow { completions += 1 }
+        let pages = makePages { completions += 1 }
 
-        flow.finish()
+        pages.finish()
 
         #expect(completions == 1)
     }

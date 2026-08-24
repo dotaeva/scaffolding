@@ -22,15 +22,18 @@ struct WelcomeView: View {
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 420)
             Spacer()
-            Button("Get Started") { coordinator.showPreferences() }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
+            VStack(spacing: 6) {
+                Button("Get Started") { coordinator.showPreferences() }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                Text("…or swipe")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
         }
         .padding(28)
-        .navigationTitle("Welcome")
-        #if os(iOS)
-        .toolbar(.hidden, for: .navigationBar)
-        #endif
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.groupedBackground.ignoresSafeArea())
     }
 }
 

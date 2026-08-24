@@ -18,6 +18,7 @@ struct AboutView: View {
                 row("list.bullet", "ListsCoordinator", "three levels on one stack")
                 row("checklist", "TodoDetailCoordinator", "pushed on iPhone, a column on iPad — same code")
                 row("plus.circle", "NewTodoCoordinator", "returns a value; routeAndWait inside a modal")
+                row("hand.wave", "OnboardingCoordinator", "a paged TabCoordinatable — pages are tabs, bar hidden")
                 row("tag", "TagPickerCoordinator", "injectsCoordinator: false, init-injected instead")
             }
             Section {

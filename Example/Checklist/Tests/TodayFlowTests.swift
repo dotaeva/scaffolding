@@ -64,6 +64,18 @@ struct TodayFlowTests {
         #expect(flow.topDestination == .today)
     }
 
+    @Test("a pushed destination's onDismiss fires exactly once")
+    func onDismissOnce() {
+        let flow = makeFlow()
+        var dismissals = 0
+        flow.route(to: .todo(todo: SampleData.todos[0])) { dismissals += 1 }
+
+        flow.popToRoot()   // not pop() — the callback must still fire
+        flow.popToRoot()   // already at the root: no second call
+
+        #expect(dismissals == 1)
+    }
+
     @Test("the seeded initializer starts the flow one screen deep")
     func seededStart() {
         let flow = TodayCoordinator(store: TodoStore(), startingAt: SampleData.todos[1])

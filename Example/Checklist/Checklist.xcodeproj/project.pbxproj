@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		CA0000000000000000000017 /* Scaffolding in Frameworks */ = {isa = PBXBuildFile; productRef = CA0000000000000000000018 /* Scaffolding */; };
 		CA000000000000000000000C /* ScaffoldingTesting in Frameworks */ = {isa = PBXBuildFile; productRef = CA000000000000000000000A /* ScaffoldingTesting */; };
+		CA0000000000000000000017 /* Scaffolding in Frameworks */ = {isa = PBXBuildFile; productRef = CA0000000000000000000018 /* Scaffolding */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -22,8 +22,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		CA000000000000000000001F /* Checklist.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Checklist.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA0000000000000000000002 /* ChecklistTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChecklistTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA000000000000000000001F /* Checklist.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Checklist.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -40,19 +40,19 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		CA000000000000000000001B /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CA0000000000000000000017 /* Scaffolding in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		CA0000000000000000000007 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				CA000000000000000000000C /* ScaffoldingTesting in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA000000000000000000001B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA0000000000000000000017 /* Scaffolding in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -177,14 +177,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		CA000000000000000000001C /* Sources */ = {
+		CA0000000000000000000008 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CA0000000000000000000008 /* Sources */ = {
+		CA000000000000000000001C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -202,6 +202,46 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		CA0000000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.scaffolding.checklist.tests;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Checklist.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Checklist";
+			};
+			name = Debug;
+		};
+		CA0000000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.scaffolding.checklist.tests;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Checklist.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Checklist";
+			};
+			name = Release;
+		};
 		CA0000000000000000000012 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -290,49 +330,18 @@
 			};
 			name = Release;
 		};
-		CA0000000000000000000005 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_STYLE = Automatic;
-				GENERATE_INFOPLIST_FILE = YES;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.scaffolding.checklist.tests;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
-				SUPPORTS_MACCATALYST = NO;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Checklist.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Checklist";
-			};
-			name = Debug;
-		};
-		CA0000000000000000000006 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_STYLE = Automatic;
-				GENERATE_INFOPLIST_FILE = YES;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.scaffolding.checklist.tests;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
-				SUPPORTS_MACCATALYST = NO;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Checklist.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Checklist";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		CA0000000000000000000004 /* Build configuration list for PBXNativeTarget "ChecklistTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA0000000000000000000005 /* Debug */,
+				CA0000000000000000000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		CA0000000000000000000010 /* Build configuration list for PBXProject "Checklist" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -351,15 +360,6 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		CA0000000000000000000004 /* Build configuration list for PBXNativeTarget "ChecklistTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				CA0000000000000000000005 /* Debug */,
-				CA0000000000000000000006 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
-		};
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
@@ -370,13 +370,13 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		CA0000000000000000000018 /* Scaffolding */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = Scaffolding;
-		};
 		CA000000000000000000000A /* ScaffoldingTesting */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ScaffoldingTesting;
+		};
+		CA0000000000000000000018 /* Scaffolding */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Scaffolding;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
