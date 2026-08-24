@@ -10,10 +10,12 @@ final class PlaygroundPickerCoordinator: @MainActor FlowCoordinatable {
     var stack = FlowStack<PlaygroundPickerCoordinator>(root: .picker)
 
     // MARK: Routes
+    // The route table: one line per destination, with the bodies in
+    // PlaygroundPickerCoordinator+Factory.swift. These declarations have to stay in the class
+    // body — @Scaffoldable scans only the class declaration, so a route
+    // moved to an extension is silently untracked.
 
-    /// The flow opted out of environment injection, so the screen is
-    /// handed its coordinator explicitly.
-    func picker() -> some View { PlaygroundPickerView(coordinator: self) }
+    func picker() -> some View { makePicker() }
 }
 
 // MARK: - Result

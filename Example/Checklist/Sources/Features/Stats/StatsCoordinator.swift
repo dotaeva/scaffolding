@@ -16,14 +16,14 @@ final class StatsCoordinator: @MainActor FlowCoordinatable {
     }
 
     // MARK: Routes
+    // The route table: one line per destination, with the bodies in
+    // StatsCoordinator+Factory.swift. These declarations have to stay in the class
+    // body — @Scaffoldable scans only the class declaration, so a route
+    // moved to an extension is silently untracked.
 
-    func stats() -> some View {
-        StatsView(viewModel: StatsViewModel(store: store))
-    }
+    func stats() -> some View { makeStats() }
 
-    func listBreakdown(list: TodoList) -> some View {
-        ListBreakdownView(list: list, viewModel: StatsViewModel(store: store))
-    }
+    func listBreakdown(list: TodoList) -> some View { makeListBreakdown(list: list) }
 }
 
 // MARK: - Navigation

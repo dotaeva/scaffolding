@@ -27,37 +27,24 @@ final class MainTabCoordinator: @MainActor TabCoordinatable {
     }
 
     // MARK: Routes
+    // The route table: one line per destination, with the bodies in
+    // MainTabCoordinator+Factory.swift. These declarations have to stay in the class
+    // body — @Scaffoldable scans only the class declaration, so a route
+    // moved to an extension is silently untracked.
 
-    func today() -> (any Coordinatable, some View) {
-        (TodayCoordinator(store: store), Label("Today", systemImage: "calendar"))
-    }
+    func today() -> (any Coordinatable, some View) { makeToday() }
 
-    func lists() -> (any Coordinatable, some View) {
-        (ListsCoordinator(store: store), Label("Lists", systemImage: "list.bullet"))
-    }
+    func lists() -> (any Coordinatable, some View) { makeLists() }
 
-    /// The three-element tuple adds a `TabRole` — Search becomes the
-    /// system search tab.
-    func search() -> (any Coordinatable, some View, TabRole) {
-        (SearchCoordinator(store: store), Label("Search", systemImage: "magnifyingglass"), .search)
-    }
+    func search() -> (any Coordinatable, some View, TabRole) { makeSearch() }
 
-    /// The navigation playground, a first-class tab.
-    func playground() -> (any Coordinatable, some View) {
-        (PlaygroundCoordinator(), Label("Playground", systemImage: "arrow.triangle.branch"))
-    }
+    func playground() -> (any Coordinatable, some View) { makePlayground() }
 
-    func settings() -> (any Coordinatable, some View) {
-        (SettingsCoordinator(store: store), Label("Settings", systemImage: "gearshape"))
-    }
+    func settings() -> (any Coordinatable, some View) { makeSettings() }
 
-    /// Added and removed at runtime from Settings.
-    func stats() -> (any Coordinatable, some View) {
-        (StatsCoordinator(store: store), Label("Stats", systemImage: "chart.bar.fill"))
-    }
+    func stats() -> (any Coordinatable, some View) { makeStats() }
 
-    /// Presented above the whole `TabView` when `shouldSelect` vetoes Stats.
-    func statsLocked() -> some View { StatsLockedSheet() }
+    func statsLocked() -> some View { makeStatsLocked() }
 }
 
 // MARK: - Selection interception

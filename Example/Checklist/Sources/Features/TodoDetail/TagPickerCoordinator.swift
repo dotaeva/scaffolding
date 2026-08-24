@@ -23,11 +23,12 @@ final class TagPickerCoordinator: @MainActor FlowCoordinatable {
     }
 
     // MARK: Routes
+    // The route table: one line per destination, with the bodies in
+    // TagPickerCoordinator+Factory.swift. These declarations have to stay in the class
+    // body — @Scaffoldable scans only the class declaration, so a route
+    // moved to an extension is silently untracked.
 
-    func picker() -> some View {
-        // Init injection instead of the environment.
-        TagPickerView(coordinator: self)
-    }
+    func picker() -> some View { makePicker() }
 }
 
 // MARK: - Chrome

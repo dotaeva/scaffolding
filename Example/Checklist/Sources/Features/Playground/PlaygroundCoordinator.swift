@@ -16,21 +16,19 @@ final class PlaygroundCoordinator: @MainActor FlowCoordinatable {
     var dismissals = 0
 
     // MARK: Routes
+    // The route table: one line per destination, with the bodies in
+    // PlaygroundCoordinator+Factory.swift. These declarations have to stay in the class
+    // body — @Scaffoldable scans only the class declaration, so a route
+    // moved to an extension is silently untracked.
 
-    func playground() -> some View { PlaygroundView() }
+    func playground() -> some View { makePlayground() }
 
-    /// A distinct case, so the meta-based pops have something to aim at
-    /// that is not the root.
-    func leaf(label: String) -> some View { PlaygroundLeafView(label: label) }
+    func leaf(label: String) -> some View { makeLeaf(label: label) }
 
-    /// A child *coordinator* pushed onto this stack — it can dismiss
-    /// itself and read its ancestors.
-    func child() -> any Coordinatable { PlaygroundChildCoordinator() }
+    func child() -> any Coordinatable { makeChild() }
 
-    /// View-only modals: no coordinator inside, so the presenter closes them.
-    func sheet() -> some View { PlaygroundModalView(title: "Sheet") }
-    func cover() -> some View { PlaygroundModalView(title: "Full-screen cover") }
+    func sheet() -> some View { makeSheet() }
+    func cover() -> some View { makeCover() }
 
-    /// A sub-flow whose whole job is returning a value.
-    func picker() -> any Coordinatable { PlaygroundPickerCoordinator() }
+    func picker() -> any Coordinatable { makePicker() }
 }

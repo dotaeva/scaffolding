@@ -16,14 +16,14 @@ final class SearchCoordinator: @MainActor FlowCoordinatable {
     }
 
     // MARK: Routes
+    // The route table: one line per destination, with the bodies in
+    // SearchCoordinator+Factory.swift. These declarations have to stay in the class
+    // body — @Scaffoldable scans only the class declaration, so a route
+    // moved to an extension is silently untracked.
 
-    func search() -> some View {
-        SearchView(viewModel: SearchViewModel(store: store))
-    }
+    func search() -> some View { makeSearch() }
 
-    func todo(todo: Todo) -> any Coordinatable {
-        TodoDetailCoordinator(todo: todo, store: store)
-    }
+    func todo(todo: Todo) -> any Coordinatable { makeTodo(todo: todo) }
 }
 
 // MARK: - Navigation

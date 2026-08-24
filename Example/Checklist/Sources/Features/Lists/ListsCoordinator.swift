@@ -17,28 +17,18 @@ final class ListsCoordinator: @MainActor FlowCoordinatable {
     }
 
     // MARK: Routes
+    // The route table: one line per destination, with the bodies in
+    // ListsCoordinator+Factory.swift. These declarations have to stay in the class
+    // body — @Scaffoldable scans only the class declaration, so a route
+    // moved to an extension is silently untracked.
 
-    func lists() -> some View {
-        ListsView(viewModel: ListsViewModel(store: store))
-    }
+    func lists() -> some View { makeLists() }
 
-    /// The shared task screen — here its intents push instead of replacing
-    /// a split column.
-    func tasks(source: TaskSource) -> some View {
-        TaskListView(
-            viewModel: TaskListViewModel(source: source, store: store),
-            onSelect: { [weak self] todo in self?.open(todo) },
-            onAdd: { [weak self] in self?.addTodo(in: source) }
-        )
-    }
+    func tasks(source: TaskSource) -> some View { makeTasks(source: source) }
 
-    func todo(todo: Todo) -> any Coordinatable {
-        TodoDetailCoordinator(todo: todo, store: store)
-    }
+    func todo(todo: Todo) -> any Coordinatable { makeTodo(todo: todo) }
 
-    func newTodo(source: TaskSource) -> any Coordinatable {
-        NewTodoCoordinator(source: source, store: store)
-    }
+    func newTodo(source: TaskSource) -> any Coordinatable { makeNewTodo(source: source) }
 }
 
 // MARK: - Navigation

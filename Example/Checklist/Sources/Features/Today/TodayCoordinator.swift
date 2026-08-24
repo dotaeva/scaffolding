@@ -26,25 +26,16 @@ final class TodayCoordinator: @MainActor FlowCoordinatable {
     }
 
     // MARK: Routes
+    // The route table: one line per destination, with the bodies in
+    // TodayCoordinator+Factory.swift. These declarations have to stay in the class
+    // body — @Scaffoldable scans only the class declaration, so a route
+    // moved to an extension is silently untracked.
 
-    func today() -> some View {
-        TodayView(viewModel: TodayViewModel(store: store))
-    }
+    func today() -> some View { makeToday() }
 
-    /// Existential return ⇒ the macro tracks it as a child-coordinator
-    /// destination. A concrete `-> TodoDetailCoordinator` would be skipped.
-    func todo(todo: Todo) -> any Coordinatable {
-        TodoDetailCoordinator(todo: todo, store: store)
-    }
+    func todo(todo: Todo) -> any Coordinatable { makeTodo(todo: todo) }
 
-    /// Modal sub-flow that hands back the task it created.
-    func newTodo(source: TaskSource) -> any Coordinatable {
-        NewTodoCoordinator(source: source, store: store)
-    }
+    func newTodo(source: TaskSource) -> any Coordinatable { makeNewTodo(source: source) }
 
-    /// View-only modal presented as a cover (a sheet on macOS, which has
-    /// no covers — the state still reports `.fullScreenCover`).
-    func focus() -> some View {
-        FocusSessionView(todo: store.todos(in: .today).first)
-    }
+    func focus() -> some View { makeFocus() }
 }

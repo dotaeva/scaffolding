@@ -27,25 +27,16 @@ final class AppCoordinator: @MainActor RootCoordinatable {
     }
 
     // MARK: Routes
-    // Routes must be declared in the class body — @Scaffoldable scans only
-    // the class declaration, never extensions.
+    // The route table: one line per destination, with the bodies in
+    // AppCoordinator+Factory.swift. These declarations have to stay in the class
+    // body — @Scaffoldable scans only the class declaration, so a route
+    // moved to an extension is silently untracked.
 
-    func onboarding() -> any Coordinatable {
-        // Result delivery: the presenter installs the completion at
-        // construction time; the child never reaches back up the tree.
-        OnboardingCoordinator(store: store) { [weak self] in
-            self?.finishOnboarding()
-        }
-    }
+    func onboarding() -> any Coordinatable { makeOnboarding() }
 
-    func main() -> any Coordinatable {
-        layout == .split
-            ? MainSplitCoordinator(store: store)
-            : MainTabCoordinator(store: store)
-    }
+    func main() -> any Coordinatable { makeMain() }
 
-    /// View-only route, presented above whatever the current root is.
-    func hierarchy() -> some View { HierarchySheet() }
+    func hierarchy() -> some View { makeHierarchy() }
 }
 
 // MARK: - Root swaps

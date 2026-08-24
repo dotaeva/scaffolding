@@ -142,7 +142,9 @@ with graceful degradation, and a navigation playground wired to the
 orientation API.
 
 Structure is MVVM per feature — coordinators own navigation, ViewModels own
-data and intents, views own layout, and the store owns the domain. Every file
+data and intents, views own layout, and the store owns the domain. Each
+coordinator keeps a compact route table in its class body (where the macro
+can see it) and assembles the screens in a `+Factory` extension. Every file
 stays under 100 lines, and [62 unit tests](Example/Checklist/Tests) run
 against the shipping coordinators on both platforms:
 

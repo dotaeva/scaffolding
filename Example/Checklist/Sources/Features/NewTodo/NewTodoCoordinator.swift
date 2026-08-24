@@ -23,9 +23,13 @@ final class NewTodoCoordinator: @MainActor FlowCoordinatable {
     }
 
     // MARK: Routes
+    // The route table: one line per destination, with the bodies in
+    // NewTodoCoordinator+Factory.swift. These declarations have to stay in the class
+    // body — @Scaffoldable scans only the class declaration, so a route
+    // moved to an extension is silently untracked.
 
-    func compose() -> some View { NewTodoView(viewModel: draft) }
-    func listPicker() -> some View { ListPickerView(viewModel: draft) }
+    func compose() -> some View { makeCompose() }
+    func listPicker() -> some View { makeListPicker() }
 }
 
 // MARK: - Chrome

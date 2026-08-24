@@ -17,23 +17,20 @@ final class SettingsCoordinator: @MainActor FlowCoordinatable {
     }
 
     // MARK: Routes
+    // The route table: one line per destination, with the bodies in
+    // SettingsCoordinator+Factory.swift. These declarations have to stay in the class
+    // body — @Scaffoldable scans only the class declaration, so a route
+    // moved to an extension is silently untracked.
 
-    func settings() -> some View {
-        SettingsView(viewModel: SettingsViewModel(store: store))
-    }
+    func settings() -> some View { makeSettings() }
 
-    func tags() -> some View {
-        TagsView(viewModel: SettingsViewModel(store: store))
-    }
+    func tags() -> some View { makeTags() }
 
-    func about() -> some View { AboutView() }
+    func about() -> some View { makeAbout() }
 
-    /// The debug sheet, here as a *pushed* screen — its chrome adapts,
-    /// because it reads `\.destination` rather than assuming.
-    func tree() -> some View { HierarchySheet() }
+    func tree() -> some View { makeTree() }
 
-    /// A view-only modal with no controls: only the presenter can close it.
-    func syncing() -> some View { SyncingOverlay() }
+    func syncing() -> some View { makeSyncing() }
 }
 
 // MARK: - Chrome

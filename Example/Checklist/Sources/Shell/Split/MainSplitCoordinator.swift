@@ -34,55 +34,24 @@ final class MainSplitCoordinator: @MainActor SplitCoordinatable {
     }
 
     // MARK: Routes
+    // The route table: one line per destination, with the bodies in
+    // MainSplitCoordinator+Factory.swift. These declarations have to stay in the class
+    // body — @Scaffoldable scans only the class declaration, so a route
+    // moved to an extension is silently untracked.
     // Column assignment lives in the SplitColumns initializer and in the
     // setContent/setDetail calls — routes keep plain auto-tracked returns.
 
-    func sidebar() -> some View {
-        SidebarView(viewModel: SidebarViewModel(store: store))
-    }
+    func sidebar() -> some View { makeSidebar() }
 
-    func tasks(source: TaskSource) -> some View {
-        TaskListView(
-            viewModel: TaskListViewModel(source: source, store: store),
-            selection: Binding(
-                get: { [weak self] in self?.selectedTodoID },
-                set: { [weak self] id in
-                    guard let id, let todo = self?.store.todo(id: id) else { return }
-                    self?.select(todo: todo)
-                }
-            ),
-            // The shared screen takes its intents as closures — here they
-            // replace a column; in the Lists tab they push instead.
-            onSelect: { [weak self] todo in self?.select(todo: todo) },
-            onAdd: { [weak self] in self?.addTodo() }
-        )
-    }
+    func tasks(source: TaskSource) -> some View { makeTasks(source: source) }
 
-    func noSelection() -> some View {
-        ContentUnavailableView(
-            "No Task Selected",
-            systemImage: "checklist",
-            description: Text("Pick a task from the list to see its details.")
-        )
-    }
+    func noSelection() -> some View { makeNoSelection() }
 
-    /// A child flow in a column builds its own `NavigationStack` there —
-    /// exactly the composition SwiftUI expects — so pushes and modals
-    /// inside the detail column are ordinary flow calls. The very same
-    /// coordinator is pushed onto a stack on iPhone.
-    func detail(todo: Todo) -> any Coordinatable {
-        TodoDetailCoordinator(todo: todo, store: store)
-    }
+    func detail(todo: Todo) -> any Coordinatable { makeDetail(todo: todo) }
 
-    /// The playground, shown in the detail column from a sidebar row.
-    func playground() -> any Coordinatable { PlaygroundCoordinator() }
+    func playground() -> any Coordinatable { makePlayground() }
 
-    /// Modal sub-flow that hands a new task back to its presenter.
-    func newTodo(source: TaskSource) -> any Coordinatable {
-        NewTodoCoordinator(source: source, store: store)
-    }
+    func newTodo(source: TaskSource) -> any Coordinatable { makeNewTodo(source: source) }
 
-    /// The coordinator the iPhone shows as a tab is a sheet here — the
-    /// presenter decides, and the flow never knows the difference.
-    func settings() -> any Coordinatable { SettingsCoordinator(store: store) }
+    func settings() -> any Coordinatable { makeSettings() }
 }

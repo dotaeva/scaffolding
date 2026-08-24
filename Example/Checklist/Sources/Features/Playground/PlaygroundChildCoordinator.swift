@@ -11,9 +11,13 @@ final class PlaygroundChildCoordinator: @MainActor FlowCoordinatable {
     var stack = FlowStack<PlaygroundChildCoordinator>(root: .child)
 
     // MARK: Routes
+    // The route table: one line per destination, with the bodies in
+    // PlaygroundChildCoordinator+Factory.swift. These declarations have to stay in the class
+    // body — @Scaffoldable scans only the class declaration, so a route
+    // moved to an extension is silently untracked.
 
-    func child() -> some View { PlaygroundChildView() }
-    func grandchild() -> some View { PlaygroundLeafView(label: "Grandchild") }
+    func child() -> some View { makeChild() }
+    func grandchild() -> some View { makeGrandchild() }
 }
 
 // MARK: - Navigation

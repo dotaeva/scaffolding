@@ -19,21 +19,16 @@ final class TodoDetailCoordinator: @MainActor FlowCoordinatable {
     }
 
     // MARK: Routes
+    // The route table: one line per destination, with the bodies in
+    // TodoDetailCoordinator+Factory.swift. These declarations have to stay in the class
+    // body — @Scaffoldable scans only the class declaration, so a route
+    // moved to an extension is silently untracked.
 
-    func detail(todo: Todo) -> some View {
-        TodoDetailView(viewModel: TodoDetailViewModel(todo: todo, store: store))
-    }
+    func detail(todo: Todo) -> some View { makeDetail(todo: todo) }
 
-    /// A pushed editor for the long-form notes.
-    func notes(todo: Todo) -> some View {
-        NotesEditorView(viewModel: TodoDetailViewModel(todo: todo, store: store))
-    }
+    func notes(todo: Todo) -> some View { makeNotes(todo: todo) }
 
-    /// Modal sub-flow returning the chosen tags. Its coordinator opts out
-    /// of environment injection, so it is handed to its screen by init.
-    func tagPicker(selected: [String]) -> any Coordinatable {
-        TagPickerCoordinator(selected: selected, tags: store.tags)
-    }
+    func tagPicker(selected: [String]) -> any Coordinatable { makeTagPicker(selected: selected) }
 }
 
 // MARK: - Navigation

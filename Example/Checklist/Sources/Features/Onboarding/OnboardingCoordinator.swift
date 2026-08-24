@@ -22,7 +22,8 @@ final class OnboardingCoordinator: @MainActor TabCoordinatable {
         visibility: .hidden          // the page dots are the only chrome
     )
 
-    private let store: TodoStore
+    // Read by OnboardingCoordinator+Factory, so not file-private.
+    let store: TodoStore
     private let onComplete: @MainActor () -> Void
 
     init(store: TodoStore, onComplete: @escaping @MainActor () -> Void) {
@@ -31,20 +32,17 @@ final class OnboardingCoordinator: @MainActor TabCoordinatable {
     }
 
     // MARK: Routes
+    // The route table: one line per destination, with the bodies in
+    // OnboardingCoordinator+Factory.swift. These declarations have to stay in the class
+    // body — @Scaffoldable scans only the class declaration, so a route
+    // moved to an extension is silently untracked.
     // (some View, some View) ⇒ a view-only tab plus its label.
 
-    func welcome() -> (some View, some View) {
-        (WelcomeView(), pageLabel("Welcome", symbol: "hand.wave"))
-    }
+    func welcome() -> (some View, some View) { makeWelcome() }
 
-    func preferences() -> (some View, some View) {
-        (PreferencesStepView(viewModel: OnboardingViewModel(store: store)),
-         pageLabel("Preferences", symbol: "slider.horizontal.3"))
-    }
+    func preferences() -> (some View, some View) { makePreferences() }
 
-    func ready() -> (some View, some View) {
-        (ReadyView(), pageLabel("Ready", symbol: "checkmark.seal"))
-    }
+    func ready() -> (some View, some View) { makeReady() }
 
     // Genuinely needs @ScaffoldingIgnored: declared in the class body and
     // returning `some View`, so the macro would otherwise emit a bogus
