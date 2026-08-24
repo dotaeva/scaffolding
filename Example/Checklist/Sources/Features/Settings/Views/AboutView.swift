@@ -20,6 +20,7 @@ struct AboutView: View {
                 row("plus.circle", "NewTodoCoordinator", "returns a value; routeAndWait inside a modal")
                 row("hand.wave", "OnboardingCoordinator", "a paged TabCoordinatable — pages are tabs, bar hidden")
                 row("tag", "TagPickerCoordinator", "injectsCoordinator: false, init-injected instead")
+                row("arrow.triangle.branch", "PlaygroundCoordinator", "a console for every navigation call — its own tab")
             }
             Section {
                 Label("Shake (⌃⌘Z in the simulator) or ⇧⌘D on Mac dumps the live tree.",

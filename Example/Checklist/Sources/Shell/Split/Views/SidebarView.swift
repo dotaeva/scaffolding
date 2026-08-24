@@ -41,6 +41,7 @@ struct SidebarView: View {
             }
         }
         .navigationTitle("Checklist")
+        .navigationSplitViewColumnWidth(min: 240, ideal: 280, max: 360)
         .toolbar { toolbar }
         .alert("New List", isPresented: $viewModel.isAddingList) {
             // A single-field prompt is a native alert, not a coordinator

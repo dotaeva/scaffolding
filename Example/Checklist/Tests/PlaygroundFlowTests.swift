@@ -3,7 +3,7 @@ import Scaffolding
 import ScaffoldingTesting
 @testable import Checklist
 
-/// The playground's own flow: the push and pop family it exists to show.
+/// The playground exercises the whole navigation API, so its tests do too.
 @MainActor
 @Suite("Playground flow")
 struct PlaygroundFlowTests {
@@ -11,57 +11,72 @@ struct PlaygroundFlowTests {
         PlaygroundCoordinator().activated()
     }
 
-    @Test("pushing chains, because the policy is .always")
-    func pushChains() {
+    @Test("pushing chains, and .distinct guards a repeat of the same case")
+    func pushes() {
         let flow = makeFlow()
 
         flow.push()
         flow.push()
-
-        #expect(flow.depth == 2)
         #expect(flow.count(of: .playground) == 2)
+
+        flow.pushLeafDistinct()
+        flow.pushLeafDistinct()   // same case on top — skipped
+        #expect(flow.count(of: .leaf) == 1)
     }
 
-    @Test("replaceLast swaps the top screen so back skips it")
-    func replaceTop() {
+    @Test("onDismiss counts the pushed leaves that leave")
+    func onDismissCounts() {
+        let flow = makeFlow()
+        flow.pushLeaf()
+        flow.pushLeaf()
+
+        flow.popToRoot()
+
+        #expect(flow.dismissals == 2)
+    }
+
+    @Test("replaceLast swaps the top; setRoot clears the stack")
+    func replaceAndSetRoot() {
         let flow = makeFlow()
         flow.push()
 
         flow.replaceTop()
-
-        #expect(flow.depth == 1)          // replaced, not stacked
-        flow.pop()
-        #expect(flow.depth == 0)
-    }
-
-    @Test("pop and pop(n) walk the stack back down")
-    func popFamily() {
-        let flow = makeFlow()
-        for _ in 0..<4 { flow.push() }
-        #expect(flow.depth == 4)
-
-        flow.pop()
-        #expect(flow.depth == 3)
-        flow.pop(2)
         #expect(flow.depth == 1)
-        flow.popToRoot()
+        #expect(flow.topDestination == .leaf)
+
+        flow.swapRoot()
         #expect(flow.depth == 0)
+        #expect(flow.topDestination == .leaf)
+        flow.restoreRoot()
         #expect(flow.topDestination == .playground)
     }
 
-    @Test("meta-based pops match the root when it shares the case")
-    func metaPopsMatchTheRoot() {
+    @Test("meta-based pops aim at a case, popToRoot clears everything")
+    func popFamily() {
         let flow = makeFlow()
-        for _ in 0..<3 { flow.push() }
+        flow.pushLeaf()
+        flow.push()
+        flow.pushLeaf()
+        #expect(flow.depth == 3)
 
-        // The root is `.playground` too, and popToFirst/popToLast compare
-        // cases — so the first match *is* the root and both behave like
-        // popToRoot here. On a stack of mixed cases they stop mid-stack.
-        flow.popToFirst(.playground)
+        flow.popToFirst(.leaf)
+        #expect(flow.depth == 1)      // back to the first leaf
+        flow.popToRoot()
         #expect(flow.depth == 0)
+    }
 
-        for _ in 0..<3 { flow.push() }
-        flow.popToLast(.playground)
+    @Test("a pushed child coordinator shares the stack and dismisses itself")
+    func childCoordinator() {
+        let flow = makeFlow()
+
+        let child = flow.route(to: .child, expecting: PlaygroundChildCoordinator.self)?.activated()
+        #expect(child != nil)
+        #expect(child?.ancestor(ofType: PlaygroundCoordinator.self) === flow)
+
+        child?.pushGrandchild()
+        #expect(child?.depth == 1)
+
+        child?.dismissCoordinator()   // the whole child, not one screen
         #expect(flow.depth == 0)
     }
 }

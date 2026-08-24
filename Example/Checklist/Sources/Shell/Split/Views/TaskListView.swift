@@ -26,6 +26,8 @@ struct TaskListView: View {
             #endif
         }
         .navigationTitle(viewModel.title)
+        // Wide enough for a title plus its list-and-date subtitle.
+        .navigationSplitViewColumnWidth(min: 320, ideal: 380, max: 520)
         .toolbar { TaskListToolbar(store: viewModel.store, onAdd: onAdd) }
         .refreshable { await viewModel.sync() }
         .overlay {

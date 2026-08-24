@@ -41,7 +41,8 @@ public class FlowStack<Coordinator: FlowCoordinatable>: AnyFlowStack {
     public weak var parent: (any Coordinatable)?
     /// Whether a parent flow coordinator provides the `NavigationStack`.
     public var hasLayerNavigationCoordinator: Bool = false
-    /// The default animation used for root transitions.
+    /// The animation used for this flow's transitions — root swaps and
+    /// pushes/pops alike.
     public var animation: Animation? = .default
     /// The presentation type when this flow was presented modally.
     public var presentedAs: PresentationType?
@@ -139,7 +140,13 @@ public class FlowStack<Coordinator: FlowCoordinatable>: AnyFlowStack {
 @MainActor
 extension FlowStack {
     func push(destination: Destination) {
-        destinations.append(destination)
+        // A path change with no transaction is applied without animation by
+        // NavigationStack on macOS, so the push snapped there while iOS
+        // animated it either way. Carrying the stack's animation makes the
+        // same call behave the same on both.
+        withAnimation(animation) {
+            destinations.append(destination)
+        }
     }
 
     func pop() {
@@ -147,7 +154,7 @@ extension FlowStack {
             coordinator?.dismissCoordinator()
             return
         }
-        let removed = destinations.removeLast()
+        let removed = withAnimation(animation) { destinations.removeLast() }
         removed.resolveDismissal()
     }
 
@@ -155,7 +162,9 @@ extension FlowStack {
         let removeCount = min(max(count, 0), destinations.count)
         guard removeCount > 0 else { return }
         let removed = Array(destinations.suffix(removeCount))
-        destinations.removeLast(removeCount)
+        withAnimation(animation) {
+            destinations.removeLast(removeCount)
+        }
         for destination in removed {
             destination.resolveDismissal()
         }
@@ -163,7 +172,9 @@ extension FlowStack {
 
     func popToRoot() {
         let removed = destinations
-        destinations.removeAll()
+        withAnimation(animation) {
+            destinations.removeAll()
+        }
         for destination in removed {
             destination.resolveDismissal()
         }
@@ -188,8 +199,10 @@ extension FlowStack {
 
         let newCount = firstIndex + 1
         if destinations.count > newCount {
-            let removed = destinations[newCount...]
-            destinations.removeSubrange(newCount...)
+            let removed = Array(destinations[newCount...])
+            withAnimation(animation) {
+                destinations.removeSubrange(newCount...)
+            }
             for destination in removed {
                 destination.resolveDismissal()
             }
@@ -217,8 +230,10 @@ extension FlowStack {
 
         let newCount = lastIndex + 1
         if destinations.count > newCount {
-            let removed = destinations[newCount...]
-            destinations.removeSubrange(newCount...)
+            let removed = Array(destinations[newCount...])
+            withAnimation(animation) {
+                destinations.removeSubrange(newCount...)
+            }
             for destination in removed {
                 destination.resolveDismissal()
             }
