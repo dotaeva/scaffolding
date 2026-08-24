@@ -50,7 +50,19 @@ extension Todo {
         return Calendar.current.isDateInToday(dueDate) || isOverdue
     }
 
+    /// "Today, 20:15" / "Yesterday, 19:15" / "Wed, 09:00" / "3 Sept" —
+    /// absolute dates only once relative ones stop being useful.
     var dueDescription: String? {
-        dueDate?.formatted(date: .abbreviated, time: .shortened)
+        guard let dueDate else { return nil }
+        let calendar = Calendar.current
+        let time = dueDate.formatted(date: .omitted, time: .shortened)
+        if calendar.isDateInToday(dueDate) { return "Today, \(time)" }
+        if calendar.isDateInTomorrow(dueDate) { return "Tomorrow, \(time)" }
+        if calendar.isDateInYesterday(dueDate) { return "Yesterday, \(time)" }
+        let days = calendar.dateComponents([.day], from: .now, to: dueDate).day ?? 0
+        if (0...6).contains(days) {
+            return dueDate.formatted(.dateTime.weekday(.abbreviated).hour().minute())
+        }
+        return dueDate.formatted(.dateTime.day().month(.abbreviated))
     }
 }

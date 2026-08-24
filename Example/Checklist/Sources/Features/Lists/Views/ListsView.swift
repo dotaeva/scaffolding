@@ -10,10 +10,20 @@ struct ListsView: View {
             Section {
                 ForEach(viewModel.smartLists) { smart in
                     Button { coordinator.showTasks(in: .smart(smart)) } label: {
-                        Label(smart.name, systemImage: smart.symbol)
-                            .foregroundStyle(.primary)
-                            .badge(viewModel.count(for: smart))
+                        HStack {
+                            Label {
+                                Text(smart.name).foregroundStyle(.primary)
+                            } icon: {
+                                Image(systemName: smart.symbol)
+                                    .foregroundStyle(smart.tint)
+                            }
+                            Spacer()
+                            Text("\(viewModel.count(for: smart))")
+                                .foregroundStyle(.secondary)
+                                .monospacedDigit()
+                        }
                     }
+                    .buttonStyle(.plain)
                 }
             }
             Section("My Lists") {

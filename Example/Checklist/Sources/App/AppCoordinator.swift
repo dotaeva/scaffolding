@@ -95,6 +95,6 @@ extension AppCoordinator {
     // In an extension the macro never sees this — no @ScaffoldingIgnored
     // needed, unlike a `some View` helper in the class body.
     func customize(_ view: AnyView) -> some View {
-        view.fontDesign(.rounded)
+        view.tint(.blue)
     }
 }

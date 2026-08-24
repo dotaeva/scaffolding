@@ -18,7 +18,7 @@ struct TabDynamicTests {
 
         tabs.setStatsTab(enabled: true)
         tabs.setStatsTab(enabled: true)          // guarded — no duplicate
-        #expect(tabs.tabItems.tabs.count == 5)
+        #expect(tabs.tabItems.tabs.count == 6)
 
         tabs.setStatsTab(enabled: false)
         #expect(!tabs.isInTabItems(.stats))
@@ -30,11 +30,11 @@ struct TabDynamicTests {
         tabs.insertTab(.stats, at: 1)
         tabs.appendTab(.stats)
         tabs.selectLastTab(.stats)
-        #expect(tabs.hierarchyContains(MainTabCoordinator.self, .stats, as: .tab(index: 5, isSelected: true)))
+        #expect(tabs.hierarchyContains(MainTabCoordinator.self, .stats, as: .tab(index: 6, isSelected: true)))
 
         tabs.removeLastTab(.stats)
-        tabs.setTabs([.today, .lists, .search, .settings])
-        #expect(tabs.tabItems.tabs.count == 4)
+        tabs.setTabs([.today, .lists, .search, .playground, .settings])
+        #expect(tabs.tabItems.tabs.count == 5)
         #expect(!tabs.isInTabItems(.stats))
     }
 

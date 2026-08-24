@@ -63,6 +63,7 @@ struct AppRootTests {
         app.handle(URL(string: "checklist://list/home")!)
 
         #expect(app.hierarchyContains(MainTabCoordinator.self, .lists, as: .tab(index: 1, isSelected: true)))
+        #expect(app.hierarchyContains(MainTabCoordinator.self, .playground, as: .tab(index: 3, isSelected: false)))
         #expect(app.hierarchyContains(ListsCoordinator.self, .tasks, as: .push))
     }
 

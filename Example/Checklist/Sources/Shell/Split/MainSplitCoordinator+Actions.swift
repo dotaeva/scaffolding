@@ -29,6 +29,13 @@ extension MainSplitCoordinator {
         setDetail(.detail(todo: todo))
     }
 
+    /// Sidebar → Playground: it takes over the detail column, so the task
+    /// list stays put and "back" is just another sidebar tap.
+    func showPlayground() {
+        selectedTodoID = nil
+        setDetail(.playground, policy: .distinct)
+    }
+
     func clearDetail() {
         selectedTodoID = nil
         setDetail(.noSelection, policy: .distinct)

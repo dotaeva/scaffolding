@@ -15,7 +15,6 @@ struct SettingsDebugSection: View {
             LabeledContent("flow.routeType", value: caseLabel(coordinator.routeType))
             LabeledContent("flow.depth", value: "\(coordinator.depth)")
             LabeledContent("isPresentingModal", value: String(coordinator.isPresentingModal))
-            Button("Navigation Playground") { coordinator.showPlayground() }
             Button("Coordinator Tree") { coordinator.showTree() }
             Button("Dismiss All Modals") { coordinator.closeAllModals() }
         }

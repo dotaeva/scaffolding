@@ -51,6 +51,17 @@ struct SplitShellTests {
         #expect(split.selectedTodoID == nil)
     }
 
+    @Test("the playground takes over the detail column")
+    func playgroundInDetail() {
+        let split = makeShell()
+
+        split.showPlayground()
+
+        #expect(split.detailDestination == .playground)
+        #expect(split.selectedTodoID == nil)
+        #expect(split.descendant(ofType: PlaygroundCoordinator.self) != nil)
+    }
+
     @Test("a pushed screen inside the detail column stays in that flow")
     func pushInsideDetail() {
         let split = makeShell()

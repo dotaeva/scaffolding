@@ -57,6 +57,7 @@ final class OnboardingCoordinator: @MainActor TabCoordinatable {
         view
             .tabViewStyle(.page(indexDisplayMode: .never))
             .safeAreaInset(edge: .bottom) { PageIndicator() }
+            .background(Color.groupedBackground.ignoresSafeArea())
         #else
         view
         #endif

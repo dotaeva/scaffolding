@@ -33,7 +33,6 @@ struct WelcomeView: View {
         }
         .padding(28)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.groupedBackground.ignoresSafeArea())
     }
 }
 

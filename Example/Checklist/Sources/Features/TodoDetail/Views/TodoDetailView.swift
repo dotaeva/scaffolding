@@ -52,6 +52,9 @@ struct TodoDetailView: View {
             }
         }
         .formStyle(.grouped)
+        #if os(iOS)
+        .contentMargins(.bottom, 24, for: .scrollContent)
+        #endif
         .navigationTitle(viewModel.todo.title.nilIfEmpty ?? "Task")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)

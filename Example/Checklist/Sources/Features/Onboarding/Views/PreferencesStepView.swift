@@ -40,6 +40,5 @@ struct PreferencesStepView: View {
                 .padding(.bottom, 8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.groupedBackground.ignoresSafeArea())
     }
 }

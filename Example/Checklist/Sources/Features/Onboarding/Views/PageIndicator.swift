@@ -25,7 +25,6 @@ struct PageIndicator: View {
         .animation(.snappy, value: coordinator.tabItems.selectedTab)
         .padding(.vertical, 14)
         .frame(maxWidth: .infinity)
-        .background(Color.groupedBackground)
     }
 
     private func isSelected(_ page: Destination) -> Bool {

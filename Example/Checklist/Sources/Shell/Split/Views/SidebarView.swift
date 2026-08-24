@@ -11,16 +11,26 @@ struct SidebarView: View {
         List(selection: selection) {
             Section {
                 ForEach(viewModel.smartLists) { smart in
-                    Label(smart.name, systemImage: smart.symbol)
-                        .foregroundStyle(.primary)
-                        .badge(viewModel.count(for: smart))
-                        .tag(TaskSource.smart(smart))
+                    Label {
+                        Text(smart.name)
+                    } icon: {
+                        Image(systemName: smart.symbol)
+                            .foregroundStyle(smart.tint)
+                    }
+                    .badge(viewModel.count(for: smart))
+                    .tag(TaskSource.smart(smart))
                 }
             }
+            SidebarDeveloperSection()
             Section("My Lists") {
                 ForEach(viewModel.lists) { list in
-                    Label(list.name, systemImage: list.symbol)
-                        .badge(viewModel.count(for: list))
+                    Label {
+                        Text(list.name)
+                    } icon: {
+                        Image(systemName: list.symbol)
+                            .foregroundStyle(list.color)
+                    }
+                    .badge(viewModel.count(for: list))
                         .tag(TaskSource.list(list))
                         .contextMenu {
                             Button("Delete List", systemImage: "trash", role: .destructive) {
@@ -45,7 +55,7 @@ struct SidebarView: View {
             titleVisibility: .visible
         ) {
             Button("Delete List and Tasks", role: .destructive) {
-                if let list = viewModel.pendingDeletion { viewModel.delete(list) }
+                viewModel.pendingDeletion.map(viewModel.delete)
             }
         }
     }

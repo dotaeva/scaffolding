@@ -13,19 +13,6 @@ struct SettingsFlowTests {
         SettingsCoordinator(store: store).activated()
     }
 
-    @Test("replaceLast swaps the top screen so back skips it")
-    func replaceLast() {
-        let flow = makeFlow()
-        flow.showPlayground()
-        #expect(flow.depth == 1)
-
-        flow.replaceLast(with: .playground)
-
-        #expect(flow.depth == 1)          // replaced, not stacked
-        flow.pop()
-        #expect(flow.depth == 0)
-    }
-
     @Test("the same route can be pushed or presented")
     func pushOrPresent() {
         let flow = makeFlow()

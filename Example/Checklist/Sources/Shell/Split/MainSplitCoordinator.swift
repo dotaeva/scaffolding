@@ -74,6 +74,9 @@ final class MainSplitCoordinator: @MainActor SplitCoordinatable {
         TodoDetailCoordinator(todo: todo, store: store)
     }
 
+    /// The playground, shown in the detail column from a sidebar row.
+    func playground() -> any Coordinatable { PlaygroundCoordinator() }
+
     /// Modal sub-flow that hands a new task back to its presenter.
     func newTodo(source: TaskSource) -> any Coordinatable {
         NewTodoCoordinator(source: source, store: store)

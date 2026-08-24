@@ -11,29 +11,43 @@ struct TodoRow: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 12) {
             Button(action: toggle) {
-                Image(systemName: todo.isDone ? "largecircle.fill.circle" : "circle")
-                    .font(.title3)
+                Image(systemName: todo.isDone ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 20))
+                    .foregroundStyle(todo.isDone ? Color.accentColor : .secondary)
                     .contentTransition(.symbolEffect(.replace))
             }
             .buttonStyle(.plain)
             .accessibilityLabel(todo.isDone ? "Mark as not done" : "Mark as done")
 
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 4) {
-                    if let marker = todo.priority.marker {
-                        Text(marker)
-                            .foregroundStyle(todo.priority.tint)
-                            .fontWeight(.semibold)
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 6) {
+                    if todo.priority != .none {
+                        // A quiet dot carries priority; "!!!" shouted.
+                        Circle()
+                            .fill(todo.priority.tint)
+                            .frame(width: 7, height: 7)
+                            .accessibilityLabel("\(todo.priority.name) priority")
                     }
                     Text(todo.title)
                         .strikethrough(todo.isDone, color: .secondary)
                         .foregroundStyle(todo.isDone ? .secondary : .primary)
                 }
-                if let subtitle {
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundStyle(todo.isOverdue ? .red : .secondary)
+                // Only the date turns red when it is overdue — the list
+                // name is not the alarming part.
+                HStack(spacing: 4) {
+                    if let listName {
+                        Text(listName)
+                            .foregroundStyle(.secondary)
+                        if todo.dueDescription != nil {
+                            Text("·").foregroundStyle(.tertiary)
+                        }
+                    }
+                    if let due = todo.dueDescription {
+                        Text(due)
+                            .foregroundStyle(todo.isOverdue ? .red : .secondary)
+                    }
                 }
+                .font(.caption)
             }
 
             Spacer(minLength: 0)
@@ -46,12 +60,6 @@ struct TodoRow: View {
         }
     }
 
-    private var subtitle: String? {
-        [listName, todo.dueDescription]
-            .compactMap { $0 }
-            .joined(separator: " · ")
-            .nilIfEmpty
-    }
 }
 
 extension String {

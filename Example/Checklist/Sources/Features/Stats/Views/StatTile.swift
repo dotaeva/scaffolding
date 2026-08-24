@@ -19,6 +19,6 @@ struct StatTile: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 8)
-        .background(.raisedBackground, in: .rect(cornerRadius: 10))
+        .background(Color.groupedBackground, in: .rect(cornerRadius: 10))
     }
 }

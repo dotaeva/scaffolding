@@ -17,7 +17,7 @@ struct TabShellTests {
         #expect(tabs.hierarchyContains(MainTabCoordinator.self, .today, as: .tab(index: 0, isSelected: true)))
 
         tabs.selectFirstTab(.settings)
-        #expect(tabs.hierarchyContains(MainTabCoordinator.self, .settings, as: .tab(index: 3, isSelected: true)))
+        #expect(tabs.hierarchyContains(MainTabCoordinator.self, .settings, as: .tab(index: 4, isSelected: true)))
 
         tabs.select(index: 2)
         #expect(tabs.hierarchyContains(MainTabCoordinator.self, .search, as: .tab(index: 2, isSelected: true)))
@@ -55,6 +55,21 @@ struct TabShellTests {
         tabs.dismissModal()
         store.toggleDone(store.todos[0])
         #expect(tabs.shouldSelect(tab: .stats, isReselection: false))
+    }
+
+    @Test("the playground is a first-class tab with its own stack")
+    func playgroundTab() {
+        let tabs = makeShell()
+
+        let flow = tabs.selectFirstTab(.playground, expecting: PlaygroundCoordinator.self)?.activated()
+        flow?.push()
+
+        #expect(tabs.hierarchyContains(MainTabCoordinator.self, .playground, as: .tab(index: 3, isSelected: true)))
+        #expect(flow?.depth == 1)
+
+        // Re-tapping the tab pops it, like every other tab.
+        _ = tabs.shouldSelect(tab: .playground, isReselection: true)
+        #expect(flow?.depth == 0)
     }
 
     @Test("cross-tab actions select the tab and drive its flow")

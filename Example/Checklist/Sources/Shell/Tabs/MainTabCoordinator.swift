@@ -10,7 +10,9 @@ import Scaffolding
 @Observable
 @Scaffoldable(codable: true)
 final class MainTabCoordinator: @MainActor TabCoordinatable {
-    var tabItems = TabItems<MainTabCoordinator>(tabs: [.today, .lists, .search, .settings])
+    var tabItems = TabItems<MainTabCoordinator>(
+        tabs: [.today, .lists, .search, .playground, .settings]
+    )
 
     let store: TodoStore
 
@@ -20,6 +22,7 @@ final class MainTabCoordinator: @MainActor TabCoordinatable {
         setTabAccessibilityIdentifier("tab.today", for: .today)
         setTabAccessibilityIdentifier("tab.lists", for: .lists)
         setTabAccessibilityIdentifier("tab.search", for: .search)
+        setTabAccessibilityIdentifier("tab.playground", for: .playground)
         setTabAccessibilityIdentifier("tab.settings", for: .settings)
     }
 
@@ -37,6 +40,11 @@ final class MainTabCoordinator: @MainActor TabCoordinatable {
     /// system search tab.
     func search() -> (any Coordinatable, some View, TabRole) {
         (SearchCoordinator(store: store), Label("Search", systemImage: "magnifyingglass"), .search)
+    }
+
+    /// The navigation playground, a first-class tab.
+    func playground() -> (any Coordinatable, some View) {
+        (PlaygroundCoordinator(), Label("Playground", systemImage: "arrow.triangle.branch"))
     }
 
     func settings() -> (any Coordinatable, some View) {
@@ -66,6 +74,7 @@ extension MainTabCoordinator {
             case .today: selectFirstTab(.today) { (c: TodayCoordinator) in c.popToRoot() }
             case .lists: selectFirstTab(.lists) { (c: ListsCoordinator) in c.popToRoot() }
             case .search: selectFirstTab(.search) { (c: SearchCoordinator) in c.popToRoot() }
+            case .playground: selectFirstTab(.playground) { (c: PlaygroundCoordinator) in c.popToRoot() }
             case .settings: selectFirstTab(.settings) { (c: SettingsCoordinator) in c.popToRoot() }
             default: break
             }

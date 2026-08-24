@@ -26,8 +26,6 @@ final class SettingsCoordinator: @MainActor FlowCoordinatable {
         TagsView(viewModel: SettingsViewModel(store: store))
     }
 
-    func playground() -> some View { PlaygroundView() }
-
     func about() -> some View { AboutView() }
 
     /// The debug sheet, here as a *pushed* screen — its chrome adapts,
@@ -52,11 +50,6 @@ extension SettingsCoordinator {
 
 extension SettingsCoordinator {
     func showTags() { route(to: .tags, policy: .distinct) }
-    func showPlayground() { route(to: .playground, policy: .distinct) }
-
-    /// The playground's own push button: `.always`, so the stack actually
-    /// grows and the pop family has something to take apart.
-    func pushAnotherPlayground() { route(to: .playground) }
     func showAbout() { route(to: .about, policy: .distinct) }
     func showTree() { route(to: .tree, policy: .distinct) }
 
