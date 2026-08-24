@@ -118,23 +118,36 @@ the same ground in one file.
 
 ## Example Project
 
-[`Example/Weather`](Example/Weather) is a Weather-style app that exercises the
-whole library from a single multiplatform target — iPhone, iPad, and native
-macOS. iPhone gets a `TabCoordinatable` shell (tab tuples with labels and a
-`TabRole`, a badge, a dynamic Radar tab, `shouldSelect` interception); iPad and
-macOS get a `SplitCoordinatable` shell (sidebar → detail replacement, a runtime
-Hourly content column, visibility control, split-hosted sheets). Both shells
-feed the same flows: pushes with every `RoutePolicy`, `replaceLast`, every pop
-variant, awaited results (`routeAndWait`, `presentAndWait`,
-`present(_:awaiting:)` + `dismissCoordinator(returning:)`), presenter-side
-sheet configuration and dismissal, an atomic onboarding root swap, `weather://`
-deep links through both layouts, whole-tree state restoration, and the
-orientation/debug surface. Every source file stays under 100 lines, and
-[40 unit tests](Example/Weather/Tests) run against the shipping coordinators on
-both platforms:
+[`Example/Checklist`](Example/Checklist) is a Reminders-style task app that
+exercises the whole library from a single multiplatform target — iPhone, iPad,
+and native macOS — using stock SwiftUI components throughout (`List`, `Form`,
+`Table` on Mac, `.searchable` with scopes, swipe actions, context menus,
+`ContentUnavailableView`, Swift Charts, alerts and confirmation dialogs).
+
+The shell adapts to the device and is injectable for tests: iPhone gets a
+`TabCoordinatable` (tab tuples with a label and a `TabRole`, an overdue badge,
+a dynamic Stats tab, `shouldSelect` gating and re-tap pop-to-root); iPad and
+Mac get a three-column `SplitCoordinatable` (lists → tasks → task, a focus
+mode that drops the middle column at runtime, column visibility, split-hosted
+sheets). Both feed the same flows, so `TodoDetailCoordinator` is *pushed* on
+iPhone and *installed as a column* on iPad with no conditional code.
+
+Also covered: every `RoutePolicy` and pop variant, `replaceLast`, seeded
+`FlowStack(root:pushing:)`, presenter-side sheet configuration, view-only
+modals closed by their presenter, `routeAndWait` / `presentAndWait` /
+`present(_:awaiting:)` with `dismissCoordinator(returning:)`, an atomic
+onboarding root swap, `ancestor(ofType:)`, `injectsCoordinator: false`,
+`checklist://` deep links through both shells, whole-tree state restoration
+with graceful degradation, and a navigation playground wired to the
+orientation API.
+
+Structure is MVVM per feature — coordinators own navigation, ViewModels own
+data and intents, views own layout, and the store owns the domain. Every file
+stays under 100 lines, and [62 unit tests](Example/Checklist/Tests) run
+against the shipping coordinators on both platforms:
 
 ```sh
-open Example/Weather/Weather.xcodeproj
+open Example/Checklist/Checklist.xcodeproj
 ```
 
 ⌘R runs the app (pick an iPhone, iPad, or My Mac destination), ⌘U runs the
