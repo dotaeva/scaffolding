@@ -18,5 +18,6 @@ struct SyncingOverlay: View {
         }
         .padding(32)
         .frame(maxWidth: 380)
+        .sheetSizing(minHeight: 220, idealHeight: 260)
     }
 }

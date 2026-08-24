@@ -28,6 +28,16 @@ final class NewTodoCoordinator: @MainActor FlowCoordinatable {
     func listPicker() -> some View { ListPickerView(viewModel: draft) }
 }
 
+// MARK: - Chrome
+
+extension NewTodoCoordinator {
+    /// Always presented modally, so it always needs a Mac sheet size —
+    /// the pushed list picker inherits it.
+    func customize(_ view: AnyView) -> some View {
+        view.sheetSizing(minHeight: 480)
+    }
+}
+
 // MARK: - Steps
 
 extension NewTodoCoordinator {

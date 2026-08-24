@@ -38,6 +38,16 @@ final class SettingsCoordinator: @MainActor FlowCoordinatable {
     func syncing() -> some View { SyncingOverlay() }
 }
 
+// MARK: - Chrome
+
+extension SettingsCoordinator {
+    /// Declared in an extension, so the macro never sees it. Sizes the flow
+    /// when it is presented as a sheet — including whatever it pushes.
+    func customize(_ view: AnyView) -> some View {
+        view.sheetSizing()
+    }
+}
+
 // MARK: - Navigation
 
 extension SettingsCoordinator {

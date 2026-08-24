@@ -48,5 +48,8 @@ struct PlaygroundView: View {
             }
         }
         .navigationTitle("Playground")
+        // This screen is pushed *and* presented as a sheet; on macOS the
+        // presented copy has no navigation container to size it.
+        .sheetSizing()
     }
 }

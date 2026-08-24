@@ -33,7 +33,7 @@ struct HierarchySheet: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
         .padding(20)
-        .frame(minWidth: 320, minHeight: 260)
+        .sheetSizing(minWidth: 560, idealWidth: 720, minHeight: 400, idealHeight: 520)
         .onAppear { refresh() }
     }
 

@@ -25,5 +25,6 @@ struct StatsLockedSheet: View {
         }
         .padding(28)
         .frame(maxWidth: 420)
+        .sheetSizing(minHeight: 260, idealHeight: 300)
     }
 }

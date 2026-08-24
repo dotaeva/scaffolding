@@ -42,5 +42,6 @@ struct FocusSessionView: View {
                 .buttonStyle(.bordered)
                 .padding(20)
         }
+        .sheetSizing(minHeight: 380, idealHeight: 460)
     }
 }

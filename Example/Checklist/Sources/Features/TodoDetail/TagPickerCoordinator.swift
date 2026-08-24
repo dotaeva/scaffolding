@@ -30,6 +30,14 @@ final class TagPickerCoordinator: @MainActor FlowCoordinatable {
     }
 }
 
+// MARK: - Chrome
+
+extension TagPickerCoordinator {
+    func customize(_ view: AnyView) -> some View {
+        view.sheetSizing(minHeight: 320, idealHeight: 380)
+    }
+}
+
 // MARK: - Result
 
 extension TagPickerCoordinator {
