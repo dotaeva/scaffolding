@@ -30,12 +30,12 @@ struct SettingsFlowTests {
     func pushOrPresent() {
         let flow = makeFlow()
 
-        flow.showPlayground()
-        flow.present(.playground, as: .sheet)
+        flow.showTree()
+        flow.present(.tree, as: .sheet)
 
         #expect(flow.depth == 1)          // the push
         #expect(flow.isPresentingModal)   // and the modal, side by side
-        #expect(flow.count(of: .playground) == 2)
+        #expect(flow.count(of: .tree) == 2)
     }
 
     @Test("the sync overlay is presenter-guarded and presenter-closed")
@@ -57,7 +57,7 @@ struct SettingsFlowTests {
     func dismissAll() {
         let flow = makeFlow()
         flow.showAbout()
-        flow.present(.playground, as: .sheet)
+        flow.present(.syncing, as: .sheet)
         flow.present(.tree, as: .fullScreenCover)
 
         flow.closeAllModals()
@@ -70,7 +70,7 @@ struct SettingsFlowTests {
     func modalOnDismiss() {
         let flow = makeFlow()
         var dismissals = 0
-        flow.present(.playground, as: .sheet, onDismiss: { dismissals += 1 })
+        flow.present(.tree, as: .sheet, onDismiss: { dismissals += 1 })
 
         flow.dismissModal()
         flow.dismissModal()               // nothing up — safe no-op
