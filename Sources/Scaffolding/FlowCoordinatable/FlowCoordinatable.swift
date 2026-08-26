@@ -203,6 +203,44 @@ private extension FlowCoordinatable {
     private func reconstructDestinations(from flattenedDestinations: [Destination], for presentationType: PresentationType) {
         var flatIndex = 0
 
+        /// Destinations the incoming path no longer contains.
+        ///
+        /// SwiftUI writes a shorter path whenever the user navigates back —
+        /// the back button, the back swipe, a long-press "pop to root".
+        /// Those destinations are just as gone as after a programmatic
+        /// `pop()`, so they owe their `onDismiss` and any suspended
+        /// `routeAndWait` continuation a resolution. Collected while the
+        /// arrays are rebuilt and resolved once at the end, so callbacks
+        /// observe a settled hierarchy rather than a half-reconstructed one.
+        var dropped: [Destination] = []
+
+        /// A dropped destination takes its subtree with it: the coordinator
+        /// it hosts is unreachable now, so anything pushed *inside* that
+        /// coordinator must resolve too. Walks only already-materialised
+        /// children — tearing a branch down must never build the rest of it.
+        func collectDropped(_ destination: Destination) {
+            dropped.append(destination)
+
+            guard let child = destination.materializedCoordinatable else { return }
+            collectDroppedBelow(child)
+        }
+
+        func collectDroppedBelow(_ coordinatable: any Coordinatable) {
+            if let flow = coordinatable as? any FlowCoordinatable {
+                let nested = flow.anyStack.destinations
+                flow.anyStack.destinations = []
+                for destination in nested { collectDropped(destination) }
+            } else if let tabs = coordinatable as? any TabCoordinatable {
+                for tab in tabs.anyTabItems.tabs {
+                    guard let child = tab.materializedCoordinatable else { continue }
+                    collectDroppedBelow(child)
+                }
+            } else if let root = coordinatable as? any RootCoordinatable,
+                      let child = root.anyRoot.root?.materializedCoordinatable {
+                collectDroppedBelow(child)
+            }
+        }
+
         func reconstructRecursively(for coordinator: any FlowCoordinatable) -> [Destination] {
             var newDestinations: [Destination] = []
 
@@ -229,7 +267,11 @@ private extension FlowCoordinatable {
                                     nestedFlow.anyStack.destinations = reconstructedNested
                                 }
                             }
+                        } else {
+                            collectDropped(originalDestination)
                         }
+                    } else {
+                        collectDropped(originalDestination)
                     }
                 } else {
                     newDestinations.append(originalDestination)
@@ -274,6 +316,14 @@ private extension FlowCoordinatable {
 
         let reconstructed = reconstructRecursively(for: self)
         self.anyStack.destinations = reconstructed
+
+        // Topmost first, matching the order the programmatic pop family
+        // resolves in. `resolveDismissal()` is single-shot, so a
+        // destination already resolved by a `pop()` that SwiftUI is only
+        // now catching up with is a no-op here.
+        for destination in dropped.reversed() {
+            destination.resolveDismissal()
+        }
     }
 }
 
