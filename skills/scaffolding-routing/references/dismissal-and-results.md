@@ -1,72 +1,70 @@
-# Dismissal semantics and result delivery
+# Dismissal and result delivery
 
-## `dismissCoordinator()` — remove the *whole* coordinator
+## Remove one screen or the whole flow
 
-Called on the coordinator being removed. It pops the entire coordinator off its parent — not a screen:
+`dismissCoordinator()` acts on the coordinator being removed:
 
-- Presented as a sheet/cover → closes the modal.
-- Pushed child coordinator → removes the child **and everything pushed after it**.
-- Root of a parent flow's stack → dismisses the parent flow itself.
-- Tab child → **cannot be dismissed**; logs a critical warning, does nothing.
+| Placement | Effect |
+|---|---|
+| Sheet / cover | Closes that modal and preserves queued siblings |
+| Pushed child | Removes the child and the destinations pushed after it |
+| Root inside a flow or root wrapper | Dismisses through the enclosing branch |
+| Tab or split-column child | No removal; these are structural destinations |
+| Top-level coordinator | No-op; there is no parent |
 
-To close a single screen use `pop()` (or `@Environment(\.dismiss)` in the view). The two are not interchangeable:
+Use `pop()` for a step within a flow, or native `@Environment(\.dismiss)` for a
+view's ordinary Back action. `pop()` at an empty stack attempts to dismiss the
+coordinator; `pop(_:)` stops at the root.
 
-```swift
-// ❌ Dismisses the entire coordinator/flow.
-Button("Back") { coordinator.dismissCoordinator() }
+From the presenter, `dismissPresentedModal()` closes the front request in the
+shared host queue. `dismissModal()` removes the latest own request even if it is
+pending. See `modals.md` for ownership and pending cancellation.
 
-// ✅ Pops one screen.
-Button("Back") { coordinator.pop() }
-```
-
-## `onDismiss` — exactly once, every path
-
-Every `route`/`present` accepts `onDismiss:`. It fires **exactly once** no matter how the destination is removed: pop, `popToRoot`, `popToFirst/Last`, back swipe, sheet swipe, `dismissModal`, `setRoot` tearing the stack down, or the coordinator being dismissed. Removals caused by a root swap are cancellations but still fire `onDismiss` — don't assume it means "user completed the screen"; it means "the destination is gone".
-
-## Result delivery pattern 1 — constructor callback
-
-The presenter installs a callback when constructing the child (route-function parameters become enum payloads, so closures ride along):
+## One result: prefer awaiting
 
 ```swift
-// Presenter (AppCoordinator)
-func login(onComplete: @escaping @MainActor (AuthToken) -> Void) -> any Coordinatable {
-    LoginCoordinator(onComplete: onComplete)
-}
-
-func startLogin() {
-    present(.login(onComplete: { [weak self] token in
-        self?.session = token
-    }), as: .sheet)
-}
-
-// Inside LoginCoordinator, when the user finishes:
-func submit() {
-    onComplete(AuthToken(...))   // deliver result
-    dismissCoordinator()         // then dismiss self
-}
-```
-
-The presenter never observes the child's state; the child hands the result through the closure it was constructed with, then dismisses itself. Note: closure payloads make the `Destinations` case non-`Codable`, so they're incompatible with `@Scaffoldable(codable: true)` state restoration.
-
-## Result delivery pattern 2 — `awaiting:` + `dismissCoordinator(returning:)`
-
-For async call sites, skip the callback plumbing entirely:
-
-```swift
-// Presenter — suspends until the modal is gone.
-guard let token = await present(.login, awaiting: AuthToken.self) else {
-    return   // user backed out (swipe, dismissModal, plain dismissCoordinator)
-}
+// Presenter, in an async coordinator action:
+guard let token = await present(.login, awaiting: AuthToken.self) else { return }
 session.store(token)
 
-// Inside LoginCoordinator
-dismissCoordinator(returning: AuthToken(...))
+// Child, when the whole flow has completed:
+dismissCoordinator(returning: token)
 ```
 
-Any dismissal *without* `returning:` (or with a value of the wrong type) resumes the presenter with `nil` — cancellation is handled for free. See `async-navigation.md` for the full await family.
+A view-only destination uses `@Environment(\.destination)` and
+`destination.dismiss(returning: value)`. This targets that exact route. A pushed
+route removes the suffix above it; a child-flow root dismisses its enclosing
+branch. Structural tabs, columns, and top-level roots cannot remove themselves.
+A retained destination handle is inert after its route leaves.
 
-## Choosing
+Ordinary dismissal without a value returns nil. A result-type mismatch also
+returns nil. Cancelling the waiting task returns nil while leaving the route in
+place. Check `Task.isCancelled` after waiting when cancellation needs different
+handling; a nil result alone does not identify the completion reason.
 
-- Fire-and-forget flows, or results consumed in non-async contexts → constructor callback.
-- Linear "ask the user, then continue" logic in async code → `awaiting:`.
-- Both compose with `Codable` restoration only if payloads stay `Codable` (the `awaiting:` pattern keeps cases payload-free, which helps).
+Removed branches detach before their awaiting calls resume, so callers can start
+new navigation safely. Each destination resolves once. Deprecated `onDismiss:`
+overloads follow the same removal lifecycle; do not generate new uses.
+
+## Repeated updates: constructor callbacks
+
+A child that reports several times before dismissal can receive a callback:
+
+```swift
+func editor(onChange: @escaping @MainActor (Draft) -> Void) -> any Coordinatable {
+    EditorCoordinator(onChange: onChange)
+}
+
+func startEditing() {
+    present(.editor(onChange: { [weak self] draft in
+        self?.save(draft)
+    }))
+}
+```
+
+The child calls `onChange` as needed and eventually `dismissCoordinator()`.
+The presenter does not observe the child's internal state. Callback route
+payloads are incompatible with `@Scaffoldable(codable: true)`.
+
+For non-async entry points that need one result, use a task or the combined
+`expecting:` + `awaiting:` overload. See `async-navigation.md`.

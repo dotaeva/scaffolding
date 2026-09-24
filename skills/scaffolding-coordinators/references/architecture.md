@@ -2,7 +2,7 @@
 
 ## The hard rule: never nest `NavigationStack`
 
-`FlowCoordinatable` already wraps a `NavigationStack`. SwiftUI does not compose nested stacks — the inner one swallows pushes and `route(to:)` stops working. **Never** put `NavigationStack`, `NavigationView`, `NavigationSplitView`, or any container holding a `NavigationPath` inside any view returned by a route function — not the root view, not a pushed detail, not a `customize` wrapper.
+`FlowCoordinatable` supplies navigation through a host `NavigationStack`. Pushed child flows share it; modal flows and flows in independent tabs or split columns get their own stack. SwiftUI does not compose nested stacks — the inner one swallows pushes and `route(to:)` stops working. **Never** put `NavigationStack`, `NavigationView`, `NavigationSplitView`, or any container holding a `NavigationPath` inside any view returned by a route function — not the root view, not a pushed detail, not a `customize` wrapper.
 
 ```swift
 // ❌ Breaks routing.
@@ -37,13 +37,13 @@ Is it a push/pop on the current stack?
 | One-screen sheet | native `.sheet(item:)` with local `@State` |
 | Multi-step sub-flow modal | `present(.subflow, as: .sheet)` |
 | Full-screen sub-flow | `present(.subflow, as: .fullScreenCover)` |
-| Close a modal you presented | `dismissModal()` |
+| Close the front modal request | `dismissPresentedModal()` |
 | Close the whole sub-flow from inside | `dismissCoordinator()` |
 | Replace the entire hierarchy | `RootCoordinatable.setRoot(_:)` |
 | Switch tabs programmatically | `selectFirstTab(_:)` / `select(index:)` |
 | Guard/redirect a tab tap | override `shouldSelect(tab:isReselection:)` |
 
-Stay native for view-only modals — lighter, no extra `Destinations` case.
+Prefer native presentation for a local view-only modal. A single-screen route may still use `present` when the coordinator owns its lifecycle or result.
 
 ## Separation of concerns
 
@@ -64,7 +64,7 @@ Deep trees (root → tabs → flows → presented sub-flows) make it easy to los
 
 - **View → nearest coordinator:** `@Environment(HomeCoordinator.self)`. All ancestors are injected too (`@Environment(AppCoordinator.self)` from any depth) — see `scaffolding-environment`.
 - **Coordinator → ancestor:** `ancestor(ofType: AppCoordinator.self)` walks the `parent` chain to the nearest match (`nil` when absent). The right way to expose e.g. a sign-out that belongs to the app root: `ancestor(ofType: AppCoordinator.self)?.setRoot(.unauthenticated)`.
-- **Coordinator → descendant:** typed deep-link closures / `expecting:` overloads (`scaffolding-routing` → `deep-linking.md`). Never store child references.
+- **Coordinator → descendant:** `expecting:` overloads (`scaffolding-routing` → `deep-linking.md`). Never store child references.
 - **Where am I:** `coordinator.routeType` says how the coordinator was presented (`.root` / `.push` / `.sheet` / `.fullScreenCover`; `routeType.isModal` collapses the modal cases). Views ask the same about their own screen via `@Environment(\.destination).routeType` — the two can differ (a view pushed inside a sheet-presented flow reads `.push`; its flow reads `.sheet`). Flow stack queries (`depth`, `topDestination`, `isInStack`, `count(of:)`, `isPresentingModal`) are in `scaffolding-routing` → `push-pop.md`.
 - **Debugging:** `print(coordinator.hierarchyRoot.debugHierarchy())` dumps the whole live tree from anywhere, side-effect-free — verify your mental model against it before changing navigation code (see `scaffolding-state-restoration`).
 
@@ -82,7 +82,7 @@ Deep trees (root → tabs → flows → presented sub-flows) make it easy to los
 ## Compatibility
 
 - Swift 6.2 toolchain (`@Observable`, macros, strict concurrency). Platform floor iOS 18 / macOS 15 / tvOS 18 / watchOS 11 / macCatalyst 18; `TabRole` is available unconditionally.
-- `onDismiss` and deep-link closures are `@MainActor`-typed — annotate closures you forward.
+- Result closures and coordinator actions are `@MainActor`-isolated. Navigation callbacks are deprecated; prefer `expecting:` and `awaiting:`.
 - Native environment values (`\.dismiss`, `\.scenePhase`, `\.openURL`) compose fine; `\.dismiss` works for both pops and modal dismissal because Scaffolding wraps `NavigationStack`.
-- `fullScreenCover` does not exist on macOS — container covers are rendered only on iOS-family platforms; prefer `.sheet` for cross-platform modals.
-- Only **one modal at a time** per layer is supported; presenting a second queues it until the first is dismissed (a runtime warning is logged).
+- On macOS, `.fullScreenCover` renders as a sheet while retaining its recorded route type.
+- A host presents the front request in its shared sheet/cover queue. Presented children have separate hosts. Shared flow requests are collected in hierarchy/path order, not global timestamp order.

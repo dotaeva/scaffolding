@@ -1,13 +1,25 @@
 # Deep linking — typed child resolution
 
-Every navigation method that resolves a child coordinator ships two typed variants:
+Use `expecting:` to navigate and return a resolved child as `T?`: `route`,
+`present`, `setRoot`, `popToFirst` / `popToLast`, tab selection/insertion,
+and split-column setters all support it. A view-only destination, mismatched
+child type, or skipped policy returns nil. The navigation is not undone by a
+child-type mismatch. Typed trailing closures are deprecated; do not generate them.
 
-1. **Trailing closure** — fires once with the resolved child cast to `T`:
-   `route(to:) { (child: T) in }`, `present(_:as:) { ... }`, `setRoot(_:) { ... }`, `popToFirst/Last(_:) { ... }`, `selectFirstTab/selectLastTab(_:) { ... }`, `select(index:/id:) { ... }`, `appendTab/insertTab(_:) { ... }`.
-2. **`expecting:`** — returns `T?` directly, flattening chains:
-   `route(to:expecting:)`, `present(_:as:expecting:)`, `setRoot(_:expecting:)`, `popToFirst/Last(_:expecting:)`, `selectFirstTab(_:expecting:)`, `select(index:expecting:)`, etc.
+For a push or presentation that also returns a dismissal result, combine
+`expecting:` with `awaiting:`. This returns `(coordinator, result)` immediately:
 
-If the destination is view-only, resolves to a different type, or the policy skipped the navigation, the closure doesn't fire / the return is `nil`.
+```swift
+let (settings, result) = present(
+    .settings, expecting: SettingsCoordinator.self, awaiting: Void.self
+)
+settings?.route(to: .account)
+_ = await result()
+```
+
+Only the result closure suspends. See `async-navigation.md` for cancellation,
+policy skips, and type mismatches. This replaces deprecated calls that needed
+both a typed child callback and `onDismiss:`.
 
 ## Walking the tree from a cold launch
 
@@ -21,22 +33,10 @@ final class AppCoordinator: @MainActor RootCoordinatable {
 
     /// Land on a user's profile from a URL / push / quick action.
     func openProfile(userId: Int) {
-        setRoot(.authenticated) { (tab: MainTabCoordinator) in
-            tab.selectFirstTab(.profile) { (profile: ProfileCoordinator) in
-                profile.route(to: .userDetail(id: userId))
-            }
-        }
+        let tabs = setRoot(.authenticated, expecting: MainTabCoordinator.self)
+        let profile = tabs?.selectFirstTab(.profile, expecting: ProfileCoordinator.self)
+        profile?.route(to: .userDetail(id: userId))
     }
-}
-```
-
-The same chain with `expecting:` (flatter, easier to branch):
-
-```swift
-func openProfile(userId: Int) {
-    let tab = setRoot(.authenticated, expecting: MainTabCoordinator.self)
-    let profile = tab?.selectFirstTab(.profile, expecting: ProfileCoordinator.self)
-    profile?.route(to: .userDetail(id: userId))
 }
 ```
 

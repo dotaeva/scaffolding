@@ -46,7 +46,11 @@ tabCoordinator.select(index: 0)          // zero-based
 tabCoordinator.select(id: uuid)          // by tab UUID
 ```
 
-All return `self` for chaining and have typed-callback / `expecting:` variants that hand you the tab's child coordinator (see `scaffolding-routing` → `deep-linking.md`).
+All return `self` for chaining and have `expecting:` overloads that hand you the tab's child coordinator (see `scaffolding-routing` → `deep-linking.md`).
+
+Read `selectedTabDestination` and `selectedTabIndex` for selection queries. They
+resolve initial tabs before first render. Metadata updates preserve tab content
+identity; `setTabs` replaces destinations and resets their navigation state.
 
 ## Intercepting tab taps — `shouldSelect(tab:isReselection:)`
 
@@ -57,7 +61,7 @@ Override to intercept **UI-driven** tab changes. Return `false` to keep the curr
 func shouldSelect(tab: Destinations.Meta, isReselection: Bool) -> Bool {
     if isReselection {
         if tab == .home {
-            selectFirstTab(.home) { (home: HomeCoordinator) in home.popToRoot() }
+            selectFirstTab(.home, expecting: HomeCoordinator.self)?.popToRoot()
         }
         return true
     }
@@ -88,7 +92,7 @@ tabCoordinator.setTabAccessibilityIdentifier(nil, for: .inbox)   // clear
 tabCoordinator.tabAccessibilityIdentifier(for: .inbox)           // read back: String?
 ```
 
-Identifiers are usually static — set them once in the coordinator's `init`. The framework applies them through the native `TabContent` modifier. With a custom tab bar, read the identifier back and apply `.accessibilityIdentifier` to your own button.
+Identifiers are usually static — set them once in the coordinator's `init`. The framework synchronizes them with the native tab item without changing the tab content's identity. With a custom tab bar, read the identifier back and apply `.accessibilityIdentifier` to your own button.
 
 ## Dynamic tabs
 
@@ -103,7 +107,7 @@ tabCoordinator.isInTabItems(.debug)                 // Bool
 
 ## Modals and visibility
 
-A `TabCoordinatable` can `present(_:as:)` modals that render **above the whole `TabView`** (login walls, paywalls, what's-new). `isPresentingModal` reports them; `dismissModal()` removes the top one. Tab **children cannot be dismissed** — calling `dismissCoordinator()` on a tab child logs a critical warning and does nothing; remove the tab instead.
+A `TabCoordinatable` can `present(_:as:)` modals that render **above the whole `TabView`** (login walls, paywalls, what's-new). `isPresentingModal` reports them; `dismissPresentedModal()` closes the front request; `dismissModal()` removes the latest own request, including queued ones. Tab **children cannot be dismissed** — calling `dismissCoordinator()` on a tab child logs a critical warning and does nothing; remove the tab instead.
 
 ```swift
 tabCoordinator.setTabBarVisibility(.hidden)   // .automatic / .visible / .hidden
@@ -115,7 +119,7 @@ To replace the system tab bar with your own UI, stay on `TabCoordinatable` — d
 
 1. **Hide the native bar** — `TabItems(tabs:, visibility: .hidden)` (or `setTabBarVisibility(.hidden)` later).
 2. **Omit the label views.** The `some View` label in the tab tuple only feeds the native tab bar. With a custom bar, tab routes can return plain `any Coordinatable` (or `some View` for a view-only tab) instead of `(any Coordinatable, some View)`. Both are auto-tracked — the macro still generates the cases; the tab simply has no native label.
-3. **Build the bar from the macro-generated values.** The bar is an ordinary view: it reads the coordinator from `@Environment`, renders a button per `Destinations.Meta` case, selects via `selectFirstTab(_:)`, and derives selected state from `tabItems.selectedTab`. Badges come from `badge(for:)`, accessibility identifiers from `tabAccessibilityIdentifier(for:)` (apply with `.accessibilityIdentifier` on the button). Attach it in `customize(_:)`, which wraps the whole `TabView`.
+3. **Build the bar from the macro-generated values.** The bar is an ordinary view: it reads the coordinator from `@Environment`, renders a button per `Destinations.Meta` case, selects via `selectFirstTab(_:)`, and derives selected state from `selectedTabDestination`. Badges come from `badge(for:)`, accessibility identifiers from `tabAccessibilityIdentifier(for:)` (apply with `.accessibilityIdentifier` on the button). Attach it in `customize(_:)`, which wraps the whole `TabView`.
 
 ```swift
 @MainActor @Observable @Scaffoldable
@@ -152,15 +156,14 @@ struct CustomTabBar: View {
         Button {
             coordinator.selectFirstTab(tab)
         } label: {
-            Image(systemName: icon)
+            Label(String(describing: tab), systemImage: icon)
+                .labelStyle(.iconOnly)
                 .foregroundStyle(isSelected(tab) ? Color.accentColor : .secondary)
         }
     }
 
     private func isSelected(_ tab: MainTabCoordinator.Destinations.Meta) -> Bool {
-        coordinator.tabItems.tabs
-            .first { $0.id == coordinator.tabItems.selectedTab }
-            .flatMap { $0.meta as? MainTabCoordinator.Destinations.Meta } == tab
+        coordinator.selectedTabDestination == tab
     }
 }
 ```

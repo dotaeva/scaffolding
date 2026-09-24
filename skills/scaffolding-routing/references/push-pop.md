@@ -5,22 +5,21 @@
 ```swift
 @discardableResult
 func route(to destination: Destinations,
-           policy: RoutePolicy = .always,
-           onDismiss: @escaping @MainActor () -> Void = { }) -> Self
+           policy: RoutePolicy = .always) -> Self
 ```
 
-Pushes onto the flow's stack. There is **no `as:` parameter** — presenting modally is `present(_:as:)`. `onDismiss` fires exactly once when the destination leaves the stack by any path (pop, back swipe, root swap, coordinator dismissal).
+Pushes onto the flow's stack. There is **no `as:` parameter** — presenting modally is `present(_:as:)`. Awaiting calls resolve when the destination leaves by any path (pop, back swipe, root swap, coordinator dismissal). Legacy `onDismiss:` overloads are deprecated.
 
 ```swift
 coordinator.route(to: .detail(item: planet))
 coordinator.route(to: .detail(item: planet), policy: .distinct)   // double-tap guard
-coordinator.route(to: .editor) { print("editor closed") }
+_ = await coordinator.route(to: .editor, awaiting: Void.self)
 ```
 
 ### `RoutePolicy`
 
 - `.always` (default) — apply unconditionally. Use when consecutive same-case pushes are intentional (e.g. recursive folder navigation).
-- `.distinct` — skip the push when the same destination **case** is already on top of the stack (for modals: already presented). Comparison uses `Destinations.Meta` — the case name only, **not** associated values. Two pushes of `.detail(item:)` with different items still count as duplicates.
+- `.distinct` — skip the push when the same destination **case** is already on top of the stack (for modals: an own request of that case already exists, including queued requests). Comparison uses `Destinations.Meta` — the case name only, **not** associated values. Two pushes of `.detail(item:)` with different items still count as duplicates.
 
 ## Pop variants — not interchangeable
 
@@ -32,28 +31,27 @@ coordinator.route(to: .editor) { print("editor closed") }
 | `popToFirst(.detail)` | Pops back to the **first** occurrence of the case (by `Meta`). Matching the root pops to root. No match → no-op. |
 | `popToLast(.detail)` | Same, but the **last** occurrence. |
 
-Every removed destination's `onDismiss` fires exactly once. Prefer `dismissModal()` over `pop()` for closing modals — `pop()` removes whatever is last (and can dismiss the coordinator), while `dismissModal()` only ever touches modals and is a safe no-op otherwise.
+Each removal resolves its result once. Prefer `dismissPresentedModal()` for closing the front modal request. `dismissModal()` removes the latest own request, which may still be queued. Modal helpers never pop screens.
 
 Inside a view, prefer SwiftUI's `@Environment(\.dismiss)` for a plain "back" button — it works for both pops and modal dismissal because Scaffolding wraps `NavigationStack`.
 
-## `replaceLast(with:)`
+## `replaceLast` is deprecated
 
-Replaces the topmost **pushed** destination; the replaced one's `onDismiss` fires. Back then skips the replaced screen — loading→result transitions, wizard steps that shouldn't be revisited:
-
-```swift
-coordinator.replaceLast(with: .paymentResult(outcome: outcome))
-```
-
-When nothing is pushed it behaves like `route(to:)` — the root is never replaced (use `setRoot` for that).
+All `replaceLast` overloads remain only for compatibility and will be removed.
+Do not generate new calls. For an explicit pushed-screen replacement when no
+modal is queued, pop the existing push then route to the next destination.
+Guard `depth > 0` if the flow might already be at its root. Use `setRoot(_:)`
+when the intent is a new flow root. Pop and route resolve callbacks normally;
+they are separate mutations, not an atomic replacement.
 
 ## `setRoot` on a flow
 
 ```swift
-flow.setRoot(.dashboard)                       // clears all pushed destinations first
+flow.setRoot(.dashboard)                       // clears pushed and modal destinations
 flow.setRoot(.dashboard, animation: .snappy)
 ```
 
-Pushed destinations are invalid once the root changes, so they are removed (resolving their `onDismiss`) before the swap.
+Pushed destinations are invalid once the root changes, so they are removed (resolving their awaiting calls without a result) before the swap.
 
 ## Stack queries
 
@@ -81,10 +79,10 @@ coordinator.hierarchyRoot                // topmost coordinator of the tree
 
 ## Return values and chaining
 
-All mutating calls return `self` (`@discardableResult`), so sequences chain:
+Plain synchronous push/pop methods return `self` (`@discardableResult`), so sequences chain. Typed overloads return children and awaiting overloads return results:
 
 ```swift
 coordinator.popToRoot().route(to: .settings)
 ```
 
-Typed overloads that resolve child coordinators (`route(to:) { (child: T) in }`, `route(to:expecting:)`) are covered in `deep-linking.md`.
+Typed overloads that resolve child coordinators (`route(to:expecting:)`) are covered in `deep-linking.md`.

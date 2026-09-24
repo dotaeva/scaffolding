@@ -20,9 +20,9 @@ final class HomeCoordinator: @MainActor FlowCoordinatable {
 coordinator.route(to: .detail(item: planet))
 ```
 
-Declaration order of the attributes doesn't matter, but the class must be a `class` (typically `final`), `@Observable`, and conform to exactly one of the three coordinator protocols.
+Declaration order of the attributes doesn't matter, but the class must be a `class` (typically `final`), `@Observable`, and conform to exactly one of the four coordinator protocols.
 
-The conformance may be spelled through a **refining protocol** — useful for sharing `customize(_:)` across several flows. The macro reads syntax only, so when the inheritance clause names no coordinator protocol directly it infers the kind from the declared state container (`FlowStack` / `TabItems` / `Root`), in either spelling:
+The conformance may be spelled through a **refining protocol** — useful for sharing `customize(_:)` across several flows. The macro reads syntax only, so when the inheritance clause names no coordinator protocol directly it infers the kind from the declared state container (`FlowStack` / `TabItems` / `Root` / `SplitColumns`), in either spelling:
 
 ```swift
 @MainActor protocol TabFlow: FlowCoordinatable { }
@@ -80,7 +80,7 @@ func login(onComplete: @escaping @MainActor (AuthToken) -> Void) -> any Coordina
 // present(.login(onComplete: { token in ... }))  // closures ride along as payload
 ```
 
-Closure parameters are the idiomatic channel for delivering results back from a presented child coordinator (see `scaffolding-routing` → `dismissal-and-results.md`).
+Closure parameters are useful for repeated updates before dismissal; prefer `awaiting:` for a single result (see `scaffolding-routing` → `dismissal-and-results.md`).
 
 ## `@ScaffoldingIgnored` — needed rarely, and only on functions
 
@@ -129,3 +129,17 @@ There is no opt-in attribute. Auto-tracking by return type plus `@ScaffoldingIgn
 - Route functions stay declarative — construct the view/child coordinator, nothing else. Put imperative navigation in plain `Void` helpers (`func openSettings() { present(.settings) }`), which are never tracked.
 - One route function per screen or sub-flow; don't multiplex with parameters that change the returned view's whole identity.
 - Views must return `some View`; child coordinators must return `any Coordinatable` (the existential).
+
+## Access, conditions, and diagnostics
+
+Generated members preserve `public` and `package` access. Class-body `#if`,
+`#elseif`, and `#else` routes retain their conditions, including nested blocks;
+mutually exclusive branches can share a route name. OS-introduction `@available`
+annotations propagate to cases and factories; `Destinations.isAvailable` permits
+checking decoded routes. Unsupported `unavailable`, `obsoleted`, and
+Swift-language availability forms are diagnosed; use `#if` for those cases.
+
+Route factories must be synchronous, nonthrowing instance methods. Overloads
+with the same name, generic or opaque parameters, `inout`, and variadics are
+not valid route payloads and receive diagnostics. Macro Boolean options require
+literal `true` / `false`.

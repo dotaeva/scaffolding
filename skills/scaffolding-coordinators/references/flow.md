@@ -1,6 +1,6 @@
 # `FlowCoordinatable` — push/pop flows
 
-The workhorse coordinator: wraps a `NavigationStack` internally. Its destinations live on the coordinator; the view tree never sees a path binding.
+Owns a push/pop flow. A top-level or modal flow creates a `NavigationStack`; a pushed child flow joins its host stack. Its destinations live on the coordinator; the view tree never sees a path binding.
 
 ```swift
 @MainActor @Observable @Scaffoldable
@@ -50,7 +50,7 @@ There is **no** macro-synthesised `init(initialRoute:)` — if you want a parame
 
 ## Root swaps inside a flow
 
-`setRoot(_:animation:)` exists on flows too (not just `RootCoordinatable`). Replacing a flow's root **clears all pushed destinations first** — they were pushed relative to the old root. Each removed destination's `onDismiss` fires exactly once (as a cancellation).
+`setRoot(_:animation:)` exists on flows too (not just `RootCoordinatable`). Replacing a flow's root **clears its pushed and modal destinations** — they were pushed relative to the old root. Removed destinations resolve their awaiting calls without a result. This is ordinary dismissal; task cancellation is a separate outcome.
 
 ```swift
 flow.setRoot(.home)                          // default animation
@@ -84,6 +84,6 @@ Read-only introspection, all on the coordinator (views can read these since the 
 | `topDestination` | `Destinations.Meta?` of the topmost pushed destination, or the root's meta when nothing is pushed; modals ignored |
 | `isInStack(_ meta)` | Whether the case appears anywhere in the stack (root not counted) |
 | `count(of: meta)` | Occurrences of the case among pushed *and* presented destinations (root not counted) |
-| `isPresentingModal` | Whether this flow currently presents a sheet/cover of its own |
+| `isPresentingModal` | Whether this flow owns visible or queued sheet/cover requests |
 
 For a printable snapshot of the whole live coordinator tree, call `debugHierarchy()` on any coordinator (see `scaffolding-state-restoration` skill).

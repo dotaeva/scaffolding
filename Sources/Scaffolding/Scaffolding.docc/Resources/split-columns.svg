@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="376" viewBox="0 0 640 376" role="img" aria-labelledby="columns-light-title columns-light-desc">
+<title id="columns-light-title">Replacing a split column</title>
+<desc id="columns-light-desc">A split coordinator owns sidebar, optional content, and detail columns. setDetail removes the previous detail branch and installs a new flow with its own stack. Sidebar and content stay in place.</desc>
+<defs>
+<marker id="columns-light-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#000000" stroke-width="1.5"/></marker>
+</defs>
+<g font-family="Arial, Helvetica, sans-serif">
+<rect x="16" y="16" width="192" height="104" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<text x="112.0" y="62.0" font-size="24" text-anchor="middle" fill="#000000">Sidebar</text>
+<text x="112.0" y="90.0" font-size="20" text-anchor="middle" fill="#000000">Select a planet</text>
+<rect x="224" y="16" width="192" height="104" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text x="320.0" y="62.0" font-size="24" text-anchor="middle" fill="#000000">Content</text>
+<text x="320.0" y="90.0" font-size="20" text-anchor="middle" fill="#000000">Optional</text>
+<rect x="432" y="16" width="192" height="104" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<text x="528.0" y="62.0" font-size="24" text-anchor="middle" fill="#000000">Detail</text>
+<text x="528.0" y="90.0" font-size="20" text-anchor="middle" fill="#000000">Own stack</text>
+<path d="M112 120 V142" fill="none" stroke="#000000" stroke-width="1.5" marker-end="url(#columns-light-arrow)"/>
+<text x="16" y="178" font-size="22" text-anchor="start" fill="#000000" font-family="ui-monospace, Menlo, Consolas, monospace">setDetail(.planet(id: id))</text>
+<path d="M528 120 V204" fill="none" stroke="#000000" stroke-width="1.5" marker-end="url(#columns-light-arrow)"/>
+<rect x="16" y="204" width="248" height="76" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text x="140.0" y="236.0" font-size="24" text-anchor="middle" fill="#000000">Previous detail</text>
+<text x="140.0" y="264.0" font-size="20" text-anchor="middle" fill="#000000">Branch removed</text>
+<path d="M280 242 H360" fill="none" stroke="#000000" stroke-width="1.5" marker-end="url(#columns-light-arrow)"/>
+<rect x="376" y="204" width="248" height="76" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<text x="500.0" y="236.0" font-size="24" text-anchor="middle" fill="#000000">New detail</text>
+<text x="500.0" y="264.0" font-size="20" text-anchor="middle" fill="#000000">Fresh stack</text>
+<text x="16" y="326" font-size="22" text-anchor="start" fill="#000000">Sidebar and content stay in place.</text>
+<text x="16" y="360" font-size="22" text-anchor="start" fill="#000000">Compact width: SwiftUI collapses the columns.</text>
+</g>
+</svg>

@@ -1,10 +1,10 @@
 # Previews in a Scaffolding project
 
-`#Preview` renders views **outside** the coordinator hierarchy, so nothing Scaffolding injects at runtime is present unless you provide it. Three rules.
+A preview of `coordinator.view` renders the hierarchy and its environment. A preview of a **bare leaf view** bypasses that hierarchy. Configure each according to what it renders.
 
 ## 1. Inject the coordinator any view reads
 
-Any `@Environment(SomeCoordinator.self)` lookup crashes (Swift 6 strict concurrency) or falls back unexpectedly in a bare preview. Always pass the coordinator explicitly:
+A non-optional `@Environment(SomeCoordinator.self)` lookup fails when that type has not been injected; this is not a Swift concurrency issue. Always pass the coordinator explicitly:
 
 ```swift
 #Preview("DetailView · pushed") {
@@ -39,10 +39,10 @@ init(startingAt item: Item) {
 
 `FlowStack(root:pushing:)` is a real API (path materialises bottom-first at setup) — it's the supported way to construct a flow already deep in its stack, for previews and cold-launch alike.
 
-## 3. `\.destination` is unreliable in previews
+## 3. Bare views receive default destination metadata
 
 `\.destination` is set when the framework materialises a destination through `route`/`present`/`setRoot`. A view rendered alone in `#Preview` was never materialised, so `destination.routeType`, `presentationType`, and `meta` read as the **default (`.root`)** — not what the screen shows when actually pushed or presented.
 
-- Don't write previews whose correctness depends on those properties matching runtime.
+- A bare-view preview is for layout. Preview the coordinator to verify destination-dependent chrome.
 - To *visually* check a pushed/presented state, preview the owning coordinator (seeded per rule 2, or via a deep-link method your app already exposes) rather than the bare view.
 - A view whose layout branches on `destination.routeType` will always show its `.root` branch in a bare preview — expected, not a bug.

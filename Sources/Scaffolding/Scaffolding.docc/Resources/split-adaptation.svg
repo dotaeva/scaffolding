@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="428" viewBox="0 0 640 428" role="img" aria-labelledby="adaptation-light-title adaptation-light-desc">
+<title id="adaptation-light-title">Split layout adapts to width</title>
+<desc id="adaptation-light-desc">In a wide layout, sidebar and detail appear side by side. At compact width, SwiftUI collapses them into one navigation stack, showing one screen at a time. The coordinator state is preserved.</desc>
+<defs>
+<marker id="adaptation-light-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#000000" stroke-width="1.5"/></marker>
+</defs>
+<g font-family="Arial, Helvetica, sans-serif">
+<text x="16" y="26" font-size="24" text-anchor="start" fill="#000000">Wide layout</text>
+<rect x="16" y="48" width="192" height="104" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<text x="112.0" y="108.0" font-size="24" text-anchor="middle" fill="#000000">Sidebar</text>
+<rect x="224" y="48" width="400" height="104" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<text x="424.0" y="108.0" font-size="24" text-anchor="middle" fill="#000000">Detail</text>
+<path d="M320 152 V232" fill="none" stroke="#000000" stroke-width="1.5" marker-end="url(#adaptation-light-arrow)"/>
+<text x="348" y="200" font-size="22" text-anchor="start" fill="#000000">Compact width</text>
+<rect x="16" y="232" width="608" height="132" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<text x="320" y="266" font-size="24" text-anchor="middle" fill="#000000">One navigation stack</text>
+<rect x="40" y="290" width="224" height="52" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<text x="152.0" y="324.0" font-size="24" text-anchor="middle" fill="#000000">Sidebar</text>
+<path d="M280 316 H360" fill="none" stroke="#000000" stroke-width="1.5" marker-end="url(#adaptation-light-arrow)"/>
+<rect x="376" y="290" width="224" height="52" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+<text x="488.0" y="324.0" font-size="24" text-anchor="middle" fill="#000000">Detail</text>
+<text x="16" y="410" font-size="22" text-anchor="start" fill="#000000">One screen at a time. Same coordinator state.</text>
+</g>
+</svg>

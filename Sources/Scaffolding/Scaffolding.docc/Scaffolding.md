@@ -1,7 +1,7 @@
 # ``Scaffolding``
 
-Macro-powered SwiftUI navigation that implements the Coordinator pattern with
-type-safe routes and minimal boilerplate.
+Compose SwiftUI navigation across feature boundaries with observable
+coordinators and routes generated from ordinary Swift functions.
 
 @Metadata {
     @PageColor(blue)
@@ -9,90 +9,77 @@ type-safe routes and minimal boilerplate.
 
 ## Overview
 
-Scaffolding lets you define navigation routes as plain Swift functions on
-coordinator classes. The ``Scaffoldable(injectsCoordinator:codable:)`` macro inspects those functions at
-compile time and generates a `Destinations` enum automatically — no manual
-enums, no switch statements, no boilerplate.
+Coordinators own navigation; views request it. A feature exposes its
+coordinator and keeps its screens internal, and a parent composes features
+into stacks, tabs, app roots, or split columns. Scaffolding renders SwiftUI's
+native containers, and every navigation decision is testable without a view.
 
-```swift
-@Scaffoldable @Observable
-final class HomeCoordinator: @MainActor FlowCoordinatable {
-    var stack = FlowStack<HomeCoordinator>(root: .home)
-
-    func home() -> some View { HomeView() }
-    func detail(item: String) -> some View { DetailView(item: item) }
-    func settings() -> any Coordinatable { SettingsCoordinator() }
-}
-```
-
-Coordinators conform to one of three protocols depending on the navigation
-pattern:
-
-- **``FlowCoordinatable``** — Push/pop navigation stacks with sheet and
-  full-screen-cover support.
-- **``TabCoordinatable``** — Tab bar interfaces where each tab owns its own
-  coordinator.
-- **``RootCoordinatable``** — Atomic root switches for authentication flows
-  and app-wide state changes.
-
-Navigation is performed by calling methods on the coordinator: `route(to:)`
-to push, `present(_:as:)` to show a sheet or full-screen cover, `pop()`,
-`setRoot(_:)`, or tab selection. Coordinators are automatically injected
-into the SwiftUI environment, so any child view can access its nearest
-coordinator with `@Environment`.
-
-Because all of that state lives on a plain `@Observable` class, the whole
-navigation layer is unit-testable without rendering a view. The package's
-second library, `ScaffoldingTesting`, adds the helpers for it — see
-<doc:TestingCoordinators>.
+Start with <doc:MeetScaffolding>, then read <doc:Essentials> — the model and
+rules every other guide builds on.
 
 ## Topics
 
-### Essentials
+### Getting Started
 
 - <doc:MeetScaffolding>
-- <doc:YourFirstScaffoldingProject>
+- <doc:Essentials>
 
-### Coming from Another Library
+### App Architecture
 
-- <doc:MigratingFromStinsen>
+- <doc:ModularApps>
+- <doc:MonolithicApps>
 
-### Tutorials by Use Case
+### Coordinator Guides
 
-- <doc:TabsAndFlows>
-- <doc:AuthenticationFlow>
-- <doc:ModalSubFlows>
+- <doc:Flows>
+- <doc:RootSwitching>
+- <doc:TabBars>
+- <doc:SplitViews>
+
+### Navigation Guides
+
+- <doc:DefiningRoutes>
+- <doc:ModalsAndResults>
 - <doc:DeepLinking>
+
+### Inspection, Persistence, and Testing
+
+- <doc:Orientation>
 - <doc:StateRestoration>
 - <doc:TestingCoordinators>
-- <doc:SplitViewApps>
 
-### iPad and Mac
+### Migration
 
-- <doc:SplitViews>
-- ``SplitCoordinatable``
-- ``SplitColumns``
-- ``SplitColumn``
+- <doc:NativeComparison>
+- <doc:MigratingFromStinsen>
 
 ### Coordinator Protocols
 
+- ``Coordinatable``
 - ``FlowCoordinatable``
-- ``TabCoordinatable``
 - ``RootCoordinatable``
+- ``TabCoordinatable``
 - ``SplitCoordinatable``
 
-### Core Protocol
+### Route Generation
 
-- ``Coordinatable``
-
-### Destinations
-
+- ``Scaffoldable(injectsCoordinator:codable:)``
+- ``ScaffoldingIgnored()``
 - ``Destinationable``
 - ``DestinationMeta``
+
+### Destinations and Presentation
+
 - ``Destination``
 - ``DestinationType``
 - ``PresentationType``
 - ``ModalPresentationType``
+- ``RoutePolicy``
+
+### Animation
+
+- ``NavigationAnimation``
+- ``withNavigationTransaction(animation:_:)``
 
 ### State Containers
 
@@ -100,14 +87,35 @@ second library, `ScaffoldingTesting`, adds the helpers for it — see
 - ``Root``
 - ``TabItems``
 - ``SplitColumns``
+- ``SplitColumn``
+- ``AnyFlowStack``
+- ``AnyRoot``
+- ``AnyTabItems``
 - ``AnySplitColumns``
+- ``CoordinatableData``
 
-### Inspecting the Tree
+### Hierarchy Inspection
 
 - ``HierarchyNode``
 - ``HierarchyRole``
 
-### Macros
+### State Restoration Types
 
-- ``Scaffoldable(injectsCoordinator:codable:)``
-- ``ScaffoldingIgnored()``
+- ``NavigationRestorationMode``
+- ``NavigationStateError``
+- ``NavigationStateNode``
+- ``NavigationStateReport``
+- ``NavigationStateIssue``
+- ``NavigationStateCapture``
+
+### Rendered Views
+
+- ``CoordinatableView``
+- ``FlowCoordinatableView``
+- ``RootCoordinatableView``
+- ``TabCoordinatableView``
+- ``SplitCoordinatableView``
+
+### Deprecated Compatibility
+
+- ``SheetConfiguration``

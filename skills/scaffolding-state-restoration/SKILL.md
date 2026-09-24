@@ -1,99 +1,107 @@
 ---
-description: "Persist and restore navigation state, and debug the live coordinator tree, in apps using the Scaffolding SwiftUI library. Consult when implementing state restoration / scene restoration ('return the user where they left off'), when using @Scaffoldable(codable: true), captureNavigationState(), restoreNavigationState(from:), FlowStack(root:pushing:), or debugHierarchy(), or when debugging why navigation state looks wrong at runtime."
+description: "Capture, restore, migrate, and diagnose Scaffolding navigation snapshots. Use for Codable routes, replay versus replacement, partial-restoration reports, per-scene checkpoints, and hierarchy inspection."
 name: scaffolding-state-restoration
 ---
-This guidance documents navigation-state persistence and debugging in the **Scaffolding** SwiftUI library.
 
-## Opting in — `@Scaffoldable(codable: true)`
+# Persist navigation, separately from app data
 
-Capture requires each participating coordinator's generated `Destinations` enum to be `Codable`:
+Use `@Scaffoldable(codable: true)` on every participating coordinator. All route
+parameters must be `Codable`; prefer stable IDs to model objects. Closure route
+parameters cannot be persisted. `awaiting:` avoids closure payloads, but the
+waiting task itself cannot survive process restart.
 
 ```swift
 @MainActor @Observable @Scaffoldable(codable: true)
 final class HomeCoordinator: @MainActor FlowCoordinatable {
     var stack = FlowStack<HomeCoordinator>(root: .home)
-
     func home() -> some View { HomeView() }
-    func detail(id: Item.ID) -> some View { DetailView(id: id) }   // Codable payloads only
+    func detail(id: Int) -> some View { DetailView(id: id) }
 }
 ```
 
-- Every route function's parameters must be `Codable` — the compiler enforces this at enum synthesis. Closure parameters (result callbacks) make a case non-codable; for restorable flows prefer the `awaiting:` result pattern (see `scaffolding-routing`) and keep payloads as value IDs, not model objects.
-- Coordinators that don't opt in still work: their subtree is recorded without internal state and restores at its initial position (graceful degradation, not an error). Only calling `captureNavigationState()` **directly on** a non-codable coordinator throws (`NavigationStateError.unsupported`).
-
-## Capture and restore
+## Choose strict or best-effort capture
 
 ```swift
-// On background / scene phase change:
-let data = try appCoordinator.captureNavigationState()   // opaque Data — persist anywhere
+let data = try app.captureNavigationState(version: 1) // throws route-encoding failures
 
-// On cold launch, on a FRESHLY created coordinator of the same type:
-let appCoordinator = AppCoordinator()
-try appCoordinator.restoreNavigationState(from: data)
-```
-
-Typical wiring:
-
-```swift
-WindowGroup {
-    coordinator.view
-        .onChange(of: scenePhase) { _, phase in
-            if phase == .background,
-               let data = try? coordinator.captureNavigationState() {
-                UserDefaults.standard.set(data, forKey: "nav-state")
-            }
-        }
-        .task {
-            if let data = UserDefaults.standard.data(forKey: "nav-state") {
-                try? coordinator.restoreNavigationState(from: data)
-            }
-        }
+let capture = try app.captureNavigationStateWithReport(version: 1)
+persist(capture.data)
+for issue in capture.report.issues {
+    print(issue.coordinator, issue.path, issue.reason, issue.message)
 }
 ```
 
-Semantics:
+Calling either API on an unsupported root coordinator throws
+`NavigationStateError.unsupported`. Unsupported children restore with their
+initial internal state; report capture identifies the missing subtrees.
+`version:` is the application's payload version, separate from the library schema.
+The no-version capture overload uses application version zero.
 
-- Capture walks the whole tree from the coordinator you call it on: flow roots + pushed/presented destinations, root-coordinator roots + modals, tab sets + selected index + per-tab children — recursively, for **already-created** descendants.
-- Restoration **replays** the captured routes on top of the fresh coordinator's initial state (it goes through the normal `route`/`present`/`setRoot`/`setTabs` machinery).
-- Routes that fail to decode — e.g. the `Destinations` enum changed shape between app versions — are **skipped silently**; a stale snapshot degrades instead of failing launch. Only structurally invalid data throws from `restoreNavigationState`.
-- Treat the `Data` as opaque; never construct or edit `NavigationStateNode` yourself.
-
-## Seeding a known start position — `FlowStack(root:pushing:)`
-
-For deterministic starts (deep-link fallbacks, previews, tests) you don't need capture/restore — construct the flow already deep in its stack:
+## Choose replacement explicitly
 
 ```swift
-var stack = FlowStack<HomeCoordinator>(
-    root: .home,
-    pushing: [.detail(id: restoredId)]   // bottom first
-)
+let report = try app.restoreNavigationStateWithReport(from: data, mode: .replace)
+print(report.restoredRoutes, report.skippedRoutes)
 ```
 
-The path materialises when the stack is first set up. Expose it via a hand-written coordinator initializer; the macro synthesises no `init(initialRoute:)`.
+- `.replace` clears existing pushes and modal requests before restoration.
+  Use it for repeated restoration or seeded stacks.
+- The report API defaults to `.replace`.
+- The older `restoreNavigationState(from:)` overload keeps `.replay`, applying
+  captured pushes/modals on top of the current state. Do not assume it replaces.
+- Unknown, unavailable, or undecodable routes are skipped with their child state.
+  Reports distinguish these failures. Invalid tab sets are not installed partially.
+- Structurally invalid data and unknown future library schemas throw.
 
-## Debugging the live tree — `debugHierarchy()`
+Restore once when establishing a scene, not on every view appearance. Keep
+snapshots per window when windows have independent coordinators. Persist domain
+stores separately; restoring navigation must not roll back user data.
 
-Every coordinator can print a side-effect-free snapshot of its subtree (children not yet created are reported as `(not yet created)`, never materialised):
+## Migration before mutation
 
 ```swift
-print(appCoordinator.debugHierarchy())
+let report = try app.restoreNavigationStateWithReport(from: data) { bytes, oldVersion in
+    try migrateNavigationSnapshot(bytes, from: oldVersion)
+}
+```
 
-// From anywhere in the tree — hierarchyRoot walks to the topmost coordinator:
+The application implements `migrateNavigationSnapshot`. The hook runs before
+full decoding or navigation mutation, returns bytes, and may throw to leave the
+tree unchanged. Treat snapshots as opaque in ordinary code; isolate payload
+migration here and test against saved fixtures. Legacy snapshots have application
+version zero.
+
+## Snapshot scope
+
+Captured: route payloads, pushed paths, modal requests and style, tab set and
+selection, split columns and visibility, preferred compact column, and
+materialized child navigation.
+
+Not captured: domain stores, local form/view state, callbacks, running tasks,
+awaited continuations, badges, accessibility identifiers, detents, drag indicators,
+or interactive-dismiss configuration. Reapply app-owned metadata and configuration.
+Choose whether transient result flows belong in a checkpoint at all.
+
+## Seed a deterministic path
+
+A hand-written coordinator initializer may construct:
+
+```swift
+stack = FlowStack(root: .home, pushing: [.detail(id: itemID)])
+```
+
+The initial path materializes at setup. There is no synthesized `init(initialRoute:)`.
+This is useful for previews, tests, and known start positions without persistence.
+
+## Inspect the live tree
+
+```swift
 print(coordinator.hierarchyRoot.debugHierarchy())
 ```
 
-```
-AppRootCoordinator [root]
-  root .main → MainTabCoordinator [tab]
-    tab[0]* .home → HomeFlowCoordinator [flow]
-      root .home
-      push .settings
-      sheet .sheetFlow → LeafFlowCoordinator [flow]
-        root .leaf
-    tab[1] .profile → ProfileFlowCoordinator [flow]
-      root .profile
-```
+`debugHierarchy()` and `hierarchySnapshot()` never run route factories. They
+show resolved state only; an untouched container may appear empty. Rendering,
+navigation, many queries, or `activated()` in tests resolve initial state.
 
-Each line shows the destination's role (`root`/`push`/`sheet`/`fullScreenCover`/`tab`), its `Destinations` case, and the child coordinator's type; `*` marks the selected tab. Reach for this first when routing behaves unexpectedly — it answers "who owns what" immediately.
-
-It is also the most economical assertion in a unit test (`#expect(tree.contains("push .holding"))`) — see the `scaffolding-testing` skill for capture/restore and deep-link tests.
+Use typed `hierarchyContains(_:_:as:)` assertions from **ScaffoldingTesting**
+in tests rather than matching debug strings. See the `scaffolding-testing` skill.

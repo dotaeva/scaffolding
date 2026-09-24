@@ -13,8 +13,9 @@ Every view materialised through a coordinator receives a `Destination` value des
 | `routeType` | `DestinationType` | How this destination was routed **within its coordinator**: `.root`, `.push`, `.sheet`, `.fullScreenCover`. A coordinator's root is `.root` even when the whole coordinator was presented modally. |
 | `presentationType` | `DestinationType` | The **effective** on-screen presentation. For a flow presented as a sheet, the flow's root view reads `presentationType == .sheet` while `routeType == .root`. |
 | `meta` | `any DestinationMeta` | Which `Destinations` case produced this screen (case name, no associated values). |
-| `modalConfiguration` | `SheetConfiguration?` | Presenter-side sheet config (`detents`, `dragIndicator`, `interactiveDismissDisabled`) when presented with a configured `.sheet(...)`. |
+| `accessibilityIdentifier` | `String?` | Identifier for a native tab item, when set. |
 | `badge` | `String?` | The tab badge, for tab destinations. |
+| `column` | `SplitColumn?` | Structural split column, when applicable. |
 | `id` | `UUID` | Stable identity of this destination instance. |
 
 **`routeType` vs `presentationType`** — use `routeType` for "what is my role in my own flow" (root screens hide the back button); use `presentationType` for "how am I actually displayed" (show a Close button on anything that arrived modally, including the root of a presented sub-flow).
@@ -49,9 +50,9 @@ struct AdaptiveTopBar: View {
 
     var body: some View {
         HStack {
-            switch destination.routeType {
+            switch destination.presentationType {
             case .push:
-                Button { dismiss() } label: { Image(systemName: "chevron.left") }
+                Button("Back", systemImage: "chevron.left") { dismiss() }
             case .sheet, .fullScreenCover:
                 Button("Close") { dismiss() }
             case .root:
@@ -68,10 +69,13 @@ struct AdaptiveTopBar: View {
 }
 ```
 
-Other uses: skip an in-view drag indicator when `modalConfiguration?.dragIndicator == .visible`; render compact layouts when `presentationType == .sheet` with a `.medium` detent available.
+Configure presentation with SwiftUI modifiers on the presented view or child
+coordinator's `customize(_:)`. Keep settings your UI needs in view inputs or
+state. `modalConfiguration` and `SheetConfiguration` are deprecated legacy
+metadata; native modifiers do not populate them.
 
 ## Caveats
 
 - The default value (outside any coordinator hierarchy — most importantly `#Preview`) is a dummy that reads as `.root`. Don't build preview assertions on it; see `previews.md`.
-- `Destination` is metadata, not a navigation handle — to navigate, use the typed coordinator.
+- `Destination` supplies metadata and a dismissal handle. Use `dismiss()` / `dismiss(returning:)` to remove this exact destination; use the typed coordinator to start navigation.
 - Don't write `\.destination` yourself; the framework injects it at materialisation.

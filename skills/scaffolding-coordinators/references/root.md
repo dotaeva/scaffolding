@@ -41,7 +41,7 @@ appCoordinator.isRoot(.authenticated)                        // Bool — compare
 
 `setRoot` tears down the previous subtree; the old root destination's `onDismiss` (and any destinations inside it) resolve exactly once. Swapping roots is intentionally destructive — a fresh child coordinator is created each time the route function runs.
 
-Typed variants for deep linking (`setRoot(_:animation:) { (tab: MainTabCoordinator) in ... }`, `setRoot(_:expecting:)`) are covered in `scaffolding-routing` → `deep-linking.md`.
+The `setRoot(_:expecting:)` overload for deep linking are covered in `scaffolding-routing` → `deep-linking.md`.
 
 ## Modals above the root
 
@@ -50,14 +50,19 @@ A `RootCoordinatable` can present sheets/covers that float above whatever the cu
 ```swift
 appCoordinator.present(.whatsNew)                 // sheet by default
 appCoordinator.present(.forcedUpdate, as: .fullScreenCover)
-appCoordinator.dismissModal()                     // presenter-side close
+appCoordinator.dismissPresentedModal()            // closes the front modal request
 appCoordinator.isPresentingModal                  // Bool
 ```
 
-Async variants (`presentAndWait`, `present(_:awaiting:)`) work here too — see `scaffolding-routing` → `async-navigation.md`.
+Async result variants (`present(_:awaiting:)`) work here too — see `scaffolding-routing` → `async-navigation.md`.
 
 ## Notes
 
 - A view-only route (`some View`) is a valid root, but roots are usually child coordinators — the root of an app section almost always needs its own navigation.
 - Don't use `RootCoordinatable` for ordinary forward navigation; that's a push (`FlowCoordinatable`) or a modal. Root swaps are for state changes where "back" must not exist.
 - A typical app: `AppCoordinator (Root)` → `LoginCoordinator (Flow)` | `MainTabCoordinator (Tab)` → per-tab `Flow` coordinators.
+
+Modals owned directly by the root coordinator survive a root swap. Call
+`dismissAllModals()` before `setRoot` when the action should remove those too.
+A top-level coordinator cannot dismiss itself; a root coordinator hosted as a
+pushed or modal child can dismiss its enclosing branch.

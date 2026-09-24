@@ -1,14 +1,13 @@
 ---
-description: "Unit-test navigation in apps using the Scaffolding SwiftUI library — coordinators are plain @Observable classes, so the whole navigation layer is testable without rendering a view. Consult when writing or reviewing tests for a FlowCoordinatable / TabCoordinatable / RootCoordinatable, when a navigation test asserts nothing or reads empty state, or when deciding what to assert about navigation. Covers: the ScaffoldingTesting library (activated(), descendant(ofType:), hierarchyContains, waitUntil), why a coordinator must be activated before root-dependent assertions, the public introspection surface to assert on (depth, topDestination, isInStack, count(of:), isPresentingModal, isRoot, badge(for:), routeType, hierarchySnapshot), obtaining typed child-coordinator handles, testing modals and presenter-side dismissal, awaitable navigation (routeAndWait / presentAndWait / present(_:awaiting:)), result delivery, tab guards via shouldSelect, deep links, state restoration, and what not to test."
+description: "Test Scaffolding navigation with Swift Testing and ScaffoldingTesting. Use for activation, typed hierarchy assertions, deadline-based waits, results and cancellation, tabs, split columns, deep links, or restoration."
 name: scaffolding-testing
 ---
-Navigation in **Scaffolding** is testable because a coordinator is a plain `@MainActor @Observable` class: routes are functions, state lives in `FlowStack` / `Root` / `TabItems`, and every navigation call mutates that state **synchronously**. Nothing needs a view, a host app, or a rendered `NavigationStack`. Test the shipping coordinator directly — no test double, no `ViewInspector`.
 
-If navigation logic can't be reached from a test, that's a design smell, not a framework limit: state has leaked into a view (see `scaffolding-coordinators`).
+# Test navigation through the coordinator
 
-## The ScaffoldingTesting library
-
-The package exposes a second product, `ScaffoldingTesting`. Link it into the **test target only** — it imports Swift Testing.
+Link **ScaffoldingTesting** only into the test target; it imports Swift Testing.
+Test the shipping coordinator on `@MainActor`. Ordinary navigation changes state
+synchronously; awaited navigation needs a task that the test can complete.
 
 ```swift
 // Package.swift
@@ -18,14 +17,7 @@ The package exposes a second product, `ScaffoldingTesting`. Link it into the **t
 ])
 ```
 
-| API | Purpose |
-|---|---|
-| `coordinator.activated()` | Resolves the initial root / tabs and returns the coordinator. Required before root-dependent assertions. |
-| `coordinator.descendant(ofType:)` · `descendants(ofType:)` | Typed handle(s) on already-created children, including ones the code under test presented itself. Never materialises anything. |
-| `coordinator.hierarchyContains(_:_:)` · `(_:_:as:)` | Typed whole-tree assertion; replaces matching `debugHierarchy()` strings. |
-| `await waitUntil { … }` | Spins the main actor until a condition holds, for the awaitable navigation API. Records an issue on timeout instead of hanging. |
-
-## Test-suite shape
+## Establish initial state
 
 ```swift
 import Testing
@@ -33,185 +25,110 @@ import Scaffolding
 import ScaffoldingTesting
 @testable import MyApp
 
-@MainActor                     // coordinators are MainActor-isolated
-@Suite("Home flow")
+@MainActor @Suite("Home flow")
 struct HomeFlowTests {
-    @Test("opening a transaction pushes one screen")
-    func openPushes() {
+    @Test func opensDetail() {
         let home = HomeCoordinator().activated()
-
         home.open(Transaction.sample)
-
         #expect(home.depth == 1)
         #expect(home.topDestination == .transaction)
     }
 }
 ```
 
-### Always activate first
+Containers resolve lazily. Navigation and many queries resolve them;
+`debugHierarchy()` and `hierarchySnapshot()` deliberately do not. Use
+`activated()` when a test needs the complete initial hierarchy. Calling it
+again is harmless.
 
-`FlowStack` / `Root` / `TabItems` resolve their initial destinations **lazily**, the first time the framework touches `view`, `anyStack`, `anyRoot`, or `anyTabItems` — normally at first render. A test renders nothing, so without `activated()` the root is unresolved and root-dependent reads (`topDestination`, `isRoot(_:)`, `hierarchyContains`, `debugHierarchy()`) come back empty. Pushes and presentations work without it; assertions about the root don't. Calling it twice is harmless.
-
-## What to assert on
-
-All public, all cheap, all synchronous:
+## Assert public behavior
 
 | Question | API |
 |---|---|
-| How many screens are pushed? | `flow.depth` (root excluded, modals excluded) |
-| What's on top? | `flow.topDestination` — `Destinations.Meta` |
-| Is a case in the stack? | `flow.isInStack(.detail)`, `flow.count(of: .detail)` |
-| Is a modal up? | `coordinator.isPresentingModal` (every coordinator type) |
-| Which root is showing? | `rootCoordinator.isRoot(.main)` |
-| Which tab is selected? | `tab.tabItems.selectedTab`, or your own derived index |
-| Is a tab present / badged? | `tab.isInTabItems(.promo)`, `tab.badge(for: .invest)` |
-| How was this coordinator presented? | `coordinator.routeType` |
-| Who's above it? | `coordinator.ancestor(ofType:)`, `coordinator.hierarchyRoot` |
-| What does the whole tree look like? | `coordinator.hierarchyContains(_:_:as:)`, or `hierarchySnapshot()` |
+| Number and top case of pushes | `depth`, `topDestination` (exclude modals) |
+| Own entries matching a case | `isInStack(_:)`, `count(of:)` (include modals, exclude root) |
+| Modal requests, including pending | `isPresentingModal`, `pendingModalCount` |
+| Selected root / tab | `isRoot(_:)`, `selectedTabDestination`, `selectedTabIndex` |
+| Tab metadata | `badge(for:)`, `tabAccessibilityIdentifier(for:)` |
+| Split columns | `sidebarDestination`, `contentDestination`, `detailDestination`, `isDetail(_:)` |
+| Presentation and ancestry | `routeType`, `ancestor(ofType:)`, `hierarchyRoot` |
+| Whole-tree shape | `hierarchyContains(_:_:as:)`, `hierarchySnapshot()` |
 
-Never assert on framework internals (`Destination`, `pushType`, `resolution`) or on SwiftUI output.
-
-### Whole-tree assertions
-
-For multi-step navigation (deep links, restoration), assert the shape of the tree rather than drilling down — and prefer the typed matcher over `debugHierarchy().contains("…")`:
+Prefer typed assertions over matching debug strings:
 
 ```swift
-app.handle(URL(string: "myapp://holding/NVDA")!)
-
-#expect(app.hierarchyContains(InvestCoordinator.self, .holding, as: .push))
-#expect(app.hierarchyContains(MainTabCoordinator.self, .invest, as: .tab(index: 2, isSelected: true)))
-#expect(!app.hierarchyContains(HomeCoordinator.self, .transaction))
+#expect(app.hierarchyContains(HomeCoordinator.self, .transaction, as: .push))
+#expect(app.hierarchyContains(MainTabCoordinator.self, .home,
+                              as: .tab(index: 0, isSelected: true)))
+#expect(split.hierarchyContains(LibraryCoordinator.self, .planet,
+                                as: .column(.detail)))
 ```
 
-The first argument is the coordinator that owns the destination; it scopes the meta so the case can be written as a leading dot. Roles are `.root`, `.push`, `.sheet`, `.fullScreenCover`, `.tab(index:isSelected:)`; omit `as:` to match any role.
+Use `expecting:` when the test performs navigation. Use `descendant(ofType:)`
+or `descendants(ofType:)` to find children that the code under test created.
+Those helpers never materialize children. Do not add stored child references
+to production coordinators just to make tests easier.
 
-When yes/no isn't enough, `hierarchySnapshot()` (from the main library) returns `[HierarchyNode]` with `role`, `meta`, `coordinator`, `hasCoordinator`, and `children` — the structured form of what `debugHierarchy()` prints, and what the helpers above are built on.
-
-## Getting a handle on a child coordinator
-
-Two tools, for two different situations:
-
-- **The test performs the navigation** → the `expecting:` overloads navigate *and* return the resolved child (`route`, `present`, `setRoot`, `selectFirstTab`/`selectLastTab`, `select(index:)`/`select(id:)`, `appendTab`, `insertTab`, `popToFirst`, `popToLast`):
-
-  ```swift
-  let picker = cards.present(.limitPicker, expecting: LimitCoordinator.self)
-  picker?.openCustom()
-
-  #expect(picker?.depth == 1)   // pushed inside the sheet
-  #expect(cards.depth == 0)     // presenter's stack untouched
-  ```
-
-- **The code under test performs it** → `descendant(ofType:)`. This is the only way in when the action awaits its own presentation, since `present(_:awaiting:)` hands back no coordinator:
-
-  ```swift
-  let picking = Task { await cards.changeLimit() }
-  await waitUntil { cards.isPresentingModal }
-
-  cards.descendant(ofType: LimitCoordinator.self)?.finish(2_000)
-  await picking.value
-
-  #expect(cards.limit == 2_000)
-  ```
-
-Returning the child from an action is also a good seam — `@discardableResult` keeps call sites unchanged:
-
-```swift
-@discardableResult
-func startOrder(for holding: Holding) -> OrderCoordinator? {
-    present(.buy(holding: holding, onComplete: { … }), as: .sheet, expecting: OrderCoordinator.self)
-}
-```
-
-Never store child coordinator references on a coordinator to make it testable — that breaks the ownership model the library relies on.
-
-## Modals
-
-```swift
-cards.openDetail(card)
-#expect(cards.isPresentingModal)
-#expect(cards.depth == 0)                  // a modal is not a push
-#expect(cards.count(of: .cardDetail) == 1) // .distinct swallowed the double tap
-
-cards.resolveFreeze(card, freeze: true)    // presenter-side dismissModal()
-#expect(!cards.isPresentingModal)
-```
-
-- `dismissModal()` is a safe no-op with nothing presented, and never touches pushes — worth pinning down when a screen has both.
-- `onDismiss` fires exactly once however the destination leaves; the awaited equivalent (`routeAndWait`) resumes exactly once for the same reasons.
-- The presented coordinator's own exit is `dismissCoordinator()` / `dismissCoordinator(returning:)`; assert it from the presenter's `isPresentingModal`.
-
-## Awaitable navigation
-
-Drive the suspending call from a `Task` and resolve it from the test body:
-
-```swift
-let waiting = Task { await home.routeAndWait(to: .categoryPicker) }
-await waitUntil { home.topDestination == .categoryPicker }
-
-home.category = "Groceries"      // what the picker writes
-home.pop()
-await waiting.value
-
-#expect(home.depth == 0)
-```
-
-Cancellation deserves its own test — any dismissal that isn't `dismissCoordinator(returning:)` resumes with `nil`:
+## Await a result safely
 
 ```swift
 let picking = Task { await cards.present(.limitPicker, awaiting: Decimal.self) }
-await waitUntil { cards.isPresentingModal }
-cards.dismissModal()             // stands in for a swipe-down
+defer { picking.cancel() }
+guard await waitUntil({ cards.isPresentingModal }, timeout: .seconds(2)) else {
+    picking.cancel()
+    return
+}
 
-#expect(await picking.value == nil)
+let picker = try #require(cards.descendant(ofType: LimitCoordinator.self))
+picker.finish(2_000)
+#expect(await picking.value == 2_000)
 ```
 
-## Tabs
+The enclosing test must be `async throws`. `waitUntil` returns `Bool`, uses a
+monotonic deadline (five seconds by default), and records an issue at the caller
+on timeout. Cancellation returns false without a timeout issue. Guard the result
+before awaiting a task that cannot complete after a failed condition. The old
+`iterations:` overload is deprecated.
 
-`shouldSelect(tab:isReselection:)` is an ordinary method — call it the way the tab bar does, and assert both the veto and its side effect:
+For cancellation, cancel the waiting task and assert that the route remains.
+For dismissal without a result, call `dismissPresentedModal()` and assert nil.
+Assert the navigation state as well as the nil return to distinguish these behaviors.
+
+## Modal queues and tab guards
+
+With A visible and B queued on the same coordinator, `dismissModal()` removes B;
+`dismissPresentedModal()` closes A; `cancelPendingModals()` removes B and leaves
+A. Verify the operation your action intends to perform. Modal helpers never pop
+pushed destinations. Child self-dismissal uses `dismissCoordinator()`.
+
+`shouldSelect(tab:isReselection:)` is an ordinary method. Call it explicitly to
+test a veto or re-tap side effect. `selectFirstTab` is programmatic selection
+and bypasses that hook. Check `selectedTabIndex`, not a nonexistent `selectedIndex`.
+
+## Deep links and restoration
+
+Test a deep link as one coordinator action, including unauthenticated and
+repeated-link cases. `setRoot` creates a fresh child even if its case is unchanged;
+assert whether the action should retain or replace an existing branch.
 
 ```swift
-#expect(!tabs.shouldSelect(tab: .invest, isReselection: false))
-#expect(tabs.isPresentingModal)          // the gate it presented instead
-#expect(tabs.selectedIndex == 0)         // selection never moved
-
-// Re-tap pops the selected flow to its root.
-let home = tabs.selectFirstTab(.home, expecting: HomeCoordinator.self)
-home?.open(Transaction.samples[0])
-_ = tabs.shouldSelect(tab: .home, isReselection: true)
-#expect(home?.depth == 0)
+let data = try original.captureNavigationState(version: 1)
+let restored = AppCoordinator().activated()
+let report = try restored.restoreNavigationStateWithReport(from: data, mode: .replace)
+#expect(report.issues.isEmpty)
+#expect(restored.hierarchyContains(HomeCoordinator.self, .transaction, as: .push))
 ```
 
-Programmatic selection (`selectFirstTab`, `select(index:)`) bypasses the hook, so a test that calls those is testing selection, not the guard. Custom tab bars that consult the hook themselves should be tested through their own tap entry point.
+Test expected partial recovery with saved fixtures when routes change. An
+unsupported child restores at its initial state; an unsupported capture root
+throws. Repeated `.replace` restoration should not duplicate seeded paths.
 
-## Roots, ancestors, and deep links
+## Keep unit and rendered checks separate
 
-```swift
-let login = app.setRoot(.login, expecting: LoginCoordinator.self)
-#expect(login?.ancestor(ofType: AppCoordinator.self) === app)
+Coordinator tests assert decisions and tree state. They do not inspect a view's
+`@State` or environment `\.destination`. A bare view preview also lacks real
+destination metadata; a coordinator preview does not.
 
-login?.submit()             // reaches up via ancestor(ofType:)
-#expect(app.isRoot(.main))
-```
-
-A root swap resolves a **fresh** child — assert that old state is gone (`second !== first`, `second?.depth == 0`) rather than assuming it persists. Deep links are one coordinator call, so test them as one, and cover the guards: a link arriving while unauthenticated should leave the tree alone.
-
-## State restoration
-
-```swift
-let snapshot = try app.captureNavigationState()
-app.signOut()
-
-app.setRoot(.main, animation: nil)      // restoration replays onto a fresh tree
-try app.restoreNavigationState(from: snapshot)
-
-#expect(app.hierarchyContains(HomeCoordinator.self, .transaction, as: .push))
-```
-
-Also pin the degradation: a subtree that opts out of `codable:` restores at its initial position while the rest of the tree comes back — assert the absence, not a crash.
-
-## Don't test
-
-- **SwiftUI rendering.** Route functions return views; that a `NavigationStack` displays the top destination is the framework's job.
-- **`\.destination` in unit tests.** It's populated when the framework materialises a destination for a view, not by constructing one in a test (same caveat as previews — see `scaffolding-environment`).
-- **Framework internals.** `Destination`, `resolution`, `pushType`: not your contract.
-- **Views holding navigation state.** If a test needs to poke a view's `@State` to drive navigation, fix the design instead: move the transition to the coordinator.
+Library changes affecting rendering need hosted checks as well. `swift test`
+includes macOS hosted regressions; check iOS presentation and native tab
+metadata in a running app. Platform compilation alone cannot verify them.

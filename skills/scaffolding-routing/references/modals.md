@@ -2,70 +2,83 @@
 
 ## Presenting
 
-Available on **all three** coordinator types. Flow modals live on the flow's stack; tab/root modals render above the `TabView` / current root.
+Available on **all four** coordinator types. Flow modals live on the flow's stack; tab/root/split modals render above the `TabView` / current root.
 
 ```swift
 @discardableResult
 func present(_ destination: Destinations,
              as type: ModalPresentationType = .sheet,
-             policy: RoutePolicy = .always,
-             onDismiss: @escaping @MainActor () -> Void = { }) -> Self
+             policy: RoutePolicy = .always) -> Self
 ```
 
 ```swift
 coordinator.present(.settings)                          // sheet (default)
 coordinator.present(.onboarding, as: .fullScreenCover)
 coordinator.present(.settings, policy: .distinct)       // skip if the case is already presented
-coordinator.present(.filters, onDismiss: { self.reload() })
+_ = await coordinator.present(.filters, awaiting: Void.self)
+reload()
 ```
 
 `.distinct` compares by `Destinations.Meta` (case name), not associated values.
 
-## Presenter-side sheet configuration
+## Native SwiftUI sheet configuration
 
-The **presenter** decides how the sheet appears — the destination view stays ignorant. Same destination, different chrome per call site:
+Use plain `.sheet` and apply native modifiers to the presented content. For a
+view route, apply them inside the view or on the view returned by the route:
 
 ```swift
-coordinator.present(.settings, as: .sheet(detents: [.medium, .large]))
-coordinator.present(.wizard, as: .sheet(
-    detents: [.large],
-    dragIndicator: .hidden,
-    interactiveDismissDisabled: true   // blocks swipe-down; programmatic dismissal still works
-))
+func filters() -> some View {
+    FiltersView()
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+        .interactiveDismissDisabled(true)
+}
 ```
 
-Empty `detents` means the system default. The presented view can read the applied configuration from `@Environment(\.destination).modalConfiguration` (see `scaffolding-environment`).
+For a child coordinator, apply modifiers to its container in `customize(_:)`
+in an extension, so pushed screens share the configuration. Keep the route's
+return type `any Coordinatable`; do not return the child's `.view` as a workaround.
+Pass ordinary view/coordinator inputs if settings vary by caller. Provide a
+completion or close action when disabling interactive dismissal.
 
-`fullScreenCover` is not rendered on macOS — prefer `.sheet` for cross-platform code.
+The configured `.sheet(...)` factory, `SheetConfiguration`, and
+`destination.modalConfiguration` are deprecated compatibility APIs. Existing
+calls keep their behavior; native modifiers do not populate that metadata.
+Omit `presentationDetents` for default sizing. When migrating, remove the
+configured factory call so the legacy wrapper does not compete with modifiers.
+
+On macOS `fullScreenCover` renders as a sheet while preserving its recorded route type.
 
 ## View-only vs sub-flow modals
 
 - **Single screen** (confirmation, info, simple form): stay native — `.sheet(item:)` with local `@State` in the view. No `Destinations` case needed.
 - **Sub-flow** (multiple steps, pushes, dismiss-with-result): `present(_:as:)` with a route that returns a child coordinator.
-- A `some View` route may also be presented modally (e.g. a what's-new page owned by the flow) — it just has no coordinator of its own, so only the presenter can close it programmatically, via `dismissModal()`.
+- A `some View` route may also be presented modally (e.g. a what's-new page owned by the flow) — it just has no coordinator of its own, and can close via `@Environment(\.destination).dismiss()` or the presenter's `dismissPresentedModal()`.
 
-## Dismissing from the presenter — `dismissModal()` / `dismissAllModals()`
+## Presenter-side dismissal and queues
 
-Available on every coordinator type:
-
-```swift
-coordinator.dismissModal()        // removes the MOST RECENT modal; onDismiss fires once
-coordinator.dismissAllModals()    // removes every modal on THIS coordinator
-```
-
-- Equivalent to the user swiping the sheet away — `onDismiss` fires exactly once.
-- On a flow, only modals are touched; pushed destinations stay. Prefer this over `pop()` for closing modals: it's a safe no-op when nothing is presented, whereas `pop()` removes whatever is topmost and dismisses the whole coordinator on an empty stack.
-- Neither call reaches into modals presented by *other* coordinators deeper in the tree.
-- The presented coordinator closing **itself** uses `dismissCoordinator()` instead (see `dismissal-and-results.md`).
+Available on every coordinator type, including generic `C: Coordinatable`:
 
 ```swift
-appCoordinator.present(.whatsNew)     // view-only route
-// … later, presenter decides it's done:
-appCoordinator.dismissModal()
+coordinator.dismissPresentedModal()  // closes the first request in presentation order
+coordinator.dismissModal()           // removes the latest own request, even if still queued
+coordinator.cancelPendingModals()    // preserves the front request; removes own pending ones
+coordinator.dismissAllModals()       // removes every modal owned by THIS coordinator
+coordinator.pendingModalCount
 ```
 
-## Constraints
+Sheets and covers share one queue per host. Only the first request renders;
+later requests wait. A presented child has a separate host. Shared flows
+collect requests in hierarchy/path order. `dismissPresentedModal()` can close
+a nested flow's request on that shared host. Other removals apply only to
+requests owned by the receiving coordinator. Results resolve exactly once,
+and pending cancellation is ordinary dismissal for result purposes.
 
-- **One modal at a time per layer.** Presenting while a modal is up logs a runtime warning; the second modal appears after the first is dismissed. Design flows so a presented coordinator presents its *own* children (nesting works) rather than stacking siblings.
-- `isPresentingModal` reports whether *this* coordinator currently has a modal up.
-- Inside the presented view, SwiftUI's `@Environment(\.dismiss)` also works for a close button — including in reusable components that don't know the coordinator type.
+These operations never pop screens and safely no-op without a matching modal.
+`isPresentingModal` includes queued requests. The presented coordinator closes
+itself with `dismissCoordinator()`; it preserves later queued siblings.
+Native `@Environment(\.dismiss)` continues to work.
+
+The plain, typed, awaiting, and combined presentation overloads are part of
+`Coordinatable`. Use `awaiting:` for a value or nil, optionally combined with
+`expecting:` for immediate child access.

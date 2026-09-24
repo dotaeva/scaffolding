@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="592" viewBox="0 0 640 592" role="img" aria-labelledby="ownership-dark-title ownership-dark-desc">
+<title id="ownership-dark-title">Coordinator ownership</title>
+<desc id="ownership-dark-desc">The root chooses Login or Main; only Main is active here. Main owns independent Home and Profile tab stacks. A child pushed by Home shares its stack. Settings presented by Home has a separate modal stack.</desc>
+<defs>
+<marker id="ownership-dark-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#FFFFFF" stroke-width="1.5"/></marker>
+</defs>
+<g font-family="Arial, Helvetica, sans-serif">
+<rect x="196" y="16" width="248" height="72" fill="#000000" stroke="#FFFFFF" stroke-width="1.5"/>
+<text x="320.0" y="46.0" font-size="24" text-anchor="middle" fill="#FFFFFF">App root</text>
+<text x="320.0" y="74.0" font-size="20" text-anchor="middle" fill="#FFFFFF">setRoot(_:)</text>
+<path d="M320 88 V110" fill="none" stroke="#FFFFFF" stroke-width="1.5"/>
+<path d="M320 110 H144 V134" fill="none" stroke="#FFFFFF" stroke-width="1.5" marker-end="url(#ownership-dark-arrow)" stroke-dasharray="6 5"/>
+<path d="M320 110 H480 V134" fill="none" stroke="#FFFFFF" stroke-width="1.5" marker-end="url(#ownership-dark-arrow)"/>
+<rect x="32" y="134" width="224" height="68" fill="#000000" stroke="#FFFFFF" stroke-width="1.5" stroke-dasharray="6 5"/>
+<text x="144.0" y="162.0" font-size="24" text-anchor="middle" fill="#FFFFFF">Login</text>
+<text x="144.0" y="190.0" font-size="20" text-anchor="middle" fill="#FFFFFF">Inactive</text>
+<rect x="352" y="134" width="256" height="68" fill="#000000" stroke="#FFFFFF" stroke-width="1.5"/>
+<text x="480.0" y="162.0" font-size="24" text-anchor="middle" fill="#FFFFFF">Main tabs</text>
+<text x="480.0" y="190.0" font-size="20" text-anchor="middle" fill="#FFFFFF">Active</text>
+<path d="M480 202 V234 H160 V264" fill="none" stroke="#FFFFFF" stroke-width="1.5" marker-end="url(#ownership-dark-arrow)"/>
+<path d="M480 234 V264" fill="none" stroke="#FFFFFF" stroke-width="1.5" marker-end="url(#ownership-dark-arrow)"/>
+<rect x="16" y="264" width="288" height="170" fill="#000000" stroke="#FFFFFF" stroke-width="1.5"/>
+<text x="160" y="302" font-size="24" text-anchor="middle" fill="#FFFFFF">Home flow · stack A</text>
+<path d="M160 314 V344" fill="none" stroke="#FFFFFF" stroke-width="1.5" marker-end="url(#ownership-dark-arrow)"/>
+<rect x="40" y="344" width="240" height="64" fill="#000000" stroke="#FFFFFF" stroke-width="1.5"/>
+<text x="160.0" y="370.0" font-size="24" text-anchor="middle" fill="#FFFFFF">Pushed child flow</text>
+<text x="160.0" y="398.0" font-size="20" text-anchor="middle" fill="#FFFFFF">Shares stack A</text>
+<rect x="336" y="264" width="288" height="170" fill="#000000" stroke="#FFFFFF" stroke-width="1.5"/>
+<text x="480" y="302" font-size="24" text-anchor="middle" fill="#FFFFFF">Profile flow · stack B</text>
+<text x="480" y="378" font-size="20" text-anchor="middle" fill="#FFFFFF">Independent history</text>
+<path d="M160 434 V504" fill="none" stroke="#FFFFFF" stroke-width="1.5" marker-end="url(#ownership-dark-arrow)"/>
+<text x="192" y="474" font-size="22" text-anchor="start" fill="#FFFFFF" font-family="ui-monospace, Menlo, Consolas, monospace">present(.settings)</text>
+<rect x="16" y="504" width="608" height="72" fill="#000000" stroke="#FFFFFF" stroke-width="1.5"/>
+<text x="320.0" y="534.0" font-size="24" text-anchor="middle" fill="#FFFFFF">Settings flow · stack C</text>
+<text x="320.0" y="562.0" font-size="20" text-anchor="middle" fill="#FFFFFF">Separate modal stack</text>
+</g>
+</svg>
