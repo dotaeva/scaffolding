@@ -8,3 +8,5 @@ DerivedData/
 .netrc
 Package.resolved
 .swiftpm/
+/Derived/
+/Scaffolding.xcodeproj/
