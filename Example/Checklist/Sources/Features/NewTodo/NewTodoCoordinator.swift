@@ -39,6 +39,7 @@ extension NewTodoCoordinator {
     /// the pushed list picker inherits it.
     func customize(_ view: AnyView) -> some View {
         view.sheetSizing(minHeight: 480)
+            .presentationDetents([.large])
     }
 }
 

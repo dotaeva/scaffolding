@@ -18,7 +18,10 @@ struct PageIndicator: View {
                 Capsule()
                     .fill(isSelected(page) ? Color.accentColor : Color.secondary.opacity(0.35))
                     .frame(width: isSelected(page) ? 24 : 8, height: 8)
-                    .onTapGesture { coordinator.select(id: page.id) }
+                    // `_ =` because select(id:) returns Self for chaining,
+                    // which withAnimation would otherwise infer as its
+                    // result type.
+                    .onTapGesture { withAnimation(.snappy) { _ = coordinator.select(id: page.id) } }
                     .accessibilityLabel(isSelected(page) ? "Current page" : "Go to page")
             }
         }

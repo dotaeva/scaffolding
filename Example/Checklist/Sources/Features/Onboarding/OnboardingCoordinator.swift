@@ -84,11 +84,23 @@ extension OnboardingCoordinator {
 // Void return types are never macro-tracked — no attribute needed.
 
 extension OnboardingCoordinator {
-    func showPreferences() { selectFirstTab(.preferences) }
-    func showReady() { selectFirstTab(.ready) }
+    func showPreferences() { turnPage(to: .preferences) }
+    func showReady() { turnPage(to: .ready) }
 
     /// Back to the first page, from wherever the user got to.
-    func startOver() { selectFirstTab(.welcome) }
+    func startOver() { turnPage(to: .welcome) }
+
+    /// A paged `TabView` slides between pages when its *selection binding*
+    /// changes inside an animation transaction. A swipe supplies one; a
+    /// button tap does not, so a bare `selectFirstTab` snaps. Wrapping the
+    /// selection here — rather than at each call site — keeps every entry
+    /// point animated, including the page dots.
+    private func turnPage(to page: Destinations.Meta) {
+        withAnimation(.snappy) {
+            // `_ =` because selectFirstTab returns Self for chaining.
+            _ = selectFirstTab(page)
+        }
+    }
 
     func finish() { onComplete() }
 }

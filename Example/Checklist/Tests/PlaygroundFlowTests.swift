@@ -51,6 +51,28 @@ struct PlaygroundFlowTests {
         #expect(flow.topDestination == .playground)
     }
 
+    @Test("a swapped root advertises the way back, since it replaced it")
+    func swappedRootOffersTheWayBack() {
+        let flow = makeFlow()
+        #expect(!flow.isRootSwapped)
+
+        // setRoot tears down the playground screen that holds every other
+        // button, so the leaf it installs has to offer the restore itself.
+        flow.swapRoot()
+        #expect(flow.isRootSwapped)
+
+        // A leaf pushed *above* the swapped root is an ordinary pushed
+        // screen and must keep its ordinary Back.
+        flow.pushLeaf()
+        #expect(!flow.isRootSwapped)
+
+        flow.popToRoot()
+        #expect(flow.isRootSwapped)
+
+        flow.restoreRoot()
+        #expect(!flow.isRootSwapped)
+    }
+
     @Test("meta-based pops aim at a case, popToRoot clears everything")
     func popFamily() {
         let flow = makeFlow()

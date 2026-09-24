@@ -6,24 +6,28 @@ struct PlaygroundModalSection: View {
 
     var body: some View {
         Section {
-            Button("present(.sheet, detents: [.medium, .large])") {
+            Button("present(.sheet) — native view modifiers") {
                 coordinator.presentSheet()
             }
             Button("present(.cover, as: .fullScreenCover)") {
                 coordinator.presentCover()
             }
-            Button("present(.sheet, interactiveDismissDisabled: true)") {
+            Button("present(.lockedSheet) — swipe disabled by the view") {
                 coordinator.presentLockedSheet()
             }
-            Button("dismissModal()") { coordinator.dismissModal() }
-            Button("dismissAllModals()") { coordinator.dismissAllModals() }
+            Button("present(…) twice — one shows, one waits") {
+                coordinator.presentTwoSheets()
+            }
         } header: {
             Text("Modals")
         } footer: {
-            Text("The presenter chooses the chrome, and dismissModal() is how "
+            Text("The presented view applies SwiftUI's sheet modifiers. dismissModal() is how "
                  + "it closes a view-only modal — there is no coordinator "
-                 + "inside one to dismiss itself. On macOS a cover becomes a "
-                 + "sheet, while the state still reports .fullScreenCover.")
+                 + "inside one to dismiss itself. Both dismissal buttons are "
+                 + "on the modal itself: a presented sheet covers this screen, "
+                 + "so a button here could never be tapped while there was "
+                 + "anything to dismiss. On macOS a cover becomes a sheet, "
+                 + "while the state still reports .fullScreenCover.")
         }
     }
 }

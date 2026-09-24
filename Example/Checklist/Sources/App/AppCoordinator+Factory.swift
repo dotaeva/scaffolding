@@ -25,5 +25,8 @@ extension AppCoordinator {
     }
 
     /// View-only route, presented above whatever the current root is.
-    func makeHierarchy() -> some View { HierarchySheet() }
+    func makeHierarchy() -> some View {
+        // One detent keeps the tree inspector from resizing while scrolling.
+        HierarchySheet().presentationDetents([.large])
+    }
 }

@@ -69,7 +69,7 @@ extension MainTabCoordinator {
         }
         if tab == .stats && store.completedCount == 0 {
             // Keep the current tab and explain why instead of switching.
-            present(.statsLocked, as: .sheet(detents: [.medium]))
+            present(.statsLocked, as: .sheet)
             return false
         }
         return true

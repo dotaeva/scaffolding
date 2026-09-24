@@ -60,7 +60,7 @@ extension AppCoordinator {
     /// simulator), ⇧⌘D on macOS. Presented on the root, so it works from
     /// any tab, column, or flow.
     func showHierarchy() {
-        present(.hierarchy, as: .sheet(detents: [.medium, .large]), policy: .distinct)
+        present(.hierarchy, as: .sheet, policy: .distinct)
     }
 }
 

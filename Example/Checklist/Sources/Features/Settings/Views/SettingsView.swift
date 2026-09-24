@@ -35,9 +35,6 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        #if os(iOS)
-        .scrollEdgeEffectStyle(.hard, for: .top)
-        #endif
         .navigationTitle("Settings")
         .toolbar {
             // This screen is the *root* of the settings flow, so its own

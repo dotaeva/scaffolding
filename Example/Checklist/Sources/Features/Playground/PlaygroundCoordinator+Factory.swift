@@ -21,9 +21,22 @@ extension PlaygroundCoordinator {
     func makeChild() -> any Coordinatable { PlaygroundChildCoordinator() }
 
     /// View-only modals: no coordinator inside, so the presenter closes them.
-    func makeSheet() -> some View { PlaygroundModalView(title: "Sheet") }
+    func makeSheet() -> some View {
+        PlaygroundModalView(title: "Sheet")
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+    }
 
-    func makeCover() -> some View { PlaygroundModalView(title: "Full-screen cover") }
+    func makeLockedSheet() -> some View {
+        PlaygroundModalView(title: "Locked sheet", isLocked: true)
+            .presentationDetents([.medium])
+            .interactiveDismissDisabled(true)
+    }
+
+    func makeCover() -> some View {
+        PlaygroundModalView(title: "Full-screen cover")
+            .presentationDetents([.medium])
+    }
 
     /// A sub-flow whose whole job is returning a value.
     func makePicker() -> any Coordinatable { PlaygroundPickerCoordinator() }

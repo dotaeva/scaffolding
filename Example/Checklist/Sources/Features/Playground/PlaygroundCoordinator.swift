@@ -28,6 +28,7 @@ final class PlaygroundCoordinator: @MainActor FlowCoordinatable {
     func child() -> any Coordinatable { makeChild() }
 
     func sheet() -> some View { makeSheet() }
+    func lockedSheet() -> some View { makeLockedSheet() }
     func cover() -> some View { makeCover() }
 
     func picker() -> any Coordinatable { makePicker() }

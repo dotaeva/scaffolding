@@ -55,7 +55,7 @@ extension TodoDetailCoordinator {
         Task {
             let picked = await present(
                 .tagPicker(selected: todo.tags),
-                as: .sheet(detents: [.medium]),
+                as: .sheet,
                 awaiting: [String].self
             )
             guard let picked else { return }

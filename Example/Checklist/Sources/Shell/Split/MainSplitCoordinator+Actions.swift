@@ -72,7 +72,7 @@ extension MainSplitCoordinator {
         Task {
             let created = await present(
                 .newTodo(source: selectedSource),
-                as: .sheet(detents: [.large]),
+                as: .sheet,
                 awaiting: Todo.self
             )
             guard let created else { return }

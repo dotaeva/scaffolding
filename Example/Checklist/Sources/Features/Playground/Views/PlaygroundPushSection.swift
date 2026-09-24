@@ -12,14 +12,14 @@ struct PlaygroundPushSection: View {
             Button("route(to: .child) — a child coordinator") { coordinator.pushChild() }
             Button("replaceLast(with: .leaf)") { coordinator.replaceTop() }
             Button("setRoot(.leaf)") { coordinator.swapRoot() }
-            if coordinator.topDestination != .playground || coordinator.depth > 0 {
-                Button("setRoot(.playground)") { coordinator.restoreRoot() }
-            }
         } header: {
             Text("Push & replace")
         } footer: {
             Text("Tap the .distinct row twice: the second tap is skipped "
-                 + "because the same case is already on top.")
+                 + "because the same case is already on top. setRoot replaces "
+                 + "this very screen, so the button that swaps the playground "
+                 + "back is on the new root — not here, where it could never "
+                 + "be reached.")
         }
     }
 }

@@ -4,9 +4,9 @@ import Scaffolding
 // MARK: - Modals and awaited navigation
 
 extension PlaygroundCoordinator {
-    /// The presenter picks the chrome: detents and a drag indicator here.
+    /// The presented view owns its detents and drag indicator.
     func presentSheet() {
-        present(.sheet, as: .sheet(detents: [.medium, .large]), policy: .distinct)
+        present(.sheet, as: .sheet, policy: .distinct)
     }
 
     /// A cover on iOS; macOS has none, so Scaffolding renders it as a
@@ -17,7 +17,20 @@ extension PlaygroundCoordinator {
 
     /// Swipe-down disabled — only the presenter can close this one.
     func presentLockedSheet() {
-        present(.sheet, as: .sheet(detents: [.medium], interactiveDismissDisabled: true))
+        present(.lockedSheet)
+    }
+
+    /// Two modals presented back to back.
+    ///
+    /// A flow renders one at a time, so the second waits behind the first:
+    /// `dismissModal()` peels them off one by one, `dismissAllModals()`
+    /// clears both at once. The difference only exists with more than one
+    /// in flight — which is why the buttons for it live *inside* the modal
+    /// rather than on this screen, where a presented sheet would cover
+    /// them exactly when they became useful.
+    func presentTwoSheets() {
+        present(.sheet, as: .sheet)
+        present(.cover, as: .sheet)
     }
 
     /// `present(_:awaiting:)` suspends until the sub-flow hands a value
@@ -25,7 +38,7 @@ extension PlaygroundCoordinator {
     /// resumes with `nil`, so cancelling needs no extra channel.
     func awaitPicker() {
         Task {
-            let picked = await present(.picker, as: .sheet(detents: [.medium]), awaiting: Int.self)
+            let picked = await present(.picker, as: .sheet, awaiting: Int.self)
             lastResult = picked.map { "picker returned \($0)" } ?? "picker cancelled"
         }
     }
@@ -40,11 +53,11 @@ extension PlaygroundCoordinator {
         }
     }
 
-    /// `presentAndWait`: same idea for a modal, with no value to carry.
+    /// `awaiting: Void.self`: wait for a modal, with no value to carry.
     func presentAndWaitSheet() {
         Task {
             lastResult = "waiting for the sheet…"
-            await presentAndWait(.sheet, as: .sheet(detents: [.medium]))
+            _ = await present(.sheet, awaiting: Void.self)
             lastResult = "sheet dismissed"
         }
     }

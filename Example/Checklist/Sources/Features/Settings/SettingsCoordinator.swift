@@ -54,7 +54,7 @@ extension SettingsCoordinator {
     /// `dismissModal()` is the only way out of a view-only modal.
     func syncNow() {
         guard !isPresentingModal else { return }
-        present(.syncing, as: .sheet(detents: [.medium], interactiveDismissDisabled: true))
+        present(.syncing)
         Task {
             try? await Task.sleep(for: .seconds(1))
             dismissModal()

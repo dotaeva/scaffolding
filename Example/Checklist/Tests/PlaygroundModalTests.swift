@@ -11,7 +11,7 @@ struct PlaygroundModalTests {
         PlaygroundCoordinator().activated()
     }
 
-    @Test("sheets and covers present with the presenter's configuration")
+    @Test("sheets and covers retain their requested presentation styles")
     func presentation() {
         let flow = makeFlow()
 
@@ -73,7 +73,7 @@ struct PlaygroundModalTests {
         #expect(flow.depth == 0)
     }
 
-    @Test("presentAndWait resumes when the sheet closes")
+    @Test("awaiting Void resumes when the sheet closes")
     func presentAndWait() async {
         let flow = makeFlow()
 

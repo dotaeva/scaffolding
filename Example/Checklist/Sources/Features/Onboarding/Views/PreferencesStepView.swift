@@ -15,30 +15,40 @@ struct PreferencesStepView: View {
                     .foregroundStyle(.secondary)
             }
             .padding(.top, 36)
-            .padding(.bottom, 12)
 
-            Form {
-                Section {
-                    Toggle("Sort by due date", isOn: $viewModel.sortByDueDate)
-                    Toggle("Show completed tasks", isOn: $viewModel.showsCompleted)
-                }
-                Section("Preview") {
-                    LabeledContent("Sample tasks", value: "\(viewModel.sampleCount)")
-                    Text(viewModel.summary)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
+            Spacer()
+
+            // A plain VStack, not a Form: an onboarding page is a fixed
+            // amount of content, and a scroll view inside a paged TabView
+            // fights the horizontal swipe for the same gesture.
+            VStack(spacing: 0) {
+                Toggle("Sort by due date", isOn: $viewModel.sortByDueDate)
+                Divider()
+                Toggle("Show completed tasks", isOn: $viewModel.showsCompleted)
             }
-            .formStyle(.grouped)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 4)
+            .background(Color.raisedBackground, in: .rect(cornerRadius: 12))
+
+            VStack(spacing: 4) {
+                Text(viewModel.summary)
+                Text("\(viewModel.sampleCount) sample tasks are ready to go.")
+            }
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.center)
+            .padding(.top, 16)
+
+            Spacer()
 
             // Anchored like the other pages' primary actions, so the three
             // pages read as one flow.
             Button("Continue") { coordinator.showReady() }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                .padding(.top, 12)
                 .padding(.bottom, 8)
         }
+        .padding(.horizontal, 28)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

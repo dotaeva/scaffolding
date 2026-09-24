@@ -32,5 +32,6 @@ extension PlaygroundPickerCoordinator {
 extension PlaygroundPickerCoordinator {
     func customize(_ view: AnyView) -> some View {
         view.sheetSizing(minHeight: 300, idealHeight: 340)
+            .presentationDetents([.medium])
     }
 }

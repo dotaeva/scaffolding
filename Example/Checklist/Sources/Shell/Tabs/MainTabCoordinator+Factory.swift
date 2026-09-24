@@ -39,5 +39,7 @@ extension MainTabCoordinator {
     }
 
     /// Presented above the whole `TabView` when `shouldSelect` vetoes Stats.
-    func makeStatsLocked() -> some View { StatsLockedSheet() }
+    func makeStatsLocked() -> some View {
+        StatsLockedSheet().presentationDetents([.medium])
+    }
 }

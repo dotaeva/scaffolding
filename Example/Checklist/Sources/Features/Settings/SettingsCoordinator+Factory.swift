@@ -25,5 +25,9 @@ extension SettingsCoordinator {
     func makeTree() -> some View { HierarchySheet() }
 
     /// A view-only modal with no controls: only the presenter can close it.
-    func makeSyncing() -> some View { SyncingOverlay() }
+    func makeSyncing() -> some View {
+        SyncingOverlay()
+            .presentationDetents([.medium])
+            .interactiveDismissDisabled(true)
+    }
 }

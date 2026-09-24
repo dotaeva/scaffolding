@@ -31,4 +31,15 @@ extension PlaygroundCoordinator {
     func swapRoot() { setRoot(.leaf(label: "New root")) }
 
     func restoreRoot() { setRoot(.playground) }
+
+    /// True when `setRoot` replaced the playground root with a leaf.
+    ///
+    /// A root swap tears down the screen the button was tapped on, so the
+    /// control that undoes it cannot live there. The leaf asks this and
+    /// offers the way back itself. `topDestination` reports the *root's*
+    /// meta once nothing is pushed, so this reads as "at the root, and the
+    /// root is a leaf".
+    var isRootSwapped: Bool {
+        depth == 0 && topDestination == .leaf
+    }
 }
