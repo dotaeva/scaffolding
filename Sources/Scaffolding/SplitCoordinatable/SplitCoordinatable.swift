@@ -9,58 +9,124 @@ import SwiftUI
 import Observation
 import os.log
 
-/// A coordinator that manages a `NavigationSplitView` interface —
-/// sidebar, optional content column, and detail.
+/// A coordinator that renders a `NavigationSplitView` with a sidebar, an
+/// optional content column, and a detail column.
 ///
-/// Conform to `SplitCoordinatable` to build master–detail interfaces
-/// (iPad, Mac) where each column is a destination — either a plain view
-/// or a child coordinator. Provide a ``SplitColumns`` property and define
-/// destination functions using the ``Scaffoldable(injectsCoordinator:codable:)``
-/// macro. Column assignment happens in the ``SplitColumns`` initializer;
-/// the route functions keep the ordinary auto-tracked return types.
+/// Each column shows one destination: a view or a child coordinator. Assign
+/// the initial columns in ``SplitColumns``; routes keep their ordinary return
+/// types. A child ``FlowCoordinatable`` in a column gets its own stack.
 ///
 /// ```swift
-/// @Scaffoldable @Observable
+/// @MainActor @Observable @Scaffoldable
 /// final class LibraryCoordinator: @MainActor SplitCoordinatable {
 ///     var columns = SplitColumns<LibraryCoordinator>(
 ///         sidebar: .sidebar,
 ///         detail: .placeholder
 ///     )
 ///
-///     private(set) var selectedPlanetId: Int?
+///     private(set) var selectedPlanetID: Int?
 ///
 ///     func sidebar() -> some View { SidebarList() }
 ///     func placeholder() -> some View { ContentUnavailableView.search }
 ///     func planet(id: Int) -> any Coordinatable { PlanetFlowCoordinator(id: id) }
+/// }
 ///
-///     // Guard re-selection on domain state: every planet is the same
-///     // `.planet` case, and `RoutePolicy.distinct` compares case
-///     // identity only, so it cannot tell two planets apart.
+/// extension LibraryCoordinator {
 ///     func select(_ planet: Planet) {
-///         guard selectedPlanetId != planet.id else { return }
-///         selectedPlanetId = planet.id
+///         guard selectedPlanetID != planet.id else { return }
+///         selectedPlanetID = planet.id
 ///         setDetail(.planet(id: planet.id))
 ///     }
 /// }
 /// ```
 ///
-/// A child ``FlowCoordinatable`` placed in a column builds its own
-/// `NavigationStack` there — exactly the composition SwiftUI expects
-/// inside a `NavigationSplitView` column — so pushes, pops, and modals
-/// inside a column work with the ordinary flow APIs.
+/// Column setters replace the column; they don't push. Guard re-selection
+/// on domain identity, because ``RoutePolicy/distinct`` compares cases only.
 ///
-/// A `SplitCoordinatable` must never live inside a ``FlowCoordinatable``
-/// (SwiftUI does not support `NavigationSplitView` inside a
-/// `NavigationStack`). Host it on a ``RootCoordinatable``, as a
-/// ``TabCoordinatable`` tab, or present it modally.
+/// Host a split as a root destination, a tab, or a modal. Never push it or
+/// use it as a flow's root. See <doc:SplitViews>.
+///
+/// ## Topics
+///
+/// ### Replacing Columns
+///
+/// - ``setSidebar(_:policy:)``
+/// - ``setSidebar(_:policy:expecting:)``
+/// - ``setContent(_:policy:)``
+/// - ``setContent(_:policy:expecting:)``
+/// - ``setDetail(_:policy:)``
+/// - ``setDetail(_:policy:expecting:)``
+/// - ``removeContent()``
+///
+/// ### Reading Column State
+///
+/// - ``columns``
+/// - ``sidebarDestination``
+/// - ``contentDestination``
+/// - ``detailDestination``
+/// - ``isDetail(_:)``
+///
+/// ### Adapting the Layout
+///
+/// - ``setColumnVisibility(_:)``
+/// - ``columnVisibility``
+/// - ``toggleSidebar()``
+/// - ``isSidebarVisible``
+/// - ``setPreferredCompactColumn(_:)``
+///
+/// ### Presenting and Receiving Results
+///
+/// - ``Coordinatable/present(_:as:policy:)``
+/// - ``Coordinatable/present(_:as:policy:expecting:)``
+/// - ``Coordinatable/present(_:as:policy:awaiting:)``
+/// - ``Coordinatable/present(_:as:policy:expecting:awaiting:)``
+///
+/// ### Closing Flows and Modals
+///
+/// - ``Coordinatable/dismissCoordinator()``
+/// - ``Coordinatable/dismissCoordinator(returning:)``
+/// - ``Coordinatable/dismissPresentedModal()``
+/// - ``Coordinatable/cancelPendingModals()``
+/// - ``Coordinatable/dismissModal()``
+/// - ``Coordinatable/dismissAllModals()``
+/// - ``Coordinatable/isPresentingModal``
+/// - ``Coordinatable/pendingModalCount``
+///
+/// ### Transition Animation
+///
+/// - ``setTransitionAnimation(_:)``
+///
+/// ### Type-Erased State
+///
+/// - ``anySplitColumns``
+///
+/// ### Presentation Context
+///
+/// - ``setPresentedAs(_:)``
+///
+/// ### Deprecated Compatibility
+///
+/// - ``present(_:as:policy:onDismiss:)``
+/// - ``present(_:as:policy:onDismiss:_:)``
+/// - ``present(_:as:policy:onDismiss:expecting:)``
+/// - ``presentAndWait(_:as:policy:)``
+/// - ``setContent(_:policy:_:)``
+/// - ``setDetail(_:policy:_:)``
+/// - ``setSidebar(_:policy:_:)``
 @MainActor
 public protocol SplitCoordinatable: Coordinatable where ViewType == SplitCoordinatableView {
-    /// The observable container that holds this coordinator's column
-    /// destinations.
+    /// The container holding this coordinator's columns, layout, and modal
+    /// requests.
+    ///
+    /// Seed it in the initializer and change it through the coordinator's
+    /// methods. Never replace a live container.
     var columns: SplitColumns<Self> { get }
 
-    /// A type-erased accessor for the column container.
+    /// Type-erased, read-only access to ``columns``.
     var anySplitColumns: any AnySplitColumns { get }
+
+    /// Framework access that does not resolve initial destinations.
+    var _uninitializedSplitColumns: any AnySplitColumns { get }
 }
 
 @MainActor
@@ -69,11 +135,17 @@ public extension SplitCoordinatable {
         columns.id
     }
 
+    var _uninitializedSplitColumns: any AnySplitColumns { columns }
+
     var anySplitColumns: any AnySplitColumns {
         columns.setup(for: self)
         return columns
     }
 
+    /// The rendered split coordinator and everything below it.
+    ///
+    /// Show the top-level coordinator's `view` once, usually in a `WindowGroup`.
+    /// Child coordinators render through their parent.
     var view: SplitCoordinatableView {
         columns.setup(for: self)
         return .init(coordinator: self)
@@ -88,7 +160,7 @@ public extension SplitCoordinatable {
     }
 
     func setHasLayerNavigationCoordinatable(_ value: Bool) {
-        columns.hasLayerNavigationCoordinator = value
+        updateNavigationContext(navigationLayer: value, presentation: inheritedPresentation)
     }
 
     func setParent(_ parent: any Coordinatable) {
@@ -100,61 +172,60 @@ public extension SplitCoordinatable {
 
 @MainActor
 public extension SplitCoordinatable {
-    /// The current visibility of the split view's leading columns.
+    /// The current column visibility.
     ///
-    /// Reflects interactive changes too — the sidebar toggle and edge
-    /// swipes write back into this value.
+    /// User changes, such as the sidebar button or an edge swipe, write back
+    /// to this value.
     var columnVisibility: NavigationSplitViewVisibility {
-        anySplitColumns.columnVisibility
+        _resolvedSplitColumns.columnVisibility
     }
 
-    /// Sets the visibility of the split view's leading columns.
+    /// Sets which columns are visible, using the default animation.
     ///
-    /// - Parameter value: The desired visibility (`.automatic`, `.all`,
-    ///   `.doubleColumn`, or `.detailOnly`).
+    /// - Parameter value: `.automatic`, `.all`, `.doubleColumn`, or `.detailOnly`.
     /// - Returns: `self` for chaining.
     @discardableResult
     func setColumnVisibility(_ value: NavigationSplitViewVisibility) -> Self {
-        anySplitColumns.columnVisibility = value
+        withNavigationAnimation { _resolvedSplitColumns.columnVisibility = value }
         return self
     }
 
-    /// Sets the column shown when the split view collapses to a single
-    /// column (compact width).
+    /// Sets the column shown when the split collapses to one column at
+    /// compact width.
     ///
-    /// - Parameter value: The preferred compact column.
+    /// Use it when a deep link should land on the detail.
+    ///
+    /// - Parameter value: The column to show.
     /// - Returns: `self` for chaining.
     @discardableResult
     func setPreferredCompactColumn(_ value: NavigationSplitViewColumn) -> Self {
-        anySplitColumns.preferredCompactColumn = value
+        withNavigationAnimation { _resolvedSplitColumns.preferredCompactColumn = value }
         return self
     }
 
-    /// Whether the current ``columnVisibility`` shows the sidebar column.
+    /// Whether the requested ``columnVisibility`` includes the sidebar.
     ///
-    /// `false` for `.detailOnly`, and for `.doubleColumn` on a
-    /// three-column split (where the two visible columns are content and
-    /// detail). Reflects the *requested* visibility — `.automatic` can
-    /// still hide the sidebar at narrow widths.
+    /// `false` for `.detailOnly`, and for `.doubleColumn` in a three-column
+    /// split. `.automatic` reads `true` even when the system hides the
+    /// sidebar at narrow widths.
     var isSidebarVisible: Bool {
-        let visibility = anySplitColumns.columnVisibility
+        let visibility = _resolvedSplitColumns.columnVisibility
         if visibility == .detailOnly { return false }
-        if anySplitColumns.hasContentColumn && visibility == .doubleColumn { return false }
+        if _resolvedSplitColumns.hasContentColumn && visibility == .doubleColumn { return false }
         return true
     }
 
-    /// Toggles the sidebar, macOS-style: hides it with `.detailOnly` when
-    /// ``isSidebarVisible``, restores `.all` otherwise. Animated.
+    /// Hides the sidebar with `.detailOnly` when ``isSidebarVisible``;
+    /// otherwise shows every column with `.all`.
     ///
-    /// SwiftUI's own sidebar button (and `SidebarCommands()` on macOS)
-    /// already does this — reach for `toggleSidebar()` from your own
-    /// chrome: a toolbar button, a menu command, or a keyboard shortcut.
+    /// Call it from your own toolbar button, menu command, or shortcut.
+    /// SwiftUI's sidebar button and `SidebarCommands()` already toggle it.
     ///
     /// - Returns: `self` for chaining.
     @discardableResult
     func toggleSidebar() -> Self {
-        withAnimation {
-            anySplitColumns.columnVisibility = isSidebarVisible ? .detailOnly : .all
+        withNavigationAnimation {
+            _resolvedSplitColumns.columnVisibility = isSidebarVisible ? .detailOnly : .all
         }
         return self
     }
@@ -164,26 +235,17 @@ public extension SplitCoordinatable {
 
 @MainActor
 public extension SplitCoordinatable {
-    /// Replaces the destination shown in the detail column.
+    /// Replaces the detail column with a new destination.
     ///
-    /// The previous detail destination is torn down — its `onDismiss`
-    /// (and any awaiting continuation) fires exactly once, and a child
-    /// coordinator loses its pushed state. Pass ``RoutePolicy/distinct``
-    /// so re-selecting the destination **case** that is already showing
-    /// keeps the current detail (and its navigation state) instead of
-    /// rebuilding it.
-    ///
-    /// `.distinct` compares case identity only — associated values are
-    /// ignored, so it cannot distinguish `.planet(id: 1)` from
-    /// `.planet(id: 2)`. When one parameterized case backs many
-    /// selections, guard on your own domain state instead (see the
-    /// ``SplitCoordinatable`` overview).
+    /// The previous detail branch is removed: its waiting callers resume
+    /// with `nil`, and a child coordinator loses its navigation state.
+    /// `.distinct` compares cases only, so `.planet(id: 1)` matches
+    /// `.planet(id: 2)`; guard record identity yourself.
     ///
     /// - Parameters:
-    ///   - destination: The destination to show in the detail column.
-    ///   - policy: Pass ``RoutePolicy/distinct`` to skip the replacement
-    ///     when the same destination case is already showing. Defaults to
-    ///     ``RoutePolicy/always``.
+    ///   - destination: The destination to show.
+    ///   - policy: `.distinct` skips the change when the column already
+    ///     shows this case. Defaults to `.always`.
     /// - Returns: `self` for chaining.
     @discardableResult
     func setDetail(_ destination: Destinations, policy: RoutePolicy = .always) -> Self {
@@ -192,14 +254,15 @@ public extension SplitCoordinatable {
         return self
     }
 
-    /// Replaces the destination shown in the middle content column,
-    /// installing the column when the split view doesn't have one — the
-    /// container swaps from `NavigationSplitView`'s two-column form to
-    /// its three-column form.
+    /// Replaces the content column, adding it when the split has only two
+    /// columns.
+    ///
+    /// The previous content branch is removed as in ``setDetail(_:policy:)``.
     ///
     /// - Parameters:
-    ///   - destination: The destination to show in the content column.
-    ///   - policy: See ``setDetail(_:policy:)``.
+    ///   - destination: The destination to show.
+    ///   - policy: `.distinct` skips the change when the column already
+    ///     shows this case. Defaults to `.always`.
     /// - Returns: `self` for chaining.
     @discardableResult
     func setContent(_ destination: Destinations, policy: RoutePolicy = .always) -> Self {
@@ -208,29 +271,29 @@ public extension SplitCoordinatable {
         return self
     }
 
-    /// Drops the content column, returning to the two-column form.
+    /// Removes the content column, returning to two columns.
     ///
-    /// The removed destination's `onDismiss` (and any awaiting
-    /// continuation) fires exactly once; a child coordinator loses its
-    /// state. Does nothing when no content column is present.
+    /// Its waiting callers resume with `nil`, and a child coordinator loses
+    /// its navigation state. Does nothing without a content column.
     ///
     /// - Returns: `self` for chaining.
     @discardableResult
     func removeContent() -> Self {
-        _ = anySplitColumns // resolve initial columns first
+        _ = _resolvedSplitColumns // resolve initial columns first
         columns.removeContent()
         return self
     }
 
-    /// Replaces the destination shown in the sidebar column.
+    /// Replaces the sidebar column.
     ///
-    /// The sidebar is usually structural and set once in the
-    /// ``SplitColumns`` initializer — reach for this only when the
-    /// sidebar itself genuinely changes (e.g. switching data sets).
+    /// Set the sidebar in ``SplitColumns`` and replace it only when the
+    /// sidebar itself changes. The previous branch is removed as in
+    /// ``setDetail(_:policy:)``.
     ///
     /// - Parameters:
-    ///   - destination: The destination to show in the sidebar column.
-    ///   - policy: See ``setDetail(_:policy:)``.
+    ///   - destination: The destination to show.
+    ///   - policy: `.distinct` skips the change when the column already
+    ///     shows this case. Defaults to `.always`.
     /// - Returns: `self` for chaining.
     @discardableResult
     func setSidebar(_ destination: Destinations, policy: RoutePolicy = .always) -> Self {
@@ -244,16 +307,11 @@ public extension SplitCoordinatable {
 
 @MainActor
 public extension SplitCoordinatable {
-    /// Replaces the detail column and invokes a typed callback with the
-    /// resolved child coordinator — the split-view leg of a deep-link
-    /// chain:
+    /// Deprecated. Use ``setDetail(_:policy:expecting:)`` instead.
     ///
-    /// ```swift
-    /// split.setDetail(.planet(id: 4)) { (flow: PlanetFlowCoordinator) in
-    ///     flow.route(to: .moon(id: 2))
-    /// }
-    /// ```
+    /// Continue through the returned child instead of a callback.
     @discardableResult
+    @available(*, deprecated, message: "Will be removed in a future update. Use the expecting: overload to access the child coordinator.")
     func setDetail<T: Coordinatable>(
         _ destination: Destinations,
         policy: RoutePolicy = .always,
@@ -266,9 +324,11 @@ public extension SplitCoordinatable {
         return self
     }
 
-    /// Replaces the content column and invokes a typed callback with the
-    /// resolved child coordinator. See ``setDetail(_:policy:_:)``.
+    /// Deprecated. Use ``setContent(_:policy:expecting:)`` instead.
+    ///
+    /// Continue through the returned child instead of a callback.
     @discardableResult
+    @available(*, deprecated, message: "Will be removed in a future update. Use the expecting: overload to access the child coordinator.")
     func setContent<T: Coordinatable>(
         _ destination: Destinations,
         policy: RoutePolicy = .always,
@@ -281,9 +341,11 @@ public extension SplitCoordinatable {
         return self
     }
 
-    /// Replaces the sidebar column and invokes a typed callback with the
-    /// resolved child coordinator. See ``setDetail(_:policy:_:)``.
+    /// Deprecated. Use ``setSidebar(_:policy:expecting:)`` instead.
+    ///
+    /// Continue through the returned child instead of a callback.
     @discardableResult
+    @available(*, deprecated, message: "Will be removed in a future update. Use the expecting: overload to access the child coordinator.")
     func setSidebar<T: Coordinatable>(
         _ destination: Destinations,
         policy: RoutePolicy = .always,
@@ -301,16 +363,18 @@ public extension SplitCoordinatable {
 
 @MainActor
 public extension SplitCoordinatable {
-    /// Replaces the detail column and returns its resolved child
-    /// coordinator.
+    /// Replaces the detail column and returns the child as `T`, or `nil` for
+    /// a view route or another type. The navigation happens either way.
     ///
-    /// A non-closure alternative to ``setDetail(_:policy:_:)`` that
-    /// flattens deep-link chains — see
-    /// ``RootCoordinatable/setRoot(_:animation:expecting:)``.
+    /// A `.distinct` skip returns `nil` without navigating. Use the child to
+    /// continue a deep link; see <doc:DeepLinking>.
     ///
-    /// - Returns: The child coordinator cast to `T`, or `nil` when the
-    ///   destination is view-only, resolves to a different type, or the
-    ///   policy skipped the replacement.
+    /// - Parameters:
+    ///   - destination: The destination to show.
+    ///   - policy: `.distinct` skips the change when the column already
+    ///     shows this case. Defaults to `.always`.
+    ///   - coordinatorType: The child type the route builds.
+    /// - Returns: The child, or `nil`.
     func setDetail<T: Coordinatable>(
         _ destination: Destinations,
         policy: RoutePolicy = .always,
@@ -320,8 +384,11 @@ public extension SplitCoordinatable {
         return performSetColumn(.detail, to: destination)?.coordinatable as? T
     }
 
-    /// Replaces the content column and returns its resolved child
-    /// coordinator. See ``setDetail(_:policy:expecting:)``.
+    /// Replaces the content column and returns the child as `T`, or `nil`
+    /// for a view route or another type. The navigation happens either way.
+    ///
+    /// Adds the column when the split has only two. A `.distinct` skip
+    /// returns `nil` without navigating.
     func setContent<T: Coordinatable>(
         _ destination: Destinations,
         policy: RoutePolicy = .always,
@@ -331,8 +398,10 @@ public extension SplitCoordinatable {
         return performSetColumn(.content, to: destination)?.coordinatable as? T
     }
 
-    /// Replaces the sidebar column and returns its resolved child
-    /// coordinator. See ``setDetail(_:policy:expecting:)``.
+    /// Replaces the sidebar column and returns the child as `T`, or `nil`
+    /// for a view route or another type. The navigation happens either way.
+    ///
+    /// A `.distinct` skip returns `nil` without navigating.
     func setSidebar<T: Coordinatable>(
         _ destination: Destinations,
         policy: RoutePolicy = .always,
@@ -347,24 +416,23 @@ public extension SplitCoordinatable {
 
 @MainActor
 public extension SplitCoordinatable {
-    /// The destination case currently shown in the sidebar column.
+    /// The route case in the sidebar column.
     var sidebarDestination: Destinations.Meta? {
-        anySplitColumns.sidebar?.meta as? Destinations.Meta
+        _resolvedSplitColumns.sidebar?.meta as? Destinations.Meta
     }
 
-    /// The destination case currently shown in the content column, or
-    /// `nil` for a two-column split view.
+    /// The route case in the content column, or `nil` for a two-column split.
     var contentDestination: Destinations.Meta? {
-        anySplitColumns.content?.meta as? Destinations.Meta
+        _resolvedSplitColumns.content?.meta as? Destinations.Meta
     }
 
-    /// The destination case currently shown in the detail column.
+    /// The route case in the detail column.
     var detailDestination: Destinations.Meta? {
-        anySplitColumns.detail?.meta as? Destinations.Meta
+        _resolvedSplitColumns.detail?.meta as? Destinations.Meta
     }
 
-    /// Returns whether the given destination is currently shown in the
-    /// detail column.
+    /// Returns whether the detail column shows the given case, ignoring its
+    /// payload.
     func isDetail(_ destination: Destinations.Meta) -> Bool {
         detailDestination == destination
     }
@@ -374,7 +442,7 @@ public extension SplitCoordinatable {
 extension SplitCoordinatable {
     @discardableResult
     func performSetColumn(_ column: SplitColumn, to destination: Destinations) -> Destination? {
-        _ = anySplitColumns // resolve initial columns so cold-launch deep links land
+        _ = _resolvedSplitColumns // resolve initial columns so cold-launch deep links land
         let dest = destination.resolvedValue(for: self)
         return columns.replace(column, with: dest)
     }
@@ -386,7 +454,7 @@ extension SplitCoordinatable {
         policy: RoutePolicy
     ) -> Bool {
         guard case .distinct = policy else { return false }
-        _ = anySplitColumns // resolve initial columns before comparing
+        _ = _resolvedSplitColumns // resolve initial columns before comparing
         guard let currentMeta = columns.destination(for: column)?.meta as? Destinations.Meta else {
             return false
         }
@@ -398,43 +466,49 @@ extension SplitCoordinatable {
 
 @MainActor
 public extension SplitCoordinatable {
-    /// Presents a destination modally on this split coordinator.
+    /// Adds a modal request above the split view.
     ///
-    /// The modal lives on this coordinator's container and is rendered
-    /// as a sheet or full-screen cover above the `NavigationSplitView`.
-    ///
-    /// The `onDismiss` closure has `async` alternatives: `await`
-    /// ``SplitCoordinatable/presentAndWait(_:as:policy:)`` to continue once the modal closes, or
-    /// ``SplitCoordinatable/present(_:as:policy:awaiting:)`` to take a value back from it.
+    /// The first request shows; later ones wait. Add `awaiting:` to wait for
+    /// a result; see <doc:ModalsAndResults>.
     ///
     /// - Parameters:
-    ///   - destination: The destination to present.
-    ///   - type: The modal presentation style. Defaults to `.sheet`.
-    ///   - policy: Pass ``RoutePolicy/distinct`` to skip the presentation
-    ///     when the same destination case is already presented. Defaults
-    ///     to ``RoutePolicy/always``.
-    ///   - onDismiss: A closure invoked when the modal is dismissed.
+    ///   - destination: The route to present.
+    ///   - type: `.sheet` (the default) or `.fullScreenCover`.
+    ///   - policy: `.distinct` skips a case this coordinator already
+    ///     requested, including queued requests. Defaults to `.always`.
     /// - Returns: `self` for chaining.
     @discardableResult
     func present(
         _ destination: Destinations,
         as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always
+    ) -> Self {
+        guard !modalPolicySkips(destination, policy: policy) else { return self }
+        _ = performPresent(destination, as: type, onDismiss: { })
+        return self
+    }
+
+    /// Deprecated. Use ``Coordinatable/present(_:as:policy:awaiting:)`` instead.
+    ///
+    /// Await it with `awaiting: Void.self`, then run the former `onDismiss` code.
+    @available(*, deprecated, message: "Will be removed in a future update. Use await present with awaiting: instead; pass Void.self to wait without a result.")
+    @discardableResult
+    func present(
+        _ destination: Destinations,
+        as type: ModalPresentationType = .sheet,
         policy: RoutePolicy = .always,
-        onDismiss: @escaping @MainActor () -> Void = { }
+        onDismiss: @escaping @MainActor () -> Void
     ) -> Self {
         guard !modalPolicySkips(destination, policy: policy) else { return self }
         _ = performPresent(destination, as: type, onDismiss: onDismiss)
         return self
     }
 
-    /// Presents a destination modally and invokes a typed callback with the
-    /// resolved child coordinator.
+    /// Deprecated. Use ``Coordinatable/present(_:as:policy:expecting:)`` instead.
     ///
-    /// The callback fires once after the modal lands above the split view,
-    /// receiving the newly created coordinator cast to `T`. If the
-    /// destination does not resolve to a coordinator of type `T`, the
-    /// callback is not invoked.
+    /// Add `awaiting:` when dismissal or a result also matters.
     @discardableResult
+    @available(*, deprecated, message: "Will be removed in a future update. Use expecting: for child access; combine it with awaiting: for dismissal/results.")
     func present<T: Coordinatable>(
         _ destination: Destinations,
         as type: ModalPresentationType = .sheet,
@@ -450,23 +524,38 @@ public extension SplitCoordinatable {
         return self
     }
 
-    /// Presents a destination modally and returns its resolved child
-    /// coordinator, if any.
+    /// Presents a destination and returns the child as `T`, or `nil` for a
+    /// view route or another type. The navigation happens either way.
+    ///
+    /// A `.distinct` skip returns `nil` without presenting.
     func present<T: Coordinatable>(
         _ destination: Destinations,
         as type: ModalPresentationType = .sheet,
         policy: RoutePolicy = .always,
-        onDismiss: @escaping @MainActor () -> Void = { },
+        expecting coordinatorType: T.Type
+    ) -> T? {
+        guard !modalPolicySkips(destination, policy: policy) else { return nil }
+        return performPresent(destination, as: type, onDismiss: { }).coordinatable as? T
+    }
+
+    /// Deprecated. Use ``Coordinatable/present(_:as:policy:expecting:awaiting:)`` instead.
+    ///
+    /// Await its `result()` where the `onDismiss` code ran.
+    @available(*, deprecated, message: "Will be removed in a future update. Use expecting: with awaiting: to get the child immediately and await its result.")
+    func present<T: Coordinatable>(
+        _ destination: Destinations,
+        as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always,
+        onDismiss: @escaping @MainActor () -> Void,
         expecting coordinatorType: T.Type
     ) -> T? {
         guard !modalPolicySkips(destination, policy: policy) else { return nil }
         return performPresent(destination, as: type, onDismiss: onDismiss).coordinatable as? T
     }
 
-    /// Whether this coordinator currently presents a modal (sheet or
-    /// full-screen cover) above the `NavigationSplitView`.
+    /// Whether this coordinator has a modal request, including queued requests.
     var isPresentingModal: Bool {
-        !anySplitColumns.modals.isEmpty
+        !_resolvedSplitColumns.modals.isEmpty
     }
 }
 
@@ -474,36 +563,59 @@ public extension SplitCoordinatable {
 
 @MainActor
 public extension SplitCoordinatable {
-    /// Presents a destination modally and suspends until it is dismissed.
+    /// Presents a destination and returns its child and a result waiter
+    /// without suspending.
     ///
-    /// See ``FlowCoordinatable/presentAndWait(_:as:policy:)`` — identical
-    /// semantics, hosted above the `NavigationSplitView`.
+    /// Configure `coordinator`, then `await result()`. A view route or
+    /// another type gives a `nil` coordinator. A `.distinct` skip or an
+    /// already-cancelled task presents nothing, and `result()` returns `nil`.
+    /// See <doc:ModalsAndResults#Configure-the-child-then-await>.
+    func present<T: Coordinatable, Result>(
+        _ destination: Destinations,
+        as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always,
+        expecting coordinatorType: T.Type,
+        awaiting resultType: Result.Type
+    ) -> (coordinator: T?, result: @MainActor () async -> Result?) {
+        guard !Task.isCancelled, !modalPolicySkips(destination, policy: policy) else {
+            return (nil, { nil })
+        }
+        let dest = performPresent(destination, as: type, onDismiss: { })
+        return (dest.coordinatable as? T, dest.resolution.resultWaiter(for: resultType))
+    }
+
+    /// Deprecated. Use ``Coordinatable/present(_:as:policy:awaiting:)`` with
+    /// `awaiting: Void.self` instead.
+    @available(*, deprecated, message: "Will be removed in a future update. Use await present with awaiting: Void.self to wait for dismissal, or awaiting: Result.self to receive a result.")
     func presentAndWait(
         _ destination: Destinations,
         as type: ModalPresentationType = .sheet,
         policy: RoutePolicy = .always
     ) async {
+        guard !Task.isCancelled else { return }
         guard !modalPolicySkips(destination, policy: policy) else { return }
         let dest = performPresent(destination, as: type, onDismiss: { })
         await dest.resolution.awaitResolution()
     }
 
-    /// Presents a destination modally and suspends until it is dismissed,
-    /// returning the value the presented coordinator handed back via
-    /// ``Coordinatable/dismissCoordinator(returning:)``.
+    /// Presents a destination and suspends until it leaves, returning its
+    /// result.
     ///
-    /// See ``FlowCoordinatable/present(_:as:policy:awaiting:)`` —
-    /// identical semantics, hosted above the `NavigationSplitView`.
+    /// The child returns a value with ``Coordinatable/dismissCoordinator(returning:)``;
+    /// a view uses ``Destination/dismiss(returning:)``. Plain dismissal, a
+    /// mismatched type, or a `.distinct` skip returns `nil`. Cancelling the
+    /// waiting task returns `nil` and leaves the modal in place.
     func present<Result>(
         _ destination: Destinations,
         as type: ModalPresentationType = .sheet,
         policy: RoutePolicy = .always,
         awaiting resultType: Result.Type
     ) async -> Result? {
+        guard !Task.isCancelled else { return nil }
         guard !modalPolicySkips(destination, policy: policy) else { return nil }
         let dest = performPresent(destination, as: type, onDismiss: { })
         await dest.resolution.awaitResolution()
-        return dest.resolution.result as? Result
+        return Task.isCancelled ? nil : dest.resolution.result as? Result
     }
 }
 
@@ -511,7 +623,7 @@ public extension SplitCoordinatable {
 extension SplitCoordinatable {
     func modalPolicySkips(_ destination: Destinations, policy: RoutePolicy) -> Bool {
         guard case .distinct = policy else { return false }
-        return anySplitColumns.modals.contains { dest in
+        return _resolvedSplitColumns.modals.contains { dest in
             guard let destMeta = dest.meta as? Destinations.Meta else { return false }
             return destMeta == destination.meta
         }
@@ -528,39 +640,18 @@ extension SplitCoordinatable {
         dest.setPushType(type.presentationType)
         dest.setRouteType(DestinationType.from(presentationType: type.presentationType))
         dest.setModalConfiguration(type.configuration)
-        dest.coordinatable?.setHasLayerNavigationCoordinatable(false)
-        dest.coordinatable?.setParent(self)
+        dest.coordinatable?.attach(to: self, navigationLayer: false, presentation: type.presentationType)
 
-        if let flowCoordinator = dest.coordinatable as? any FlowCoordinatable {
-            flowCoordinator.setPresentedAs(type.presentationType)
-        } else if let tabCoordinator = dest.coordinatable as? any TabCoordinatable {
-            tabCoordinator.setPresentedAs(type.presentationType)
-        } else if let rootCoordinator = dest.coordinatable as? any RootCoordinatable {
-            rootCoordinator.setPresentedAs(type.presentationType)
-        } else if let splitCoordinator = dest.coordinatable as? any SplitCoordinatable {
-            splitCoordinator.setPresentedAs(type.presentationType)
-        }
-
-        anySplitColumns.modals.append(dest)
+        withNavigationAnimation { columns.modals.append(dest) }
         return dest
     }
 }
 
 public extension SplitCoordinatable {
+    /// Records the presentation style this coordinator inherits from a
+    /// presented host. The framework calls it; apps don't need to.
     func setPresentedAs(_ type: PresentationType) {
-        anySplitColumns.presentedAs = type
-        if var sidebar = anySplitColumns.sidebar, sidebar.pushType == nil {
-            sidebar.setPushType(type)
-            anySplitColumns.sidebar = sidebar
-        }
-        if var content = anySplitColumns.content, content.pushType == nil {
-            content.setPushType(type)
-            anySplitColumns.content = content
-        }
-        if var detail = anySplitColumns.detail, detail.pushType == nil {
-            detail.setPushType(type)
-            anySplitColumns.detail = detail
-        }
+        inheritPresentation(type)
     }
 }
 
@@ -570,15 +661,15 @@ public extension SplitCoordinatable {
 extension SplitCoordinatable {
     var columnVisibilityBinding: Binding<NavigationSplitViewVisibility> {
         Binding(
-            get: { self.anySplitColumns.columnVisibility },
-            set: { self.anySplitColumns.columnVisibility = $0 }
+            get: { self._resolvedSplitColumns.columnVisibility },
+            set: { self._resolvedSplitColumns.columnVisibility = $0 }
         )
     }
 
     var preferredCompactColumnBinding: Binding<NavigationSplitViewColumn> {
         Binding(
-            get: { self.anySplitColumns.preferredCompactColumn },
-            set: { self.anySplitColumns.preferredCompactColumn = $0 }
+            get: { self._resolvedSplitColumns.preferredCompactColumn },
+            set: { self._resolvedSplitColumns.preferredCompactColumn = $0 }
         )
     }
 }
@@ -596,10 +687,9 @@ func _warnIfSplitInsideNavigationStack(_ coordinatable: (any Coordinatable)?) {
     logger.critical("Scaffolding: A SplitCoordinatable cannot live inside a FlowCoordinatable — SwiftUI does not support NavigationSplitView inside a NavigationStack. Host it on a RootCoordinatable, as a TabCoordinatable tab, or present it modally.")
 }
 
-/// The SwiftUI view generated by a ``SplitCoordinatable`` coordinator.
+/// The view a ``SplitCoordinatable`` renders.
 ///
-/// You never create this view directly — access ``Coordinatable/view``
-/// on a `SplitCoordinatable` coordinator to obtain it.
+/// Get it from ``Coordinatable/view``; don't create it yourself.
 public struct SplitCoordinatableView: CoordinatableView {
     private let _coordinator: any SplitCoordinatable
 
@@ -627,32 +717,32 @@ public struct SplitCoordinatableView: CoordinatableView {
 
     @ViewBuilder
     private func splitView() -> some View {
-        if _coordinator.anySplitColumns.hasContentColumn {
+        if _coordinator._resolvedSplitColumns.hasContentColumn {
             NavigationSplitView(
                 columnVisibility: _coordinator.columnVisibilityBinding,
                 preferredCompactColumn: _coordinator.preferredCompactColumnBinding
             ) {
-                column(_coordinator.anySplitColumns.sidebar)
+                column(_coordinator._resolvedSplitColumns.sidebar)
             } content: {
-                column(_coordinator.anySplitColumns.content)
+                column(_coordinator._resolvedSplitColumns.content)
             } detail: {
-                column(_coordinator.anySplitColumns.detail)
+                column(_coordinator._resolvedSplitColumns.detail)
             }
         } else {
             NavigationSplitView(
                 columnVisibility: _coordinator.columnVisibilityBinding,
                 preferredCompactColumn: _coordinator.preferredCompactColumnBinding
             ) {
-                column(_coordinator.anySplitColumns.sidebar)
+                column(_coordinator._resolvedSplitColumns.sidebar)
             } detail: {
-                column(_coordinator.anySplitColumns.detail)
+                column(_coordinator._resolvedSplitColumns.detail)
             }
         }
     }
 
     private func modals(of type: ModalPresentationType) -> [Destination] {
         let target = type.presentationType
-        return _coordinator.anySplitColumns.modals.filter { $0.pushType == target }
+        return _coordinator._resolvedSplitColumns.modals.filter { $0.pushType == target }
     }
 
     public var body: some View {
@@ -662,13 +752,28 @@ public struct SplitCoordinatableView: CoordinatableView {
             )
         )
         .applyContainerModals(
-            sheets: modals(of: .sheet),
-            fullScreenCovers: modals(of: .fullScreenCover),
+            destinations: _coordinator._resolvedSplitColumns.modals,
             onDismissSheet: { id in (_coordinator as any Coordinatable).removeContainerModal(id: id, type: .sheet) },
             onDismissFullScreenCover: { id in (_coordinator as any Coordinatable).removeContainerModal(id: id, type: .fullScreenCover) },
             modalContent: wrappedView
         )
         .environmentCoordinatable(coordinator)
-        .id(_coordinator.anySplitColumns.id)
+        .id(_coordinator._resolvedSplitColumns.id)
     }
+}
+
+@MainActor
+extension SplitCoordinatable {
+    var _columns: any _MutableSplitColumns { columns }
+    var _resolvedSplitColumns: any _MutableSplitColumns {
+        columns.setup(for: self)
+        return columns
+    }
+}
+
+@MainActor
+public extension SplitCoordinatable {
+    /// Sets the default animation for this coordinator's navigation changes.
+    /// Pass `nil` to disable it.
+    func setTransitionAnimation(_ animation: Animation?) { columns.animation = animation }
 }

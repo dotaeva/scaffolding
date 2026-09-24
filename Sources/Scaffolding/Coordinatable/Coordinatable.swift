@@ -8,291 +8,338 @@
 import SwiftUI
 import os.log
 
-/// The core protocol that all coordinators conform to.
+/// The interface every coordinator shares.
 ///
-/// `Coordinatable` provides the shared surface every coordinator type
-/// (``FlowCoordinatable``, ``TabCoordinatable``, ``RootCoordinatable``)
-/// builds upon: an associated `Destinations` enum, identity, parent
-/// tracking, and the ability to produce a SwiftUI view.
+/// Don't adopt `Coordinatable` directly. Adopt ``FlowCoordinatable``,
+/// ``RootCoordinatable``, ``TabCoordinatable``, or ``SplitCoordinatable``;
+/// each inherits the modal presentation, dismissal, hierarchy, and
+/// restoration API below. Generic helpers constrained to `C: Coordinatable`
+/// can use it too.
 ///
-/// You do not conform to `Coordinatable` directly — use one of the
-/// three specialized protocols instead.
+/// Add `expecting:` to `present` to get the child immediately, `awaiting:` to
+/// wait for its result, or both to configure the child before waiting. See
+/// <doc:ModalsAndResults> and <doc:Essentials>.
+///
+/// ## Topics
+///
+/// ### Presenting and Receiving Results
+///
+/// - ``present(_:as:policy:)``
+/// - ``present(_:as:policy:expecting:)``
+/// - ``present(_:as:policy:awaiting:)``
+/// - ``present(_:as:policy:expecting:awaiting:)``
+///
+/// ### Closing Flows and Modals
+///
+/// - ``dismissCoordinator()``
+/// - ``dismissCoordinator(returning:)``
+/// - ``dismissPresentedModal()``
+/// - ``cancelPendingModals()``
+/// - ``dismissModal()``
+/// - ``dismissAllModals()``
+/// - ``isPresentingModal``
+/// - ``pendingModalCount``
+///
+/// ### Rendering and Shared Appearance
+///
+/// - ``view``
+/// - ``customize(_:)``
+///
+/// ### Hierarchy and Presentation
+///
+/// - ``parent``
+/// - ``routeType``
+/// - ``ancestor(ofType:)``
+/// - ``hierarchyRoot``
+/// - ``hierarchySnapshot()``
+/// - ``debugHierarchy()``
+///
+/// ### Capturing and Restoring Navigation
+///
+/// - ``captureNavigationState()``
+/// - ``captureNavigationState(version:)``
+/// - ``captureNavigationStateWithReport(version:)``
+/// - ``restoreNavigationState(from:mode:)``
+/// - ``restoreNavigationStateWithReport(from:mode:migrate:)``
+/// - ``restoreNavigationState(from:)``
+///
+/// ### Coordinator Types
+///
+/// - ``Destinations``
+/// - ``ViewType``
+/// - ``CustomizeContentView``
+///
+/// ### Framework Integration
+///
+/// - ``hasLayerNavigationCoordinatable``
+/// - ``setHasLayerNavigationCoordinatable(_:)``
+/// - ``setParent(_:)``
+/// - ``resolveMeta(_:)``
 @MainActor
 public protocol Coordinatable: AnyObject, Identifiable {
+    /// The route enum that ``Scaffoldable(injectsCoordinator:codable:)``
+    /// generates from the class body's route functions.
     associatedtype Destinations: Destinationable where Destinations.Owner == Self
+    /// The view that renders this coordinator.
     associatedtype ViewType: View
+    /// The view that ``customize(_:)`` returns.
     associatedtype CustomizeContentView: View
 
     var _dataId: ObjectIdentifier { get }
+    nonisolated var _injectsCoordinator: Bool { get }
+    /// The coordinator that hosts this one, or `nil` at the top level.
     var parent: (any Coordinatable)? { get }
+    /// Whether this coordinator renders inside a `NavigationStack` owned by an
+    /// ancestor flow, as a pushed child or a flow's root.
+    ///
+    /// The framework maintains this value.
     var hasLayerNavigationCoordinatable: Bool { get }
+    /// The SwiftUI view that renders this coordinator and everything it owns.
+    ///
+    /// Mount the top-level coordinator's `view` once, in your scene. Don't wrap
+    /// it or any route in a navigation container. See <doc:Essentials>.
     var view: ViewType { get }
+    /// Updates ``hasLayerNavigationCoordinatable``. Framework use only.
     func setHasLayerNavigationCoordinatable(_ value: Bool)
+    /// Attaches this coordinator to its host. Framework use only; navigation
+    /// methods attach children for you.
     func setParent(_ value: any Coordinatable)
 
-    /// Wraps the coordinator's content view with additional modifiers.
+    /// Whether this coordinator owns a modal request, visible or queued.
+    var isPresentingModal: Bool { get }
+
+    /// Presents a destination as a sheet or full-screen cover.
     ///
-    /// Override this method to apply shared modifiers — such as toolbars,
-    /// overlays, or environment values — to every screen the coordinator
-    /// presents.
+    /// The request joins this coordinator's presentation host, which shows one
+    /// request at a time; later requests wait. A presented child coordinator is
+    /// a new host. A route unavailable on the current OS is skipped. See
+    /// <doc:ModalsAndResults>.
     ///
-    /// - Parameter view: The type-erased content view produced by the
-    ///   coordinator.
-    /// - Returns: A modified view.
+    /// - Parameters:
+    ///   - destination: The route to present.
+    ///   - type: `.sheet` (the default) or `.fullScreenCover`. On macOS a cover
+    ///     renders as a sheet.
+    ///   - policy: `.distinct` skips the request when this coordinator already
+    ///     has one for the same case, visible or queued. Associated values are
+    ///     ignored.
+    /// - Returns: `self`, for chaining.
+    @discardableResult
+    func present(_ destination: Destinations, as type: ModalPresentationType, policy: RoutePolicy) -> Self
+
+    /// Presents a destination and returns the child as `T`, or `nil` for a view
+    /// route or another type. The navigation happens either way.
+    ///
+    /// ```swift
+    /// present(.settings, expecting: SettingsCoordinator.self)?.route(to: .account)
+    /// ```
+    ///
+    /// A skipped request — `.distinct` or an unavailable route — presents
+    /// nothing and returns `nil`. To also wait for a result, use
+    /// ``present(_:as:policy:expecting:awaiting:)``.
+    func present<T: Coordinatable>(_ destination: Destinations, as type: ModalPresentationType, policy: RoutePolicy, expecting coordinatorType: T.Type) -> T?
+
+    /// Presents a destination and suspends until it leaves, returning its result.
+    ///
+    /// ```swift
+    /// if let item = await present(.picker, awaiting: Item.self) { apply(item) }
+    /// _ = await present(.help, awaiting: Void.self)  // wait only
+    /// ```
+    ///
+    /// A child coordinator returns a value with ``dismissCoordinator(returning:)``;
+    /// a view route returns one with ``Destination/dismiss(returning:)``. The call
+    /// returns `nil` when the destination closes without a value, the value has
+    /// another type, or the request is skipped. `Void.self` waits for removal
+    /// only; it doesn't prove the flow succeeded.
+    ///
+    /// Cancelling the waiting task returns `nil` and leaves the modal open. A
+    /// task that is already cancelled presents nothing.
+    func present<Result>(_ destination: Destinations, as type: ModalPresentationType, policy: RoutePolicy, awaiting resultType: Result.Type) async -> Result?
+
+    /// Presents a destination and immediately returns its child and a closure
+    /// that awaits its result.
+    ///
+    /// ```swift
+    /// let (picker, result) = present(
+    ///     .picker, expecting: PickerCoordinator.self, awaiting: Item.self
+    /// )
+    /// picker?.route(to: .favorites)
+    /// let item = await result()
+    /// ```
+    ///
+    /// The call doesn't suspend; only `result()` does.
+    ///
+    /// - `coordinator` is `nil` for a view route or another type; `result()`
+    ///   still works.
+    /// - A skipped request, or a call from a cancelled task, presents nothing
+    ///   and returns a `nil` coordinator and a `result()` that returns `nil`.
+    /// - `result()` observes this destination even after it closes; calling it
+    ///   again returns the same value.
+    /// - Cancelling a task running `result()` releases only that wait.
+    func present<T: Coordinatable, Result>(_ destination: Destinations, as type: ModalPresentationType, policy: RoutePolicy, expecting coordinatorType: T.Type, awaiting resultType: Result.Type) -> (coordinator: T?, result: @MainActor () async -> Result?)
+
+    /// Wraps everything this coordinator renders.
+    ///
+    /// Implement it in an extension to apply shared chrome — tint, toolbars,
+    /// overlays, presentation modifiers — to the coordinator's container. In
+    /// the class body, mark it ``ScaffoldingIgnored()`` so the macro doesn't
+    /// treat it as a route. Never add a navigation container here.
+    ///
+    /// - Parameter view: The coordinator's rendered content.
+    /// - Returns: The wrapped content.
     func customize(_ view: AnyView) -> CustomizeContentView
 
-    /// Captures this coordinator's navigation state as a codable node,
-    /// or `nil` when the coordinator's `Destinations` are not `Codable`.
-    ///
-    /// Do not implement or call this directly — use
-    /// ``captureNavigationState()``. A default implementation is provided
-    /// for every coordinator type.
+    /// Framework hook behind ``captureNavigationState()``. Don't implement or
+    /// call it.
     func _captureNavigationStateNode() -> NavigationStateNode?
 
-    /// Restores navigation state captured by
-    /// ``_captureNavigationStateNode()``.
-    ///
-    /// Do not implement or call this directly — use
-    /// ``restoreNavigationState(from:)``. A default implementation is
-    /// provided for every coordinator type.
+    /// Framework hook behind ``restoreNavigationState(from:mode:)``. Don't
+    /// implement or call it.
     func _restoreNavigationStateNode(_ node: NavigationStateNode)
 }
 
 @MainActor
 public extension Coordinatable {
-    /// Whether this coordinator should be injected into descendant
-    /// views' environment (`@Environment(MyCoordinator.self)`).
+    /// Whether managed views receive this coordinator through `@Environment`.
     ///
-    /// Defaults to `true`. Override by passing
-    /// `@Scaffoldable(injectsCoordinator: false)`, which causes the
-    /// macro to emit a property returning `false`.
+    /// `@Scaffoldable(injectsCoordinator: false)` makes it `false`.
     nonisolated var _injectsCoordinator: Bool { true }
 
+    /// Returns the content unchanged.
+    ///
+    /// Implement `customize(_:)` in an extension to wrap everything this
+    /// coordinator renders.
     func customize(_ view: AnyView) -> some View {
         view
     }
 
-    /// Dismisses this coordinator from its parent's navigation hierarchy.
+    /// Removes this coordinator from its host.
     ///
-    /// If the coordinator is the root of a ``FlowCoordinatable`` stack, the
-    /// entire flow is dismissed. If it lives inside a stack as a pushed
-    /// destination, only that destination is removed. Tab children cannot
-    /// be dismissed and will log a warning instead.
+    /// | Where this coordinator is | Effect |
+    /// |---|---|
+    /// | Pushed | Removes it and everything pushed above it |
+    /// | Presented | Closes that presentation |
+    /// | Root of a flow or root coordinator | Dismisses that host instead |
+    /// | Tab or split column | Nothing; remove the tab or replace the column |
+    /// | Top level | Nothing |
     ///
-    /// The destination's `onDismiss` callback (and any awaiting
-    /// `await route(...)` continuation) fires exactly once.
-    ///
-    /// To hand a value back to a presenter that is awaiting this coordinator,
-    /// use ``Coordinatable/dismissCoordinator(returning:)`` — a plain
-    /// `dismissCoordinator()` resumes that presenter with `nil`.
+    /// Waiters on the removed route resume with `nil`; use
+    /// ``dismissCoordinator(returning:)`` to deliver a value. Removed
+    /// descendants resolve once, deepest and topmost first, after the branch
+    /// is detached.
     func dismissCoordinator() {
-        let logger = Logger(subsystem: "Scaffolding", category: "Dismissal")
+        guard let parent else { return }
+        let matches: (Destination) -> Bool = { $0.materializedCoordinatable === self }
 
-        if let parent = parent as? (any TabCoordinatable) {
-            // Modal child of a TabCoordinatable → remove from container.modals.
-            let selfId = AnyHashable(self.id)
-            if parent.anyTabItems.modals.contains(where: {
-                guard let cId = $0.coordinatable?.id else { return false }
-                return AnyHashable(cId) == selfId
-            }) {
-                let toRemove = parent.anyTabItems.modals.filter {
-                    guard let cId = $0.coordinatable?.id else { return false }
-                    return AnyHashable(cId) == selfId
+        if let flow = parent as? any FlowCoordinatable {
+            let stack = flow._stack
+            if let root = stack.root, matches(root) {
+                flow.dismissCoordinator()
+            } else if let index = stack.destinations.firstIndex(where: matches) {
+                if stack.destinations[index].routeType.isModal {
+                    parent.removeOwnModals(where: matches)
+                    return
                 }
-                parent.anyTabItems.modals.removeAll {
-                    guard let cId = $0.coordinatable?.id else { return false }
-                    return AnyHashable(cId) == selfId
-                }
-                for destination in toRemove { destination.resolveDismissal() }
-                return
+                let removed = Array(stack.destinations[index...])
+                withScaffoldingAnimation(stack.animation) { stack.destinations.removeSubrange(index...) }
+                resolveDismissals(removed)
             }
-            logger.critical("Scaffolding: The coordinator you're trying to dismiss is a TabView child, it will not be dismissed.")
-            return
-        }
-
-        if let parent = parent as? (any SplitCoordinatable) {
-            // Modal child of a SplitCoordinatable → remove from container.modals.
-            let selfId = AnyHashable(self.id)
-            if parent.anySplitColumns.modals.contains(where: {
-                guard let cId = $0.coordinatable?.id else { return false }
-                return AnyHashable(cId) == selfId
-            }) {
-                let toRemove = parent.anySplitColumns.modals.filter {
-                    guard let cId = $0.coordinatable?.id else { return false }
-                    return AnyHashable(cId) == selfId
-                }
-                parent.anySplitColumns.modals.removeAll {
-                    guard let cId = $0.coordinatable?.id else { return false }
-                    return AnyHashable(cId) == selfId
-                }
-                for destination in toRemove { destination.resolveDismissal() }
-                return
+        } else if let root = parent as? any RootCoordinatable {
+            let container = root._root
+            if let index = container.modals.firstIndex(where: matches) {
+                let removedID = container.modals[index].id
+                parent.removeOwnModals { $0.id == removedID }
+            } else if let destination = container.root, matches(destination) {
+                root.dismissCoordinator()
             }
-            logger.critical("Scaffolding: The coordinator you're trying to dismiss is a split-view column, it will not be dismissed. Replace the column on its SplitCoordinatable instead.")
-            return
-        }
-
-        if let parent = parent as? (any RootCoordinatable) {
-            // Modal child of a RootCoordinatable → remove from container.modals.
-            let selfId = AnyHashable(self.id)
-            if parent.anyRoot.modals.contains(where: {
-                guard let cId = $0.coordinatable?.id else { return false }
-                return AnyHashable(cId) == selfId
-            }) {
-                let toRemove = parent.anyRoot.modals.filter {
-                    guard let cId = $0.coordinatable?.id else { return false }
-                    return AnyHashable(cId) == selfId
-                }
-                parent.anyRoot.modals.removeAll {
-                    guard let cId = $0.coordinatable?.id else { return false }
-                    return AnyHashable(cId) == selfId
-                }
-                for destination in toRemove { destination.resolveDismissal() }
-                if let selfFlow = self as? any FlowCoordinatable {
-                    selfFlow.anyStack.destinations.removeAll()
-                }
-                return
+        } else if let tab = parent as? any TabCoordinatable {
+            let container = tab._tabItems
+            if let index = container.modals.firstIndex(where: matches) {
+                let removedID = container.modals[index].id
+                parent.removeOwnModals { $0.id == removedID }
+            } else {
+                Logger(subsystem: "Scaffolding", category: "Dismissal")
+                    .warning("Tab children are structural. Remove or replace the tab on its owner.")
             }
-            _resolveOwningDestination()
-            parent.parent?.dismissCoordinator()
-            // Fallback: if parent.parent was nil or could not dismiss,
-            // clean up own pushed destinations to avoid stale navigation state.
-            if let selfFlow = self as? any FlowCoordinatable {
-                selfFlow.anyStack.destinations.removeAll()
-            }
-            return
-        }
-
-        if let parent = parent as? (any FlowCoordinatable) {
-            let selfId = AnyHashable(self.id)
-
-            if let root = parent.anyStack.root,
-               let rootCoordinatable = root.coordinatable?.id,
-               AnyHashable(rootCoordinatable) == selfId {
-                _resolveOwningDestination()
-                parent.dismissCoordinator()
-                // Fallback: clean up own destinations in case the parent
-                // could not be dismissed (e.g. parent chain hits a tab child).
-                if let selfFlow = self as? any FlowCoordinatable {
-                    selfFlow.anyStack.destinations.removeAll()
-                }
-                return
-            }
-
-            // Remove this coordinator and all destinations pushed after it.
-            // Using removeSubrange ensures plain-view destinations on top
-            // are also removed (they have no coordinatable to match by ID).
-            if let selfIndex = parent.anyStack.destinations.firstIndex(where: {
-                guard let coordinatableId = $0.coordinatable?.id else { return false }
-                return AnyHashable(coordinatableId) == selfId
-            }) {
-                let removed = parent.anyStack.destinations[selfIndex...]
-                for destination in removed {
-                    destination.resolveDismissal()
-                }
-                parent.anyStack.destinations.removeSubrange(selfIndex...)
+        } else if let split = parent as? any SplitCoordinatable {
+            let container = split._columns
+            if let index = container.modals.firstIndex(where: matches) {
+                let removedID = container.modals[index].id
+                parent.removeOwnModals { $0.id == removedID }
+            } else {
+                Logger(subsystem: "Scaffolding", category: "Dismissal")
+                    .warning("Split columns are structural. Replace the column on its owner.")
             }
         }
     }
 
+    /// Casts type-erased route metadata to this coordinator's
+    /// `Destinations.Meta`, or returns `nil` for another coordinator's case.
     func resolveMeta(_ meta: any DestinationMeta) -> Destinations.Meta? {
         return meta as? Self.Destinations.Meta
     }
 
-    /// Dismisses the most recently presented modal.
+    /// Removes this coordinator's most recent modal request, even a queued one.
     ///
-    /// The counterpart of `present(_:as:policy:onDismiss:)` for the presenting
-    /// side: removes the top modal from this coordinator and fires its
-    /// `onDismiss` callback exactly once, matching an interactive
-    /// dismissal. Does nothing when no modal is presented.
+    /// With A visible and B queued, this removes B; use
+    /// ``dismissPresentedModal()`` to close A. The removed request's waiters
+    /// resume with `nil`. Pushed screens stay.
     ///
-    /// On a ``FlowCoordinatable`` only the modal is removed — destinations
-    /// pushed onto the stack stay in place.
-    ///
-    /// - Returns: `self` for chaining.
+    /// - Returns: `self`, for chaining.
     @discardableResult
     func dismissModal() -> Self {
-        if let root = self as? any RootCoordinatable {
-            guard let modal = root.anyRoot.modals.popLast() else { return self }
-            modal.resolveDismissal()
-        } else if let tab = self as? any TabCoordinatable {
-            guard let modal = tab.anyTabItems.modals.popLast() else { return self }
-            modal.resolveDismissal()
-        } else if let split = self as? any SplitCoordinatable {
-            guard let modal = split.anySplitColumns.modals.popLast() else { return self }
-            modal.resolveDismissal()
-        } else if let flow = self as? any FlowCoordinatable {
-            guard let index = flow.anyStack.destinations.lastIndex(where: {
-                $0.pushType == .sheet || $0.pushType == .fullScreenCover
-            }) else { return self }
-            let modal = flow.anyStack.destinations.remove(at: index)
-            modal.resolveDismissal()
-        }
+        guard let last = ownModalDestinations.last else { return self }
+        removeOwnModals { $0.id == last.id }
         return self
     }
 
-    /// Dismisses every modal presented on this coordinator.
+    /// Removes every modal request this coordinator owns, visible or queued.
     ///
-    /// Like ``dismissModal()`` applied until nothing is presented: each
-    /// removed modal fires its `onDismiss` exactly once, and pushed
-    /// destinations are untouched. Modals presented by *other*
-    /// coordinators deeper in the tree are not affected. Does nothing
-    /// when no modal is presented.
+    /// Each removed branch's waiters resume with `nil`. Pushed screens stay, and
+    /// so do requests owned by other coordinators, such as a pushed child flow.
     ///
-    /// - Returns: `self` for chaining.
+    /// - Returns: `self`, for chaining.
     @discardableResult
     func dismissAllModals() -> Self {
-        if let root = self as? any RootCoordinatable {
-            let removed = root.anyRoot.modals
-            root.anyRoot.modals.removeAll()
-            for destination in removed.reversed() { destination.resolveDismissal() }
-        } else if let tab = self as? any TabCoordinatable {
-            let removed = tab.anyTabItems.modals
-            tab.anyTabItems.modals.removeAll()
-            for destination in removed.reversed() { destination.resolveDismissal() }
-        } else if let split = self as? any SplitCoordinatable {
-            let removed = split.anySplitColumns.modals
-            split.anySplitColumns.modals.removeAll()
-            for destination in removed.reversed() { destination.resolveDismissal() }
-        } else if let flow = self as? any FlowCoordinatable {
-            let isModal: (Destination) -> Bool = {
-                $0.pushType == .sheet || $0.pushType == .fullScreenCover
-            }
-            let removed = flow.anyStack.destinations.filter(isModal)
-            flow.anyStack.destinations.removeAll(where: isModal)
-            for destination in removed.reversed() { destination.resolveDismissal() }
-        }
+        removeOwnModals { _ in true }
         return self
     }
 
-    /// Dismisses this coordinator and hands a result back to its presenter.
-    ///
-    /// The counterpart of the `awaiting:` presentation APIs: the value is
-    /// delivered to a suspended
-    /// `present(_:as:awaiting:)` call on the presenting side, then the
-    /// coordinator is dismissed exactly like ``dismissCoordinator()``.
+    /// Removes this coordinator from its host and returns a value to the caller
+    /// awaiting it.
     ///
     /// ```swift
-    /// // Presenting side
+    /// // Presenter
     /// let token = await present(.login, awaiting: AuthToken.self)
     ///
     /// // Inside LoginCoordinator
-    /// dismissCoordinator(returning: AuthToken(...))
+    /// dismissCoordinator(returning: token)
     /// ```
+    ///
+    /// Removal follows ``dismissCoordinator()``. When this coordinator is the
+    /// root of a flow or root coordinator, the value goes to the route that
+    /// actually leaves. A caller awaiting another type receives `nil`.
     func dismissCoordinator<Result>(returning result: Result) {
-        _owningDestination()?.resolution.result = result
+        // Structural roots dismiss through their wrappers. Deliver to the
+        // route that is actually leaving its presenter, not an inner root.
+        var subject: any Coordinatable = self
+        while let destination = subject._owningDestination(), let owner = subject.parent {
+            let isFlowRoot = (owner as? any FlowCoordinatable)?._stack.root?.id == destination.id
+            let isRoot = (owner as? any RootCoordinatable)?._root.root?.id == destination.id
+            if isFlowRoot || isRoot {
+                subject = owner
+                continue
+            }
+            if destination.routeType != .root {
+                destination.resolution.result = result
+            }
+            break
+        }
         dismissCoordinator()
     }
 }
 
 @MainActor
 extension Coordinatable {
-    /// Walks the parent's stack/root/tabItems to find the destination
-    /// that wraps `self` and fires its dismissal resolution.
-    func _resolveOwningDestination() {
-        _owningDestination()?.resolveDismissal()
-    }
-
     /// Walks the parent's stack/root/tabItems to find the destination
     /// that wraps `self`.
     func _owningDestination() -> Destination? {
@@ -302,34 +349,34 @@ extension Coordinatable {
         let candidates: [Destination] = {
             if let flow = parent as? any FlowCoordinatable {
                 var arr: [Destination] = []
-                if let r = flow.anyStack.root { arr.append(r) }
-                arr.append(contentsOf: flow.anyStack.destinations)
+                if let r = flow._stack.root { arr.append(r) }
+                arr.append(contentsOf: flow._stack.destinations)
                 return arr
             }
             if let root = parent as? any RootCoordinatable {
                 var arr: [Destination] = []
-                if let r = root.anyRoot.root { arr.append(r) }
-                arr.append(contentsOf: root.anyRoot.modals)
+                if let r = root._root.root { arr.append(r) }
+                arr.append(contentsOf: root._root.modals)
                 return arr
             }
             if let tab = parent as? any TabCoordinatable {
-                var arr: [Destination] = tab.anyTabItems.tabs
-                arr.append(contentsOf: tab.anyTabItems.modals)
+                var arr: [Destination] = tab._tabItems.tabs
+                arr.append(contentsOf: tab._tabItems.modals)
                 return arr
             }
             if let split = parent as? any SplitCoordinatable {
                 var arr: [Destination] = []
-                if let sidebar = split.anySplitColumns.sidebar { arr.append(sidebar) }
-                if let content = split.anySplitColumns.content { arr.append(content) }
-                if let detail = split.anySplitColumns.detail { arr.append(detail) }
-                arr.append(contentsOf: split.anySplitColumns.modals)
+                if let sidebar = split._columns.sidebar { arr.append(sidebar) }
+                if let content = split._columns.content { arr.append(content) }
+                if let detail = split._columns.detail { arr.append(detail) }
+                arr.append(contentsOf: split._columns.modals)
                 return arr
             }
             return []
         }()
 
         return candidates.first(where: {
-            guard let cId = $0.coordinatable?.id else { return false }
+            guard let cId = $0.materializedCoordinatable?.id else { return false }
             return AnyHashable(cId) == selfId
         })
     }
@@ -342,20 +389,8 @@ extension Coordinatable {
     /// resolution. No-op for FlowCoordinatable, which manages modals
     /// through its FlowStack.
     func removeContainerModal(id: UUID, type: ModalPresentationType) {
-        let target = type.presentationType
-        if let root = self as? any RootCoordinatable {
-            let toRemove = root.anyRoot.modals.filter { $0.id == id && $0.pushType == target }
-            root.anyRoot.modals.removeAll { $0.id == id && $0.pushType == target }
-            for destination in toRemove { destination.resolveDismissal() }
-        } else if let tab = self as? any TabCoordinatable {
-            let toRemove = tab.anyTabItems.modals.filter { $0.id == id && $0.pushType == target }
-            tab.anyTabItems.modals.removeAll { $0.id == id && $0.pushType == target }
-            for destination in toRemove { destination.resolveDismissal() }
-        } else if let split = self as? any SplitCoordinatable {
-            let toRemove = split.anySplitColumns.modals.filter { $0.id == id && $0.pushType == target }
-            split.anySplitColumns.modals.removeAll { $0.id == id && $0.pushType == target }
-            for destination in toRemove { destination.resolveDismissal() }
-        }
+        guard !(self is any FlowCoordinatable) else { return }
+        removeOwnModals { $0.id == id && $0.pushType == type.presentationType }
     }
 }
 
@@ -366,22 +401,33 @@ extension Coordinatable {
     }
 }
 
-/// A type that bridges between a coordinator's `Destinations` enum and the
-/// concrete ``Destination`` value used at runtime.
+/// The interface of a generated `Destinations` enum.
 ///
-/// The ``Scaffoldable(injectsCoordinator:codable:)`` macro generates a conforming type automatically —
-/// you do not need to implement this protocol yourself.
+/// ``Scaffoldable(injectsCoordinator:codable:)`` generates the conformance.
+/// Don't adopt it yourself.
 @MainActor
 public protocol Destinationable {
+    /// The payload-free case identity, generated as `Destinations.Meta`.
     associatedtype Meta: DestinationMeta
+    /// The coordinator that declares these routes.
     associatedtype Owner
 
-    /// Metadata that identifies the destination case without its
-    /// associated values.
+    /// This case without its associated values.
     var meta: Meta { get }
 
-    /// Creates a ``Destination`` for the given coordinator instance.
+    /// Whether the current OS supports this route.
+    ///
+    /// Routes marked `@available` report it at runtime. Presentation skips an
+    /// unavailable route; restoration reports and skips it.
+    var isAvailable: Bool { get }
+
+    /// Builds the ``Destination`` for this case, owned by `instance`.
     @MainActor func value(for instance: Owner) -> Destination
+}
+
+@MainActor
+public extension Destinationable {
+    var isAvailable: Bool { true }
 }
 
 @MainActor

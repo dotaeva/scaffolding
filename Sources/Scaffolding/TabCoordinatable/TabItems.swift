@@ -8,54 +8,61 @@
 import SwiftUI
 import Observation
 
-/// A type-erased protocol for ``TabItems`` that allows the framework to
-/// manipulate tab state without knowing the concrete coordinator type.
+/// A read-only, type-erased view of a ``TabItems`` container.
+///
+/// Change tabs and selection through the owning ``TabCoordinatable``.
 @MainActor
 public protocol AnyTabItems: AnyObject, CoordinatableData where Coordinator: TabCoordinatable {
-    /// The resolved tab destinations.
-    var tabs: [Destination] { get set }
-    /// The identifier of the currently selected tab.
-    var selectedTab: UUID? { get set }
-    /// The visibility of the tab bar.
-    var tabBarVisibility: Visibility { get set }
-    /// The presentation type if this tab coordinator was presented modally.
-    var presentedAs: PresentationType? { get set }
-    /// Modal destinations presented from this coordinator.
-    var modals: [Destination] { get set }
+    /// The tab destinations, in display order.
+    var tabs: [Destination] { get }
+    /// The identifier of the selected tab, or `nil` before the tabs resolve or when there are none.
+    var selectedTab: UUID? { get }
+    /// The native tab bar's visibility.
+    var tabBarVisibility: Visibility { get }
+    /// The presentation style inherited from the parent, or `nil`.
+    var presentedAs: PresentationType? { get }
+    /// This coordinator's modal requests, visible and queued.
+    var modals: [Destination] { get }
 }
 
-/// Observable state container for a ``TabCoordinatable`` coordinator.
+/// The observable state of a ``TabCoordinatable``: its tabs, selection, bar
+/// visibility, and modal requests.
 ///
-/// `TabItems` holds the array of tab destinations and tracks which tab
-/// is selected. It is generic over the coordinator type so that
-/// destination enums remain type-safe.
+/// Declare it as a `var` and seed it through the initializer. Change it through
+/// the coordinator's methods; never replace a live container.
 ///
 /// ```swift
 /// var tabItems = TabItems<MainTabCoordinator>(
-///     tabs: [.home, .profile, .settings]
+///     tabs: [.home, .profile, .settings],
+///     selectedIndex: 1
 /// )
 /// ```
+///
+/// The initial tabs resolve on first use: rendering, navigation, or a query.
 @MainActor
 @Observable
 public class TabItems<Coordinator: TabCoordinatable>: AnyTabItems {
-    /// The parent coordinator that owns this tab coordinator, if any.
-    public weak var parent: (any Coordinatable)?
-    /// Whether a parent flow coordinator provides the navigation layer.
-    public var hasLayerNavigationCoordinator: Bool = false
-    /// The presentation type when this coordinator was presented modally.
-    public var presentedAs: PresentationType?
-    /// Modal destinations presented from this coordinator.
-    public var modals: [Destination] = []
+    /// The coordinator that hosts this one, or `nil` at the top level.
+    public internal(set) weak var parent: (any Coordinatable)?
+    /// Whether an enclosing flow provides the navigation stack.
+    public internal(set) var hasLayerNavigationCoordinator: Bool = false
+    /// The presentation style inherited from the parent, or `nil`.
+    public internal(set) var presentedAs: PresentationType?
+    /// This coordinator's modal requests, visible and queued.
+    public internal(set) var modals: [Destination] = []
 
-    /// The resolved tab destinations.
-    public var tabs: [Destination] = .init()
-    /// The identifier of the currently selected tab.
-    public var selectedTab: UUID? = nil
+    /// The tab destinations, in display order.
+    public internal(set) var tabs: [Destination] = .init()
+    /// The identifier of the selected tab, or `nil` before the tabs resolve or when there are none.
+    public internal(set) var selectedTab: UUID? = nil
 
-    /// The visibility of the tab bar.
-    public var tabBarVisibility: Visibility = .automatic
-    /// Whether ``setup(for:)`` has been called.
-    public var isSetup: Bool = false
+    /// The native tab bar's visibility.
+    public internal(set) var tabBarVisibility: Visibility = .automatic
+    /// The default animation for navigation changes. Set it with ``TabCoordinatable/setTransitionAnimation(_:)``.
+    public internal(set) var animation: Animation? = .default
+
+    /// Whether the initial tabs have been resolved.
+    public internal(set) var isSetup: Bool = false
     private var initialTabs: [Coordinator.Destinations] = .init()
 
     private var pendingSelectionIndex: Int? = nil
@@ -63,13 +70,13 @@ public class TabItems<Coordinator: TabCoordinatable>: AnyTabItems {
     private var pendingSelectionFirstMeta: Coordinator.Destinations.Meta? = nil
     private var pendingSelectionLastMeta: Coordinator.Destinations.Meta? = nil
 
-    /// Creates a new tab items container.
+    /// Creates the container with its initial tabs.
     ///
     /// - Parameters:
-    ///   - tabs: The destination cases to display as tabs.
-    ///   - selectedIndex: An optional zero-based index of the initially
-    ///     selected tab.
-    ///   - visibility: The initial tab bar visibility.
+    ///   - tabs: The tab cases, in display order.
+    ///   - selectedIndex: The initially selected position. `nil` or an
+    ///     out-of-range index selects the first tab.
+    ///   - visibility: The native tab bar's initial visibility.
     public init(
         tabs: [Coordinator.Destinations],
         selectedIndex: Int? = nil,
@@ -80,15 +87,18 @@ public class TabItems<Coordinator: TabCoordinatable>: AnyTabItems {
         self.tabBarVisibility = visibility
     }
 
-    /// Performs one-time setup, resolving initial tab destinations.
+    /// Resolves the initial tabs and selection.
     ///
-    /// - Parameter coordinator: The coordinator that owns this container.
+    /// Runs once; later calls do nothing. The framework calls this; apps don't
+    /// need to.
+    ///
+    /// - Parameter coordinator: The owning coordinator.
     public func setup(for coordinator: Coordinator) {
         guard !isSetup else { return }
+        isSetup = true
         self.tabs = initialTabs.map {
             var t = $0.resolvedValue(for: coordinator)
-            t.coordinatable?.setHasLayerNavigationCoordinatable(coordinator.hasLayerNavigationCoordinatable)
-            t.coordinatable?.setParent(coordinator)
+            t.coordinatable?.attach(to: coordinator, navigationLayer: coordinator.hasLayerNavigationCoordinatable, presentation: presentedAs)
 
             if let presentedAs = presentedAs {
                 t.setPushType(presentedAs)
@@ -124,11 +134,12 @@ public class TabItems<Coordinator: TabCoordinatable>: AnyTabItems {
         pendingSelectionId = nil
         pendingSelectionFirstMeta = nil
         pendingSelectionLastMeta = nil
-
-        self.isSetup = true
+        initialTabs = []
     }
 
-    /// Sets the parent coordinator reference.
+    /// Records the hosting coordinator.
+    ///
+    /// The framework calls this; apps don't need to.
     public func setParent(_ parent: any Coordinatable) {
         self.parent = parent
     }
@@ -166,7 +177,7 @@ extension TabItems {
             guard let destinationMeta = destination.meta as? Coordinator.Destinations.Meta else { return false }
             return destinationMeta == tab
         }) {
-            selectedTab = foundTab.id
+            withScaffoldingAnimation(animation) { selectedTab = foundTab.id }
             return foundTab
         }
         return nil
@@ -185,7 +196,7 @@ extension TabItems {
             guard let destinationMeta = destination.meta as? Coordinator.Destinations.Meta else { return false }
             return destinationMeta == tab
         }) {
-            selectedTab = foundTab.id
+            withScaffoldingAnimation(animation) { selectedTab = foundTab.id }
             return foundTab
         }
         return nil
@@ -204,7 +215,7 @@ extension TabItems {
 
         guard index >= 0 && index < tabs.count else { return nil }
         let selectedDestination = tabs[index]
-        selectedTab = selectedDestination.id
+        withScaffoldingAnimation(animation) { selectedTab = selectedDestination.id }
         return selectedDestination
     }
 
@@ -218,26 +229,29 @@ extension TabItems {
         }
 
         if let foundTab = tabs.first(where: { $0.id == id }) {
-            selectedTab = foundTab.id
+            withScaffoldingAnimation(animation) { selectedTab = foundTab.id }
             return foundTab
         }
         return nil
     }
 
     func setTabs(_ tabs: [Destination]) {
-        self.tabs = tabs.map { tab in
-            var mutableTab = tab
-            if let presentedAs = presentedAs, mutableTab.pushType == nil {
-                mutableTab.setPushType(presentedAs)
-                propagateDestinationType(to: mutableTab.coordinatable, as: presentedAs)
+        let removed = self.tabs.filter { old in !tabs.contains { $0.id == old.id } }
+        withScaffoldingAnimation(animation) {
+            self.tabs = tabs.map { tab in
+                var mutableTab = tab
+                if let presentedAs = presentedAs, mutableTab.pushType == nil {
+                    mutableTab.setPushType(presentedAs)
+                    propagateDestinationType(to: mutableTab.coordinatable, as: presentedAs)
+                }
+                return mutableTab
             }
-            return mutableTab
-        }
 
-        if let selectedTab = selectedTab,
-           !self.tabs.contains(where: { $0.id == selectedTab }) {
-            self.selectedTab = self.tabs.first?.id
+            if !self.tabs.contains(where: { $0.id == selectedTab }) {
+                self.selectedTab = self.tabs.first?.id
+            }
         }
+        resolveDismissals(removed)
     }
 
     func appendTab(_ tab: Destination) -> Destination {
@@ -247,10 +261,12 @@ extension TabItems {
             propagateDestinationType(to: mutableTab.coordinatable, as: presentedAs)
         }
 
-        tabs.append(mutableTab)
+        withScaffoldingAnimation(animation) {
+            tabs.append(mutableTab)
 
-        if selectedTab == nil {
-            selectedTab = mutableTab.id
+            if selectedTab == nil {
+                selectedTab = mutableTab.id
+            }
         }
 
         return mutableTab
@@ -263,11 +279,13 @@ extension TabItems {
             propagateDestinationType(to: mutableTab.coordinatable, as: presentedAs)
         }
 
-        let clampedIndex = max(0, min(index, tabs.count))
-        tabs.insert(mutableTab, at: clampedIndex)
+        withScaffoldingAnimation(animation) {
+            let clampedIndex = max(0, min(index, tabs.count))
+            tabs.insert(mutableTab, at: clampedIndex)
 
-        if selectedTab == nil {
-            selectedTab = mutableTab.id
+            if selectedTab == nil {
+                selectedTab = mutableTab.id
+            }
         }
 
         return mutableTab
@@ -279,16 +297,14 @@ extension TabItems {
             return destinationMeta == meta
         }) else { return }
 
-        let removedTab = tabs.remove(at: index)
-
-        if selectedTab == removedTab.id {
-            if !tabs.isEmpty {
-                let newIndex = min(index, tabs.count - 1)
-                selectedTab = tabs[newIndex].id
-            } else {
-                selectedTab = nil
+        let removedTab = withScaffoldingAnimation(animation) {
+            let removed = tabs.remove(at: index)
+            if selectedTab == removed.id {
+                selectedTab = tabs.isEmpty ? nil : tabs[min(index, tabs.count - 1)].id
             }
+            return removed
         }
+        removedTab.resolveDismissal()
     }
 
     func setBadge(_ value: String?, forFirst meta: Coordinator.Destinations.Meta) {
@@ -327,16 +343,26 @@ extension TabItems {
             return destinationMeta == meta
         }) else { return }
 
-        let removedTab = tabs.remove(at: index)
-
-        if selectedTab == removedTab.id {
-            if !tabs.isEmpty {
-                let newIndex = min(index, tabs.count - 1)
-                selectedTab = tabs[newIndex].id
-            } else {
-                selectedTab = nil
+        let removedTab = withScaffoldingAnimation(animation) {
+            let removed = tabs.remove(at: index)
+            if selectedTab == removed.id {
+                selectedTab = tabs.isEmpty ? nil : tabs[min(index, tabs.count - 1)].id
             }
+            return removed
         }
+        removedTab.resolveDismissal()
     }
 
 }
+
+@MainActor
+protocol _MutableTabItems: AnyTabItems, _MutableCoordinatableData {
+    var animation: Animation? { get set }
+    var tabs: [Destination] { get set }
+    var selectedTab: UUID? { get set }
+    var tabBarVisibility: Visibility { get set }
+    var presentedAs: PresentationType? { get set }
+    var modals: [Destination] { get set }
+}
+
+extension TabItems: _MutableTabItems {}

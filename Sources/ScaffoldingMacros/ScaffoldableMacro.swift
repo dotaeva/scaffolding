@@ -23,13 +23,13 @@ public struct ScaffoldableMacro: MemberMacro {
             throw ScaffoldingMacroError.onlyApplicableToClass
         }
 
-        let className = classDecl.name.text
+        let className = classDecl.name.trimmedDescription
         let coordinatableType = try determineCoordinatableType(from: classDecl)
-        let isPublic = classDecl.modifiers.contains { modifier in
-            modifier.name.text == "public"
-        }
-        let injectsCoordinator = parseBoolArgument(named: "injectsCoordinator", from: node)
-        let codable = parseBoolArgument(named: "codable", from: node) ?? false
+        let modifiers = Set(classDecl.modifiers.map { $0.name.text })
+        let accessModifier = !modifiers.isDisjoint(with: ["public", "open"]) ? "public "
+            : modifiers.contains("package") ? "package " : ""
+        let injectsCoordinator = try parseBoolArgument(named: "injectsCoordinator", from: node)
+        let codable = try parseBoolArgument(named: "codable", from: node) ?? false
 
         let functions = extractFunctions(from: classDecl)
         let trackedFunctions = try filterTrackedFunctions(functions, coordinatableType: coordinatableType, context: context)
@@ -37,7 +37,7 @@ public struct ScaffoldableMacro: MemberMacro {
         let destinationsEnum = try generateDestinationsEnum(
             className: className,
             functions: trackedFunctions,
-            isPublic: isPublic,
+            accessModifier: accessModifier,
             codable: codable
         )
 
@@ -48,20 +48,22 @@ public struct ScaffoldableMacro: MemberMacro {
         // extension; only the opt-out needs to be materialised.
         if injectsCoordinator == false {
             members.append(DeclSyntax(stringLiteral: """
-                \(isPublic ? "public " : "")nonisolated var _injectsCoordinator: Bool { false }
+                \(accessModifier)nonisolated var _injectsCoordinator: Bool { false }
                 """))
         }
 
         return members
     }
 
-    private static func parseBoolArgument(named name: String, from node: AttributeSyntax) -> Bool? {
+    private static func parseBoolArgument(named name: String, from node: AttributeSyntax) throws -> Bool? {
         guard case let .argumentList(arguments) = node.arguments else { return nil }
         for argument in arguments {
             guard let label = argument.label?.text, label == name else { continue }
-            let valueText = argument.expression.description.trimmingCharacters(in: .whitespacesAndNewlines)
-            if valueText == "true" { return true }
-            if valueText == "false" { return false }
+            guard let literal = argument.expression.as(BooleanLiteralExprSyntax.self) else {
+                throw ScaffoldingMacroError.booleanLiteralRequired(name)
+            }
+            return literal.literal.tokenKind == .keyword(.true)
+
         }
         return nil
     }
@@ -82,17 +84,8 @@ public struct ScaffoldableMacro: MemberMacro {
     }
 
     private static func coordinatableTypeFromInheritance(_ classDecl: ClassDeclSyntax) -> CoordinatableType? {
-        let inheritanceTypes = classDecl.inheritanceClause?.inheritedTypes.compactMap { type -> String? in
-            // Handle attributed types like "@MainActor FlowCoordinatable"
-            if let attributedType = type.type.as(AttributedTypeSyntax.self),
-               let baseType = attributedType.baseType.as(IdentifierTypeSyntax.self) {
-                return baseType.name.text
-            }
-            // Handle simple identifier types like "FlowCoordinatable"
-            if let identifierType = type.type.as(IdentifierTypeSyntax.self) {
-                return identifierType.name.text
-            }
-            return nil
+        let inheritanceTypes = classDecl.inheritanceClause?.inheritedTypes.compactMap {
+            typeBaseName($0.type)
         } ?? []
 
         if inheritanceTypes.contains("TabCoordinatable") {
@@ -119,8 +112,9 @@ public struct ScaffoldableMacro: MemberMacro {
             guard let variable = member.decl.as(VariableDeclSyntax.self) else { continue }
 
             for binding in variable.bindings {
-                if let annotation = binding.typeAnnotation?.type.as(IdentifierTypeSyntax.self),
-                   let type = CoordinatableType(stateContainerName: annotation.name.text) {
+                if let annotation = binding.typeAnnotation?.type,
+                   let name = typeBaseName(annotation),
+                   let type = CoordinatableType(stateContainerName: name) {
                     return type
                 }
                 if let call = binding.initializer?.value.as(FunctionCallExprSyntax.self),
@@ -135,32 +129,53 @@ public struct ScaffoldableMacro: MemberMacro {
 
     /// `FlowStack<X>(root:)` → `FlowStack`; also handles the unspecialized form.
     private static func calleeBaseName(of call: FunctionCallExprSyntax) -> String? {
-        if let specialization = call.calledExpression.as(GenericSpecializationExprSyntax.self),
-           let reference = specialization.expression.as(DeclReferenceExprSyntax.self) {
-            return reference.baseName.text
+        var expression = call.calledExpression
+        if let generic = expression.as(GenericSpecializationExprSyntax.self) {
+            expression = generic.expression
         }
-        if let reference = call.calledExpression.as(DeclReferenceExprSyntax.self) {
-            return reference.baseName.text
-        }
-        return nil
+        if let reference = expression.as(DeclReferenceExprSyntax.self) { return reference.baseName.text }
+        return expression.as(MemberAccessExprSyntax.self)?.declName.baseName.text
     }
-    
-    private static func extractFunctions(from classDecl: ClassDeclSyntax) -> [FunctionDeclSyntax] {
-        return classDecl.memberBlock.members.compactMap { member in
-            member.decl.as(FunctionDeclSyntax.self)
-        }.filter { function in
-            !["init", "deinit"].contains(function.name.text)
-        }
+
+    private static func typeBaseName(_ type: TypeSyntax) -> String? {
+        if let attributed = type.as(AttributedTypeSyntax.self) { return typeBaseName(attributed.baseType) }
+        if let identifier = type.as(IdentifierTypeSyntax.self) { return identifier.name.text }
+        return type.as(MemberTypeSyntax.self)?.name.text
     }
-    
+
+    private static func extractFunctions(from classDecl: ClassDeclSyntax) -> [ConditionalFunction] {
+        func collect(_ members: MemberBlockItemListSyntax, branches: [ConditionalBranch]) -> [ConditionalFunction] {
+            members.flatMap { member -> [ConditionalFunction] in
+                if let function = member.decl.as(FunctionDeclSyntax.self) {
+                    return [ConditionalFunction(function: function, branches: branches)]
+                }
+                guard let conditional = member.decl.as(IfConfigDeclSyntax.self) else { return [] }
+                var directives: [String] = []
+                var functions: [ConditionalFunction] = []
+                for (index, clause) in conditional.clauses.enumerated() {
+                    directives.append(clause.poundKeyword.text + (clause.condition.map { " " + $0.trimmedDescription } ?? ""))
+                    if case let .decls(members) = clause.elements {
+                        functions += collect(members, branches: branches + [ConditionalBranch(
+                            id: conditional.id, index: index, directives: directives
+                        )])
+                    }
+                }
+                return functions
+            }
+        }
+        return collect(classDecl.memberBlock.members, branches: [])
+    }
+
     private static func filterTrackedFunctions(
-        _ functions: [FunctionDeclSyntax],
+        _ functions: [ConditionalFunction],
         coordinatableType: CoordinatableType,
         context: some MacroExpansionContext
     ) throws -> [TrackedFunction] {
         var trackedFunctions: [TrackedFunction] = []
+
         
-        for function in functions {
+        for conditional in functions {
+            let function = conditional.function
             let hasScaffoldingIgnored = hasAttribute(function, named: "ScaffoldingIgnored")
             
             if hasScaffoldingIgnored {
@@ -171,6 +186,18 @@ public struct ScaffoldableMacro: MemberMacro {
             let shouldAutoTrack = shouldAutoTrackFunction(returnType: returnTypeInfo)
             
             if shouldAutoTrack {
+                if let problem = unsupportedSignature(function) {
+                    context.diagnose(Diagnostic(node: function, message: ScaffoldingMacroWarning(message: problem, severity: .error)))
+                    continue
+                }
+                guard !trackedFunctions.contains(where: {
+                    $0.originalFunction.name.text == function.name.text && !$0.isExclusive(with: conditional.branches)
+                }) else {
+                    context.diagnose(Diagnostic(node: function.name, message: ScaffoldingMacroWarning(
+                        message: "Scaffolding routes must have unique names; rename this overload or mark it @ScaffoldingIgnored.", severity: .error
+                    )))
+                    continue
+                }
                 // Warn about tuple types in non-TabCoordinatable
                 if coordinatableType != .tab && returnTypeInfo.isTupleType {
                     context.diagnose(Diagnostic(
@@ -189,7 +216,8 @@ public struct ScaffoldableMacro: MemberMacro {
                 
                 let trackedFunction = try TrackedFunction(
                     function: function,
-                    returnType: returnTypeInfo
+                    returnType: returnTypeInfo,
+                    branches: conditional.branches
                 )
                 trackedFunctions.append(trackedFunction)
             }
@@ -199,77 +227,88 @@ public struct ScaffoldableMacro: MemberMacro {
     }
     
     private static func hasAttribute(_ function: FunctionDeclSyntax, named attributeName: String) -> Bool {
-        return function.attributes.contains { attribute in
-            if let identifierType = attribute.as(AttributeSyntax.self)?
-                .attributeName.as(IdentifierTypeSyntax.self) {
-                return identifierType.name.text == attributeName
-            }
-            return false
+        function.attributes.contains {
+            guard let attribute = $0.as(AttributeSyntax.self) else { return false }
+            return typeBaseName(attribute.attributeName) == attributeName
         }
     }
-    
+
+    private static func containsOpaqueType(_ syntax: Syntax) -> Bool {
+        if let type = syntax.as(SomeOrAnyTypeSyntax.self), type.someOrAnySpecifier.text == "some" { return true }
+        return syntax.children(viewMode: .sourceAccurate).contains(where: containsOpaqueType)
+    }
+
+    private static func unsupportedSignature(_ function: FunctionDeclSyntax) -> String? {
+        if function.genericParameterClause != nil || function.genericWhereClause != nil ||
+            function.signature.parameterClause.parameters.contains(where: {
+                containsOpaqueType(Syntax($0.type))
+            }) {
+            return "Scaffolding routes cannot be generic; use a concrete parameter type or mark the helper @ScaffoldingIgnored."
+        }
+        if function.signature.effectSpecifiers != nil {
+            return "Scaffolding route factories must be synchronous and nonthrowing; perform async or throwing work before routing."
+        }
+        if function.modifiers.contains(where: { ["static", "class"].contains($0.name.text) }) {
+            return "Scaffolding route factories must be instance methods."
+        }
+        for attribute in function.attributes.compactMap({ $0.as(AttributeSyntax.self) }) where typeBaseName(attribute.attributeName) == "available" {
+            if case let .availability(arguments) = attribute.arguments {
+                for item in arguments {
+                    switch item.argument {
+                    case .token(let token) where token.text == "unavailable":
+                        return "Scaffolding routes cannot be unavailable; conditionally compile the route with #if instead."
+                    case .availabilityLabeledArgument(let argument) where argument.label.text == "obsoleted":
+                        return "Scaffolding routes cannot use obsoleted availability; conditionally compile the route with #if instead."
+                    case .availabilityVersionRestriction(let version) where version.platform.text == "swift":
+                        return "Scaffolding routes must use #if swift(...) for language-version availability."
+                    default: break
+                    }
+                }
+            }
+        }
+        for parameter in function.signature.parameterClause.parameters {
+            let unsupported = parameter.type.as(AttributedTypeSyntax.self)?.specifiers.contains {
+                ["inout", "borrowing", "consuming", "isolated"].contains($0.trimmedDescription)
+            } ?? false
+            if parameter.ellipsis != nil || unsupported {
+                return "Scaffolding route parameters must be stored values; inout, ownership modifiers, isolated parameters, and variadics are unsupported."
+            }
+        }
+        return nil
+    }
+
+    /// Match syntax nodes, never substrings: closures, arrays and unrelated
+    /// generic types may contain these words without being destinations.
     private static func parseReturnType(_ type: TypeSyntax?) throws -> ReturnTypeInfo {
-        guard let type = type else {
-            return .void
+        guard let type else { return .void }
+        enum Component { case view, coordinator, role, other }
+        func component(_ type: TypeSyntax) -> Component {
+            if let opaque = type.as(SomeOrAnyTypeSyntax.self) {
+                let name = typeBaseName(opaque.constraint)
+                if opaque.someOrAnySpecifier.tokenKind == .keyword(.some), name == "View" { return .view }
+                if opaque.someOrAnySpecifier.tokenKind == .keyword(.any), name == "Coordinatable" { return .coordinator }
+            }
+            if typeBaseName(type) == "TabRole" { return .role }
+            return .other
         }
-
-        let typeString = type.description.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        // Simple types
-        if typeString.hasPrefix("some View") || typeString == "some View" {
-            return .someView
-        } else if typeString.hasPrefix("any Coordinatable") || typeString == "any Coordinatable" {
-            return .anyCoordinatable
-        }
-
-        // Check for TabRole variants first (more specific patterns)
-        // Order matters: check longer/more specific patterns before shorter ones
-        
-        // (any Coordinatable, some View, TabRole)
-        if typeString.contains("any Coordinatable") &&
-           typeString.contains("some View") &&
-           typeString.contains("TabRole") {
-            return .coordinatableViewTabRoleTuple
-        }
-        
-        // (some View, some View, TabRole)
-        if typeString.range(of: #"\(some View,\s*some View,\s*TabRole\)"#, options: .regularExpression) != nil {
-            return .viewViewTabRoleTuple
-        }
-        
-        // Also check without regex for simpler cases
-        if typeString.contains("(some View, some View, TabRole)") {
-            return .viewViewTabRoleTuple
-        }
-        
-        // (any Coordinatable, TabRole)
-        if typeString.contains("any Coordinatable") &&
-           typeString.contains("TabRole") &&
-           !typeString.contains("some View") {
-            return .coordinatableTabRoleTuple
-        }
-        
-        // (some View, TabRole) - but not (some View, some View, TabRole)
-        if typeString.contains("some View") &&
-           typeString.contains("TabRole") &&
-           !typeString.contains("any Coordinatable") {
-            // Count occurrences of "some View"
-            let viewCount = typeString.components(separatedBy: "some View").count - 1
-            if viewCount == 1 {
-                return .viewTabRoleTuple
+        if let tuple = type.as(TupleTypeSyntax.self) {
+            switch tuple.elements.map({ component($0.type) }) {
+            case [.coordinator, .view]: return .coordinatableViewTuple
+            case [.view, .view]: return .viewViewTuple
+            case [.coordinator, .role]: return .coordinatableTabRoleTuple
+            case [.view, .role]: return .viewTabRoleTuple
+            case [.coordinator, .view, .role]: return .coordinatableViewTabRoleTuple
+            case [.view, .view, .role]: return .viewViewTabRoleTuple
+            default: return .other
             }
         }
-        
-        // Non-TabRole tuples
-        if typeString.contains("(any Coordinatable, some View)") {
-            return .coordinatableViewTuple
-        } else if typeString.contains("(some View, some View)") {
-            return .viewViewTuple
+        switch component(type) {
+        case .view: return .someView
+        case .coordinator: return .anyCoordinatable
+        default: return .other
         }
-        
-        return .other
     }
-    
+
     private static func shouldAutoTrackFunction(returnType: ReturnTypeInfo) -> Bool {
         switch returnType {
         case .someView, .anyCoordinatable,
@@ -285,81 +324,55 @@ public struct ScaffoldableMacro: MemberMacro {
     private static func generateDestinationsEnum(
         className: String,
         functions: [TrackedFunction],
-        isPublic: Bool,
+        accessModifier: String,
         codable: Bool = false
     ) throws -> EnumDeclSyntax {
-        
-        // Generate Meta enum cases
-        var metaCases: [EnumCaseElementSyntax] = []
-        for function in functions {
-            metaCases.append(EnumCaseElementSyntax(name: .identifier(function.name)))
-        }
-        
-        // Generate main enum cases
-        var mainCases: [EnumCaseDeclSyntax] = []
-        for function in functions {
-            mainCases.append(try generateEnumCaseDecl(for: function))
-        }
-        
-        // Generate meta switch cases
-        var metaSwitchCases: [SwitchCaseSyntax] = []
-        for function in functions {
-            metaSwitchCases.append(SwitchCaseSyntax(
-                "case .\(raw: function.name): return .\(raw: function.name)"
+        let metaCases = functions.map { $0.wrapping("case \($0.name)") }.joined(separator: "\n")
+        let mainCases = try functions.map {
+            $0.wrapping($0.availabilityAttributes + (try generateEnumCaseDecl(for: $0)).description)
+        }.joined(separator: "\n")
+        let metaSwitch = functions.map {
+            $0.wrapping("case .\($0.name): return .\($0.name)")
+        }.joined(separator: "\n")
+        let availabilitySwitch = functions.map { function in
+            function.wrapping("case .\(function.name): " + function.checkingAvailability(
+                "return true", fallback: "return false"
             ))
-        }
-        
-        // Generate value switch cases
-        var valueSwitchCases: [SwitchCaseSyntax] = []
-        for function in functions {
-            valueSwitchCases.append(try generateValueCaseSwitch(for: function))
-        }
-        
-        let accessModifier = isPublic ? "public " : ""
+        }.joined(separator: "\n")
+        let valueSwitch = functions.map { function in
+            let pattern = "case .\(function.name)\(generateParameterExtraction(for: function)): "
+            let call = generateDestinationInit(for: function, functionCall: generateFunctionCall(for: function))
+            return function.wrapping(pattern + function.checkingAvailability(
+                "return \(call)", fallback: "preconditionFailure(\"This Scaffolding route is unavailable on this OS. Check isAvailable before routing.\")"
+            ))
+        }.joined(separator: "\n")
         let conformances = codable ? "Destinationable, Codable" : "Destinationable"
-
-        let destinationsEnum = try EnumDeclSyntax("\(raw: accessModifier)enum Destinations: \(raw: conformances)") {
-            // typealias Owner = ClassName
-            DeclSyntax("\(raw: accessModifier)typealias Owner = \(raw: className)")
-            
-            // Meta enum
-            try EnumDeclSyntax("\(raw: accessModifier)enum Meta: DestinationMeta") {
-                for caseElement in metaCases {
-                    EnumCaseDeclSyntax {
-                        caseElement
-                    }
+        return try EnumDeclSyntax("""
+        \(raw: accessModifier)enum Destinations: \(raw: conformances) {
+            \(raw: accessModifier)typealias Owner = \(raw: className)
+            \(raw: accessModifier)enum Meta: DestinationMeta {
+                \(raw: metaCases)
+            }
+            \(raw: mainCases)
+            \(raw: accessModifier)var meta: Meta {
+                switch self {
+                    \(raw: metaSwitch)
                 }
             }
-            
-            // Main cases
-            for caseDecl in mainCases {
-                caseDecl
-            }
-            
-            // meta computed property
-            try VariableDeclSyntax("\(raw: accessModifier)var meta: Meta") {
-                AccessorDeclSyntax(accessorSpecifier: .keyword(.get)) {
-                    SwitchExprSyntax(subject: DeclReferenceExprSyntax(baseName: .keyword(.`self`))) {
-                        for switchCase in metaSwitchCases {
-                            switchCase
-                        }
-                    }
+            \(raw: accessModifier)var isAvailable: Bool {
+                switch self {
+                    \(raw: availabilitySwitch)
                 }
             }
-            
-            // value function
-            try FunctionDeclSyntax("\(raw: accessModifier)func value(for instance: Owner) -> Destination") {
-                SwitchExprSyntax(subject: DeclReferenceExprSyntax(baseName: .keyword(.`self`))) {
-                    for switchCase in valueSwitchCases {
-                        switchCase
-                    }
+            \(raw: accessModifier)func value(for instance: Owner) -> Destination {
+                switch self {
+                    \(raw: valueSwitch)
                 }
             }
         }
-        
-        return destinationsEnum
+        """)
     }
-    
+
     private static func generateEnumCaseDecl(for function: TrackedFunction) throws -> EnumCaseDeclSyntax {
         let docTrivia = generateDocumentationTrivia(for: function)
         
@@ -483,51 +496,7 @@ public struct ScaffoldableMacro: MemberMacro {
             return "Void"
         }
         
-        return returnClause.type.description.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-    
-    private static func extractFunctionBody(from function: FunctionDeclSyntax) -> String {
-        guard let body = function.body else {
-            return "{ }"
-        }
-        
-        // Extract the statements from the function body
-        let statements = body.statements
-        
-        if statements.count == 1, let returnStmt = statements.first?.item.as(ReturnStmtSyntax.self) {
-            // Single return statement - extract just the expression
-            if let expression = returnStmt.expression {
-                return expression.description.trimmingCharacters(in: .whitespacesAndNewlines)
-            }
-        } else if statements.count == 1 {
-            // Single expression statement (implicit return)
-            let statement = statements.first!.item
-            return statement.description.trimmingCharacters(in: .whitespacesAndNewlines)
-        } else {
-            // Multiple statements - return the whole body
-            let bodyContent = statements.map { stmt in
-                stmt.description.trimmingCharacters(in: .whitespacesAndNewlines)
-            }.joined(separator: "\n")
-            return bodyContent
-        }
-        
-        return "{ }"
-    }
-    
-    private static func generateValueCaseSwitch(for function: TrackedFunction) throws -> SwitchCaseSyntax {
-        let functionCall = generateFunctionCall(for: function)
-        let destinationInit = generateDestinationInit(for: function, functionCall: functionCall)
-        
-        if function.parameters.isEmpty {
-            return SwitchCaseSyntax(
-                "case .\(raw: function.name): return \(raw: destinationInit)"
-            )
-        } else {
-            let paramExtraction = generateParameterExtraction(for: function)
-            return SwitchCaseSyntax(
-                "case .\(raw: function.name)\(raw: paramExtraction): return \(raw: destinationInit)"
-            )
-        }
+        return returnClause.type.trimmedDescription.split(whereSeparator: { $0.isWhitespace }).joined(separator: " ")
     }
     
     private static func generateParameterExtraction(for function: TrackedFunction) -> String {
@@ -535,8 +504,8 @@ public struct ScaffoldableMacro: MemberMacro {
             return ""
         }
         
-        let params = function.parameters.map { param in
-            return "let \(param.name)"
+        let params = function.parameters.indices.map { index in
+            return "let __scaffoldingArgument\(index)"
         }.joined(separator: ", ")
         
         return "(\(params))"
@@ -547,11 +516,12 @@ public struct ScaffoldableMacro: MemberMacro {
             return "instance.\(function.name)()"
         }
         
-        let params = function.parameters.map { param in
+        let params = function.parameters.enumerated().map { index, param in
+            let value = "__scaffoldingArgument\(index)" + (param.isAutoclosure ? "()" : "")
             if let label = param.label {
-                return "\(label): \(param.name)"
+                return "\(label.replacingOccurrences(of: "`", with: "")): \(value)"
             } else {
-                return param.name
+                return value
             }
         }.joined(separator: ", ")
         
@@ -561,23 +531,23 @@ public struct ScaffoldableMacro: MemberMacro {
     private static func generateDestinationInit(for function: TrackedFunction, functionCall: String) -> String {
         switch function.returnType {
         case .someView:
-            return ".init(\(functionCall), meta: meta, parent: instance)"
+            return ".init(\(functionCall), meta: self.meta, parent: instance)"
         case .anyCoordinatable:
-            return ".init({ [unowned instance] in \(functionCall) }, meta: meta, parent: instance)"
+            return ".init({ [unowned instance] in \(functionCall) }, meta: self.meta, parent: instance)"
         case .coordinatableViewTuple:
-            return ".init({ [unowned instance] in \(functionCall) }, meta: meta, parent: instance)"
+            return ".init({ [unowned instance] in \(functionCall) }, meta: self.meta, parent: instance)"
         case .viewViewTuple:
-            return ".init({ [unowned instance] in \(functionCall) }, meta: meta, parent: instance)"
+            return ".init({ [unowned instance] in \(functionCall) }, meta: self.meta, parent: instance)"
         case .viewTabRoleTuple:
-            return ".init({ [unowned instance] in \(functionCall) }, meta: meta, parent: instance)"
+            return ".init({ [unowned instance] in \(functionCall) }, meta: self.meta, parent: instance)"
         case .coordinatableTabRoleTuple:
-            return ".init({ [unowned instance] in \(functionCall) }, meta: meta, parent: instance)"
+            return ".init({ [unowned instance] in \(functionCall) }, meta: self.meta, parent: instance)"
         case .viewViewTabRoleTuple:
-            return ".init({ [unowned instance] in \(functionCall) }, meta: meta, parent: instance)"
+            return ".init({ [unowned instance] in \(functionCall) }, meta: self.meta, parent: instance)"
         case .coordinatableViewTabRoleTuple:
-            return ".init({ [unowned instance] in \(functionCall) }, meta: meta, parent: instance)"
+            return ".init({ [unowned instance] in \(functionCall) }, meta: self.meta, parent: instance)"
         case .void, .other:
-            return ".init({ [unowned instance] in \(functionCall) }, meta: meta, parent: instance)"
+            return ".init({ [unowned instance] in \(functionCall) }, meta: self.meta, parent: instance)"
         }
     }
 }
@@ -638,9 +608,11 @@ struct TrackedFunction {
     let parameters: [Parameter]
     let returnType: ReturnTypeInfo
     let originalFunction: FunctionDeclSyntax
+    let branches: [ConditionalBranch]
     
-    init(function: FunctionDeclSyntax, returnType: ReturnTypeInfo) throws {
-        self.name = function.name.text
+    init(function: FunctionDeclSyntax, returnType: ReturnTypeInfo, branches: [ConditionalBranch]) throws {
+        self.branches = branches
+        self.name = "`" + function.name.text.replacingOccurrences(of: "`", with: "") + "`"
         self.returnType = returnType
         self.originalFunction = function
         self.parameters = try function.signature.parameterClause.parameters.map { param in
@@ -649,49 +621,96 @@ struct TrackedFunction {
     }
 }
 
+struct ConditionalBranch {
+    let id: SyntaxIdentifier
+    let index: Int
+    let directives: [String]
+}
+
+struct ConditionalFunction {
+    let function: FunctionDeclSyntax
+    let branches: [ConditionalBranch]
+}
+
+extension TrackedFunction {
+    func isExclusive(with other: [ConditionalBranch]) -> Bool {
+        branches.contains { branch in other.contains { $0.id == branch.id && $0.index != branch.index } }
+    }
+
+    func wrapping(_ source: String) -> String {
+        branches.reversed().reduce(source) { body, branch in
+            branch.directives.joined(separator: "\n") + "\n" + body + "\n#endif"
+        }
+    }
+
+    private var availability: [AttributeSyntax] {
+        originalFunction.attributes.compactMap { $0.as(AttributeSyntax.self) }
+            .filter { $0.attributeName.trimmedDescription == "available" }
+    }
+
+    var availabilityAttributes: String {
+        availability.map { $0.trimmedDescription + "\n" }.joined()
+    }
+
+    func checkingAvailability(_ body: String, fallback: String) -> String {
+        let conditions = availability.compactMap { attribute -> String? in
+            guard case let .availability(arguments) = attribute.arguments else { return nil }
+            var restrictions: [String] = []
+            var platform: String?
+            for item in arguments {
+                switch item.argument {
+                case .availabilityVersionRestriction(let version): restrictions.append(version.trimmedDescription)
+                case .token(let token):
+                    if token.text != "*" { platform = token.text }
+                case .availabilityLabeledArgument(let argument):
+                    if argument.label.text == "introduced", let platform {
+                        restrictions.append(platform + " " + argument.value.trimmedDescription)
+                    }
+                }
+            }
+            return restrictions.isEmpty ? nil : restrictions.joined(separator: ", ") + ", *"
+        }
+        return conditions.reversed().reduce(body) { result, condition in
+            "if #available(" + condition + ") { " + result + " } else { " + fallback + " }"
+        }
+    }
+}
+
 struct Parameter {
     let label: String?
-    let name: String
     let type: String
     let defaultValue: String?
+    let isAutoclosure: Bool
     
     init(from param: FunctionParameterSyntax) throws {
         // Handle parameter labels
         if param.firstName.text != "_" {
-            self.label = param.firstName.text
+            self.label = "`" + param.firstName.text.replacingOccurrences(of: "`", with: "") + "`"
         } else {
             self.label = nil
         }
         
-        // Handle parameter names
-        if let secondName = param.secondName {
-            self.name = secondName.text
+        var storedType = param.type
+        if var attributed = storedType.as(AttributedTypeSyntax.self) {
+            self.isAutoclosure = attributed.attributes.contains {
+                $0.as(AttributeSyntax.self)?.attributeName.trimmedDescription == "autoclosure"
+            }
+            attributed.attributes = attributed.attributes.filter {
+                guard let attribute = $0.as(AttributeSyntax.self) else { return true }
+                return !["escaping", "autoclosure"].contains(attribute.attributeName.trimmedDescription)
+            }
+            storedType = TypeSyntax(attributed)
         } else {
-            self.name = param.firstName.text == "_" ? "value" : param.firstName.text
+            self.isAutoclosure = false
         }
-        
-        // Extract type and strip @escaping and other function-only attributes
-        let typeString = param.type.description.trimmingCharacters(in: .whitespacesAndNewlines)
-        self.type = Self.stripFunctionAttributes(from: typeString)
-        
-        // Extract default value if present
-        if let defaultClause = param.defaultValue {
-            self.defaultValue = defaultClause.value.description.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.type = storedType.trimmedDescription
+        if let value = param.defaultValue?.value.trimmedDescription {
+            self.defaultValue = isAutoclosure ? "{ \(value) }" : value
         } else {
             self.defaultValue = nil
         }
     }
-    
-    private static func stripFunctionAttributes(from typeString: String) -> String {
-        var result = typeString
-        
-        result = result.replacingOccurrences(of: "@escaping ", with: "")
-        result = result.replacingOccurrences(of: "@autoclosure ", with: "")
-        
-        result = result.replacingOccurrences(of: "  ", with: " ")
-        
-        return result.trimmingCharacters(in: .whitespaces)
-    }
+
 }
 
 // MARK: - Errors and Warnings
@@ -699,15 +718,18 @@ struct Parameter {
 enum ScaffoldingMacroError: Error, CustomStringConvertible {
     case onlyApplicableToClass
     case mustConformToCoordinatable
+    case booleanLiteralRequired(String)
     case invalidParameter
     case codeGenerationFailed
     
     var description: String {
         switch self {
         case .onlyApplicableToClass:
-            return "@Scaffold can only be applied to classes"
+            return "@Scaffoldable can only be applied to classes"
         case .mustConformToCoordinatable:
-            return "@Scaffold can only be applied to classes that conform to FlowCoordinatable, TabCoordinatable, RootCoordinatable, or SplitCoordinatable"
+            return "@Scaffoldable can only be applied to classes that conform to FlowCoordinatable, TabCoordinatable, RootCoordinatable, or SplitCoordinatable"
+        case .booleanLiteralRequired(let name):
+            return "@Scaffoldable requires a literal true or false for \(name)."
         case .invalidParameter:
             return "Invalid function parameter"
         case .codeGenerationFailed:

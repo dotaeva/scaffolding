@@ -7,31 +7,34 @@
 
 import SwiftUI
 
-/// A type that uniquely identifies a destination case without its
-/// associated values.
+/// A route case without its associated values.
 ///
-/// The ``Scaffoldable(injectsCoordinator:codable:)`` macro generates a conforming `Meta` enum
-/// alongside the `Destinations` enum. You can use meta values with
-/// methods like ``FlowCoordinatable/popToFirst(_:)`` or
-/// ``TabCoordinatable/selectFirstTab(_:)`` to navigate by case name.
+/// ``Scaffoldable(injectsCoordinator:codable:)`` generates a conforming
+/// `Destinations.Meta` enum. Pass its cases to queries and case-based
+/// navigation such as ``FlowCoordinatable/isInStack(_:)``,
+/// ``FlowCoordinatable/popToFirst(_:)``, and
+/// ``TabCoordinatable/selectFirstTab(_:)``. `.detail(id: 1)` and
+/// `.detail(id: 2)` share the meta case `.detail`.
 @MainActor
 public protocol DestinationMeta: Equatable { }
 
-/// Describes how a destination is displayed within a coordinator's
-/// navigation hierarchy.
+/// How a destination is shown: as a root, pushed, or presented.
+///
+/// ``Destination/routeType`` and ``Coordinatable/routeType`` report how a
+/// screen or coordinator entered its owner. ``Destination/presentationType``
+/// reports how a screen appears, including a presentation it inherits.
 @MainActor
 public enum DestinationType {
-    /// The destination is the root of the coordinator.
+    /// A structural destination: its owner's root, a tab, or a split column.
     case root
-    /// The destination is pushed onto a `NavigationStack`.
+    /// Pushed onto a navigation stack.
     case push
-    /// The destination is presented as a sheet.
+    /// Presented as a sheet.
     case sheet
-    /// The destination is presented as a full-screen cover.
+    /// Presented as a full-screen cover. On macOS it renders as a sheet.
     case fullScreenCover
 
-    /// Whether the destination is presented modally
-    /// (`.sheet` or `.fullScreenCover`).
+    /// Whether this is `.sheet` or `.fullScreenCover`.
     public var isModal: Bool {
         switch self {
         case .sheet, .fullScreenCover:
@@ -52,60 +55,52 @@ public enum DestinationType {
     }
 }
 
-/// The presentation style used internally to track how a destination
-/// is displayed.
+/// How the framework attaches a destination: pushed or presented.
 ///
-/// Routing splits cleanly into push and modal presentation:
-/// ``FlowCoordinatable/route(to:policy:onDismiss:)`` always pushes onto the
-/// navigation stack, while ``FlowCoordinatable/present(_:as:policy:onDismiss:)``
-/// shows a destination as a sheet or full-screen cover. Use
-/// ``ModalPresentationType`` at the call site.
+/// You don't pass this at call sites. Push with
+/// ``FlowCoordinatable/route(to:policy:)``; present with
+/// ``Coordinatable/present(_:as:policy:)`` and a ``ModalPresentationType``.
 @MainActor
 public enum PresentationType {
-    /// Push the destination onto the navigation stack.
+    /// Pushed onto a navigation stack.
     case push
-    /// Present the destination as a sheet.
+    /// Presented as a sheet.
     case sheet
-    /// Present the destination as a full-screen cover.
+    /// Presented as a full-screen cover.
     case fullScreenCover
 }
 
-/// Controls whether a navigation request is applied when its destination
-/// is already showing.
+/// Whether a navigation request applies when its case is already showing.
 ///
-/// Pass `.distinct` to guard against double-taps and repeated requests:
-/// a push is skipped when the same destination case is already on top of
-/// the stack, and a modal presentation is skipped when the same
-/// destination case is already presented.
-///
-/// The comparison uses the destination's ``DestinationMeta`` (the case
-/// name), not its associated values — two pushes of the same case with
-/// different arguments still count as duplicates. Use `.always` (the
-/// default) when consecutive same-case destinations are intentional,
-/// e.g. recursive folder navigation.
+/// Use `.distinct` to absorb double taps. It compares cases only:
+/// `.detail(id: 1)` matches `.detail(id: 2)`. Guard record identity with
+/// your own state. See <doc:Essentials#Know-the-surprising-semantics>.
 public enum RoutePolicy: Sendable {
-    /// Always apply the navigation request.
+    /// Apply every request. The default; use it when repeating a case is
+    /// intentional, such as nested folders.
     case always
-    /// Skip the request when the same destination case is already on top
-    /// (pushes) or already presented (modals).
+    /// Skip the request when its case already occupies the target: the top
+    /// of the stack for a push, an existing request (visible or queued) for a
+    /// presentation, or the column for a split setter.
     case distinct
 }
 
-/// Presenter-side configuration for a sheet presentation.
+/// Deprecated. Use SwiftUI's presentation modifiers on the presented content
+/// instead.
 ///
-/// Carried by ``ModalPresentationType/sheet(detents:dragIndicator:interactiveDismissDisabled:)``
-/// and applied by the framework to the presented content. This lets the
-/// *presenter* decide how a destination is shown — the same destination
-/// can be a medium sheet from one place and a full-height sheet from
-/// another, without the destination view knowing.
+/// Apply `presentationDetents`, `presentationDragIndicator`, and
+/// `interactiveDismissDisabled` to the presented view, or to a child
+/// coordinator in its `customize(_:)`.
+@available(*, deprecated, message: "Apply SwiftUI presentation modifiers to the presented view, or in the presented coordinator's customize(_:), instead.")
 public struct SheetConfiguration: Equatable, Sendable {
-    /// The detents available to the sheet. Empty means the system default.
+    /// The sheet's detents. Empty uses the system default.
     public var detents: Set<PresentationDetent>
-    /// Visibility of the drag indicator at the top of the sheet.
+    /// The drag indicator's visibility.
     public var dragIndicator: Visibility
-    /// Whether interactive (swipe-down) dismissal is disabled.
+    /// Whether swipe-to-dismiss is disabled.
     public var interactiveDismissDisabled: Bool
 
+    /// Creates a sheet configuration.
     public init(
         detents: Set<PresentationDetent> = [],
         dragIndicator: Visibility = .automatic,
@@ -117,19 +112,27 @@ public struct SheetConfiguration: Equatable, Sendable {
     }
 }
 
-/// The modal presentation style accepted by
-/// ``FlowCoordinatable/present(_:as:policy:onDismiss:)``.
-///
-/// Modal presentation is restricted to sheet or full-screen cover —
-/// pushes are expressed exclusively through
-/// ``FlowCoordinatable/route(to:policy:onDismiss:)``.
-///
-/// Use the plain ``sheet`` / ``fullScreenCover`` values, or configure the
-/// sheet from the presenting side:
+/// The modal style for ``Coordinatable/present(_:as:policy:)``: a sheet or a
+/// full-screen cover.
 ///
 /// ```swift
-/// coordinator.present(.settings, as: .sheet(detents: [.medium, .large]))
+/// coordinator.present(.player, as: .fullScreenCover)
 /// ```
+///
+/// Configure sizing and dismissal with SwiftUI modifiers on the presented
+/// content; see <doc:ModalsAndResults#Configure-presented-content>. To push,
+/// use ``FlowCoordinatable/route(to:policy:)``.
+///
+/// ## Topics
+///
+/// ### Presentation Styles
+///
+/// - ``sheet``
+/// - ``fullScreenCover``
+///
+/// ### Deprecated Compatibility
+///
+/// - ``sheet(detents:dragIndicator:interactiveDismissDisabled:)``
 @MainActor
 public struct ModalPresentationType: Equatable {
     enum Kind: Equatable {
@@ -140,20 +143,24 @@ public struct ModalPresentationType: Equatable {
     let kind: Kind
     let configuration: SheetConfiguration?
 
-    /// Present the destination as a sheet with system-default behavior.
+    /// A sheet. The default for `present`.
     public static let sheet = ModalPresentationType(kind: .sheet, configuration: nil)
 
-    /// Present the destination as a full-screen cover.
+    /// A full-screen cover. On macOS it renders as a sheet but still reports
+    /// `.fullScreenCover`.
     public static let fullScreenCover = ModalPresentationType(kind: .fullScreenCover, configuration: nil)
 
-    /// Present the destination as a sheet configured by the presenter.
+    /// Deprecated. Use ``sheet`` instead.
+    ///
+    /// Apply `presentationDetents`, `presentationDragIndicator`, and
+    /// `interactiveDismissDisabled` to the presented content.
     ///
     /// - Parameters:
-    ///   - detents: The detents available to the sheet. Empty means the
-    ///     system default.
-    ///   - dragIndicator: Visibility of the sheet's drag indicator.
-    ///   - interactiveDismissDisabled: Disables swipe-down dismissal when
-    ///     `true`. Programmatic dismissal keeps working.
+    ///   - detents: The sheet's detents. Empty uses the system default.
+    ///   - dragIndicator: The drag indicator's visibility.
+    ///   - interactiveDismissDisabled: Whether swipe-to-dismiss is disabled.
+    ///     Programmatic dismissal still works.
+    @available(*, deprecated, message: "Use .sheet and apply presentationDetents(_:), presentationDragIndicator(_:), and interactiveDismissDisabled(_:) to the presented view or the presented coordinator's customize(_:).")
     public static func sheet(
         detents: Set<PresentationDetent> = [],
         dragIndicator: Visibility = .automatic,
@@ -179,17 +186,23 @@ public struct ModalPresentationType: Equatable {
 
 // MARK: - Environment Key
 
-// MARK: - Environment Key
-
 private struct DestinationEnvironmentKey: @MainActor EnvironmentKey {
     @MainActor static let defaultValue: Destination = .dummy
 }
 
 public extension EnvironmentValues {
-    /// The ``Destination`` for the current view in the coordinator hierarchy.
+    /// The destination this view renders, injected by Scaffolding.
     ///
-    /// Scaffolding injects this value automatically so child views can
-    /// inspect metadata about the destination they belong to.
+    /// ```swift
+    /// @Environment(\.destination) private var destination
+    /// ```
+    ///
+    /// Call ``Destination/dismiss()`` or ``Destination/dismiss(returning:)`` to
+    /// close the screen. Read ``Destination/presentationType``,
+    /// ``Destination/meta``, or ``Destination/column`` to adapt it. Outside a
+    /// coordinator, such as a view previewed alone, this is a placeholder that
+    /// reads `.root` and whose `dismiss()` does nothing. See
+    /// <doc:Essentials#Use-the-destination-value>.
     @MainActor
     var destination: Destination {
         get { self[DestinationEnvironmentKey.self] }
@@ -197,13 +210,49 @@ public extension EnvironmentValues {
     }
 }
 
-/// A resolved navigation destination that wraps a view or child
-/// coordinator together with routing metadata.
+/// A route resolved into a screen or child coordinator, with its routing
+/// metadata.
 ///
-/// You rarely create `Destination` values yourself — the generated
-/// `Destinations` enum produces them via its ``Destinationable/value(for:)``
-/// method. Coordinators consume destinations internally when pushing,
-/// presenting, or switching roots.
+/// Views read their destination with `@Environment(\.destination)` to close
+/// themselves or adapt their chrome:
+///
+/// ```swift
+/// struct CloseButton: View {
+///     @Environment(\.destination) private var destination
+///
+///     var body: some View {
+///         if destination.presentationType.isModal {
+///             Button("Close") { destination.dismiss() }
+///         }
+///     }
+/// }
+/// ```
+///
+/// The generated `Destinations` enum creates destinations through
+/// ``Destinationable/value(for:)``; you don't create them yourself.
+///
+/// ## Topics
+///
+/// ### Closing the Screen
+///
+/// - ``dismiss()``
+/// - ``dismiss(returning:)``
+///
+/// ### Reading Where the Screen Is
+///
+/// - ``presentationType``
+/// - ``routeType``
+/// - ``meta``
+/// - ``column``
+///
+/// ### Tab Metadata
+///
+/// - ``badge``
+/// - ``accessibilityIdentifier``
+///
+/// ### Deprecated Compatibility
+///
+/// - ``modalConfiguration``
 @MainActor
 public struct Destination: Identifiable {
     /// Mutable state shared by every value-copy of a destination.
@@ -217,11 +266,20 @@ public struct Destination: Identifiable {
         var onDismiss: (@MainActor () -> Void)?
         var didResolve: Bool = false
 
-        /// A value handed back by ``Coordinatable/dismissCoordinator(returning:)``,
-        /// consumed by the `awaiting:` presentation APIs.
+        /// A value handed back by a result-bearing dismissal or pop,
+        /// consumed by the `awaiting:` navigation APIs.
         var result: Any?
 
-        private var continuations: [CheckedContinuation<Void, Never>] = []
+        private var continuations: [UUID: CheckedContinuation<Void, Never>] = [:]
+
+        /// Captures only this destination's lifetime, so callers can configure
+        /// the child before waiting without starting an unstructured task.
+        func resultWaiter<Result>(for resultType: Result.Type) -> @MainActor () async -> Result? {
+            { [self] in
+                await awaitResolution()
+                return Task.isCancelled ? nil : result as? Result
+            }
+        }
 
         func resolve() {
             guard !didResolve else { return }
@@ -229,86 +287,71 @@ public struct Destination: Identifiable {
             onDismiss?()
             onDismiss = nil
             let pending = continuations
-            continuations = []
-            for continuation in pending {
+            continuations = [:]
+            for continuation in pending.values {
                 continuation.resume()
             }
         }
 
-        /// Suspends until ``resolve()`` fires. Returns immediately when the
-        /// destination has already been resolved.
+        /// Cancellation releases this waiter without dismissing shared UI.
         func awaitResolution() async {
-            guard !didResolve else { return }
-            await withCheckedContinuation { continuation in
-                continuations.append(continuation)
+            guard !didResolve, !Task.isCancelled else { return }
+            let id = UUID()
+            await withTaskCancellationHandler {
+                await withCheckedContinuation { continuation in
+                    guard !didResolve, !Task.isCancelled else {
+                        continuation.resume()
+                        return
+                    }
+                    continuations[id] = continuation
+                }
+            } onCancel: {
+                Task { @MainActor in
+                    self.continuations.removeValue(forKey: id)?.resume()
+                }
             }
         }
+
     }
 
     @MainActor
-    class CoordinatableCache {
-        private let coordinatableFactory: () -> any Coordinatable
-        private let viewFactory: (() -> AnyView)?
-        private var _cachedCoordinatable: (any Coordinatable)?
-        private var _cachedView: AnyView?
+    final class CoordinatableCache {
+        private var factory: (() -> (any Coordinatable, AnyView?))?
+        private var cached: (any Coordinatable, AnyView?)?
 
         init(_ factory: @escaping () -> any Coordinatable) {
-            self.coordinatableFactory = factory
-            self.viewFactory = nil
+            self.factory = { (factory(), nil) }
         }
 
         init<V: View>(_ factory: @escaping () -> (any Coordinatable, V)) {
-            self.coordinatableFactory = {
-                let (coordinatable, _) = factory()
-                return coordinatable
-            }
-            self.viewFactory = {
-                let (_, view) = factory()
-                return AnyView(view)
+            self.factory = {
+                let (coordinator, label) = factory()
+                return (coordinator, AnyView(label))
             }
         }
 
-        init<V: View>(_ factory: @escaping () -> (any Coordinatable, V, TabRole)) {
-            self.coordinatableFactory = {
-                let (coordinatable, _, _) = factory()
-                return coordinatable
-            }
-            self.viewFactory = {
-                let (_, view, _) = factory()
-                return AnyView(view)
-            }
+        init<V: View>(coordinator: any Coordinatable, label: V) {
+            cached = (coordinator, AnyView(label))
         }
 
-        var coordinatable: any Coordinatable {
-            if let cached = _cachedCoordinatable {
-                return cached
-            }
-            let instance = coordinatableFactory()
-            _cachedCoordinatable = instance
-            return instance
+        private func materialize() -> (any Coordinatable, AnyView?) {
+            if let cached { return cached }
+            let value = factory!()
+            cached = value
+            factory = nil
+            return value
         }
 
-        /// The already-created coordinator, without materialising one.
-        var materializedCoordinatable: (any Coordinatable)? {
-            _cachedCoordinatable
-        }
-
-        var view: AnyView? {
-            guard let viewFactory = viewFactory else { return nil }
-
-            if let cached = _cachedView {
-                return cached
-            }
-            let instance = viewFactory()
-            _cachedView = instance
-            return instance
-        }
+        var coordinatable: any Coordinatable { materialize().0 }
+        var materializedCoordinatable: (any Coordinatable)? { cached?.0 }
+        var view: AnyView? { materialize().1 }
     }
 
-    /// A stable identifier for this destination instance.
-    public var id: UUID = .init()
+    /// This destination instance's identity. Two destinations for the same
+    /// case have different IDs.
+    public internal(set) var id: UUID = .init()
 
-    private let _resolution = ResolutionState()
+    private var _resolution = ResolutionState()
     var resolution: ResolutionState { _resolution }
 
     private var _view: AnyView?
@@ -324,26 +367,45 @@ public struct Destination: Identifiable {
     private var _source: Any?
     var source: Any? { _source }
 
-    /// Presenter-side sheet configuration, when the destination was
-    /// presented with a configured ``ModalPresentationType``.
+    /// Deprecated. Keep presentation settings in your view's inputs or state
+    /// instead.
+    ///
+    /// Only ``ModalPresentationType/sheet(detents:dragIndicator:interactiveDismissDisabled:)``
+    /// sets this; native modifiers are not reflected.
+    @available(*, deprecated, message: "Apply SwiftUI presentation modifiers to the presented view and keep any settings it needs in view inputs or state. Native modifiers are not reflected in this property.")
     public internal(set) var modalConfiguration: SheetConfiguration?
 
-    /// The badge shown on this destination's tab item, if any.
+    /// The badge on this destination's tab item, or `nil`.
+    ///
+    /// Set it with `setBadge(_:for:)` on the tab coordinator.
     public internal(set) var badge: String?
 
-    /// The accessibility identifier applied to this destination's tab item,
-    /// if any.
+    /// The accessibility identifier on this destination's tab item, or `nil`.
+    ///
+    /// Set it with ``TabCoordinatable/setTabAccessibilityIdentifier(_:for:)``.
     public internal(set) var accessibilityIdentifier: String?
 
-    /// How this destination was originally routed (root, push, sheet, or
-    /// full-screen cover).
-    public var routeType: DestinationType = .root
+    /// How this destination entered its own coordinator.
+    ///
+    /// `.root` for a coordinator's root, a tab, or a split column; otherwise
+    /// `.push`, `.sheet`, or `.fullScreenCover`. A flow's root reads `.root`
+    /// even when the flow is presented; use ``presentationType`` for chrome.
+    public internal(set) var routeType: DestinationType = .root
 
-    /// The split-view column this destination occupies, when it is owned
-    /// by a ``SplitCoordinatable``. `nil` everywhere else.
+    /// The split column this destination occupies, or `nil`.
+    ///
+    /// Only destinations a ``SplitCoordinatable`` owns directly have a column.
+    /// Screens inside a child flow hosted in a column read `nil`.
     public internal(set) var column: SplitColumn?
 
-    /// The effective presentation type, derived from the route's push type.
+    /// How this screen appears: `.root`, `.push`, `.sheet`, or
+    /// `.fullScreenCover`.
+    ///
+    /// Roots, tabs, and columns inherit their host's presentation: the root of
+    /// a flow presented as a sheet reads `.sheet`, and the root of a pushed
+    /// child flow reads `.push`. They read `.root` only when nothing above them
+    /// was pushed or presented. Use this, not ``routeType``, to choose Back or
+    /// Close.
     public var presentationType: DestinationType {
         switch pushType {
         case .push:
@@ -357,9 +419,13 @@ public struct Destination: Identifiable {
         }
     }
 
-    /// Metadata identifying which destination case this value represents.
+    /// The route case this destination was built from, without its associated
+    /// values.
+    ///
+    /// Cast it to the owner's meta type to compare:
+    /// `(destination.meta as? HomeCoordinator.Destinations.Meta) == .detail`.
     public let meta: any DestinationMeta
-    var parent: any Coordinatable
+    weak var parent: (any Coordinatable)?
 
     /// The user-facing dismissal callback, stored on the shared
     /// resolution state so a value-copy of the destination still
@@ -370,6 +436,7 @@ public struct Destination: Identifiable {
     }
 
     var coordinatable: (any Coordinatable)? {
+        guard parent != nil else { return materializedCoordinatable }
         return _coordinatable?.coordinatable
     }
 
@@ -395,13 +462,13 @@ public struct Destination: Identifiable {
 
     /// Returns the tab item view with Destination injected into environment
     var tabItem: AnyView? {
-        guard let item = _tabItem ?? _coordinatable?.view else { return nil }
+        guard parent != nil, let item = _tabItem ?? _coordinatable?.view else { return nil }
         return AnyView(item.environment(\.destination, self))
     }
 
     // MARK: - Basic Initializers
 
-    /// Creates a destination that displays a plain SwiftUI view.
+    /// Creates a destination that shows `value`. Generated code calls this.
     public init<V: View>(
         _ value: V,
         meta: any DestinationMeta,
@@ -412,7 +479,8 @@ public struct Destination: Identifiable {
         self.parent = parent
     }
 
-    /// Creates a destination backed by a child coordinator.
+    /// Creates a destination backed by a child coordinator, created on first
+    /// use. Generated code calls this.
     public init(
         _ factory: @escaping () -> any Coordinatable,
         meta: any DestinationMeta,
@@ -423,8 +491,8 @@ public struct Destination: Identifiable {
         self.parent = parent
     }
 
-    /// Creates a destination with a child coordinator and a custom tab
-    /// item view.
+    /// Creates a tab destination backed by a child coordinator, with a tab
+    /// label. Generated code calls this.
     public init<V: View>(
         _ factory: @escaping () -> (any Coordinatable, V),
         meta: any DestinationMeta,
@@ -435,7 +503,8 @@ public struct Destination: Identifiable {
         self.parent = parent
     }
 
-    /// Creates a destination with a content view and a tab item view.
+    /// Creates a tab destination with content and a tab label. Generated code
+    /// calls this.
     public init<V: View, T: View>(
         _ factory: @escaping () -> (V, T),
         meta: any DestinationMeta,
@@ -451,7 +520,8 @@ public struct Destination: Identifiable {
 
     // MARK: - TabRole Initializers
 
-    /// Creates a destination with a content view and a `TabRole`.
+    /// Creates a tab destination with content and a tab role. Generated code
+    /// calls this.
     public init<V: View>(
         _ factory: @escaping () -> (V, TabRole),
         meta: any DestinationMeta,
@@ -465,7 +535,8 @@ public struct Destination: Identifiable {
         self.tabRole = role
     }
 
-    /// Creates a destination with a child coordinator and a `TabRole`.
+    /// Creates a tab destination backed by a child coordinator, with a tab
+    /// role. Generated code calls this.
     public init(
         _ factory: @escaping () -> (any Coordinatable, TabRole),
         meta: any DestinationMeta,
@@ -480,8 +551,8 @@ public struct Destination: Identifiable {
         self.tabRole = role
     }
 
-    /// Creates a destination with a content view, a tab item view, and a
-    /// `TabRole`.
+    /// Creates a tab destination with content, a tab label, and a tab role.
+    /// Generated code calls this.
     public init<V: View, T: View>(
         _ factory: @escaping () -> (V, T, TabRole),
         meta: any DestinationMeta,
@@ -496,8 +567,8 @@ public struct Destination: Identifiable {
         self.tabRole = role
     }
 
-    /// Creates a destination with a child coordinator, a tab item view,
-    /// and a `TabRole`.
+    /// Creates a tab destination backed by a child coordinator, with a tab
+    /// label and a tab role. Generated code calls this.
     public init<V: View>(
         _ factory: @escaping () -> (any Coordinatable, V, TabRole),
         meta: any DestinationMeta,
@@ -505,7 +576,7 @@ public struct Destination: Identifiable {
     ) {
         let result = factory()
 
-        self._coordinatable = CoordinatableCache(factory)
+        self._coordinatable = CoordinatableCache(coordinator: result.0, label: result.1)
         self.meta = meta
         self.parent = parent
         self.tabRole = result.2
@@ -523,6 +594,14 @@ public struct Destination: Identifiable {
 
     mutating func setPushType(_ value: PresentationType) {
         pushType = value
+    }
+
+    /// Structural content survives removal of its coordinator. Give a reused
+    /// coordinator a fresh dismissal lifetime; retained old copies stay inert.
+    mutating func renewDismissalIfResolved() {
+        if _resolution.didResolve {
+            _resolution = ResolutionState()
+        }
     }
 
     mutating func setRouteType(_ value: DestinationType) {
@@ -547,7 +626,7 @@ public struct Destination: Identifiable {
     /// Called from every removal site: pop, popToRoot, popToFirst/Last,
     /// setRoot, dismissCoordinator, removeModalDestination, sheet swipe.
     func resolveDismissal() {
-        _resolution.resolve()
+        resolveDismissals([self])
     }
 }
 

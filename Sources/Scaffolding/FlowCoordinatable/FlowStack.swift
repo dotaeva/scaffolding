@@ -8,26 +8,26 @@
 import SwiftUI
 import Observation
 
-/// A type-erased protocol for ``FlowStack`` that allows the framework
-/// to manipulate navigation state without knowing the concrete coordinator
-/// type.
+/// A type-erased, read-only view of a ``FlowStack``.
+///
+/// Change navigation through the owning coordinator's methods.
 @MainActor
 public protocol AnyFlowStack: AnyObject, CoordinatableData where Coordinator: FlowCoordinatable {
-    /// The root destination of the navigation stack.
-    var root: Destination? { get set }
-    /// The ordered list of pushed destinations.
-    var destinations: [Destination] { get set }
-    /// The default animation applied to root transitions.
-    var animation: Animation? { get set }
-    /// The presentation type if this stack was presented modally.
-    var presentedAs: PresentationType? { get set }
+    /// The flow's root destination.
+    var root: Destination? { get }
+    /// The pushed and presented entries above the root, bottom first.
+    var destinations: [Destination] { get }
+    /// The default animation for this flow's navigation changes.
+    var animation: Animation? { get }
+    /// The presentation this flow inherits from its host: `.push`, `.sheet`,
+    /// or `.fullScreenCover`, or `nil` when no host pushes or presents it.
+    var presentedAs: PresentationType? { get }
 }
 
-/// Observable state container for a ``FlowCoordinatable`` coordinator.
+/// The observable navigation state of a ``FlowCoordinatable``.
 ///
-/// `FlowStack` holds the root destination and the array of pushed
-/// destinations that form the navigation stack. It is generic over the
-/// coordinator type so that destination enums remain type-safe.
+/// Holds the root and the pushed and presented entries above it. Seed it with
+/// an initializer; change it through the coordinator's methods.
 ///
 /// ```swift
 /// var stack = FlowStack<HomeCoordinator>(root: .home)
@@ -35,69 +35,64 @@ public protocol AnyFlowStack: AnyObject, CoordinatableData where Coordinator: Fl
 @MainActor
 @Observable
 public class FlowStack<Coordinator: FlowCoordinatable>: AnyFlowStack {
-    /// The root destination displayed at the bottom of the stack.
-    public var root: Destination?
-    /// The parent coordinator that owns this flow, if any.
-    public weak var parent: (any Coordinatable)?
-    /// Whether a parent flow coordinator provides the `NavigationStack`.
-    public var hasLayerNavigationCoordinator: Bool = false
-    /// The animation used for this flow's transitions — root swaps and
-    /// pushes/pops alike.
-    public var animation: Animation? = .default
-    /// The presentation type when this flow was presented modally.
-    public var presentedAs: PresentationType?
+    /// The destination at the bottom of the stack.
+    public internal(set) var root: Destination?
+    /// The coordinator hosting this flow, or `nil` at the top level.
+    public internal(set) weak var parent: (any Coordinatable)?
+    /// Whether this flow renders in an enclosing flow's `NavigationStack`
+    /// instead of its own, as when it is pushed.
+    public internal(set) var hasLayerNavigationCoordinator: Bool = false
+    /// The default animation for root changes, pushes, pops, and modal changes.
+    public internal(set) var animation: Animation? = .default
+    /// The presentation this flow inherits from its host: `.push`, `.sheet`,
+    /// or `.fullScreenCover`, or `nil` when no host pushes or presents it.
+    public internal(set) var presentedAs: PresentationType?
 
-    /// The ordered list of pushed destinations above the root.
-    public var destinations: [Destination] = .init()
+    /// The pushed and presented entries above the root, bottom first.
+    public internal(set) var destinations: [Destination] = .init()
 
-    /// Whether ``setup(for:)`` has been called.
-    public var isSetup: Bool = false
+    /// Whether the initial root and path have been resolved.
+    public internal(set) var isSetup: Bool = false
     private var initialRoot: Coordinator.Destinations?
     private var initialPath: [Coordinator.Destinations] = []
-    private var coordinator: Coordinator?
+    private weak var coordinator: Coordinator?
 
-    /// Creates a new flow stack with the given initial root destination.
+    /// Creates a stack that shows a root.
     ///
-    /// - Parameter root: The destination case to display as the root.
+    /// - Parameter root: The root case.
     public init(root: Coordinator.Destinations) {
         self.initialRoot = root
     }
 
-    /// Creates a new flow stack with the given root and an initial path of
-    /// pushed destinations above it.
+    /// Creates a stack with a root and screens already pushed above it.
     ///
-    /// The path is materialised when the stack is first set up — use this
-    /// to restore a flow to a deep position on cold launch, seed a preview
-    /// mid-flow, or construct a coordinator already showing a detail
-    /// screen:
+    /// Use it to seed a preview, a test, or a deep entry point. The path is
+    /// built on first use.
     ///
     /// ```swift
-    /// var stack = FlowStack<HomeCoordinator>(
-    ///     root: .home,
-    ///     pushing: [.detail(item: restored)]
-    /// )
+    /// var stack = FlowStack<HomeCoordinator>(root: .home, pushing: [.detail(id: 42)])
     /// ```
     ///
     /// - Parameters:
-    ///   - root: The destination case to display as the root.
-    ///   - path: Destinations pushed on top of the root, bottom first.
+    ///   - root: The root case.
+    ///   - path: Cases to push above the root, bottom first.
     public init(root: Coordinator.Destinations, pushing path: [Coordinator.Destinations]) {
         self.initialRoot = root
         self.initialPath = path
     }
 
-    /// Performs one-time setup, resolving the initial root destination.
+    /// Resolves the initial root and path once. The framework calls this.
     ///
-    /// - Parameter coordinator: The coordinator that owns this stack.
+    /// - Parameter coordinator: The coordinator that owns the stack.
     public func setup(for coordinator: Coordinator) {
         guard !isSetup else { return }
+        isSetup = true
         self.coordinator = coordinator
         if let rootDestination = initialRoot, root == nil {
             var rootDest = rootDestination.resolvedValue(for: coordinator)
 
             _warnIfSplitInsideNavigationStack(rootDest.coordinatable)
-            rootDest.coordinatable?.setHasLayerNavigationCoordinatable(true)
-            rootDest.coordinatable?.setParent(coordinator)
+            rootDest.coordinatable?.attach(to: coordinator, navigationLayer: true, presentation: presentedAs)
 
             if let presentedAs = presentedAs {
                 rootDest.setPushType(presentedAs)
@@ -113,21 +108,15 @@ public class FlowStack<Coordinator: FlowCoordinatable>: AnyFlowStack {
                 _warnIfSplitInsideNavigationStack(dest.coordinatable)
                 dest.setPushType(.push)
                 dest.setRouteType(.push)
-                dest.coordinatable?.setHasLayerNavigationCoordinatable(true)
-                dest.coordinatable?.setParent(coordinator)
-
-                if let flowCoordinator = dest.coordinatable as? any FlowCoordinatable {
-                    flowCoordinator.setPresentedAs(.push)
-                }
+                dest.coordinatable?.attach(to: coordinator, navigationLayer: true, presentation: .push)
 
                 destinations.append(dest)
             }
             initialPath = []
         }
-        self.isSetup = true
     }
 
-    /// Sets the parent coordinator reference.
+    /// Sets the hosting coordinator. The framework calls this.
     public func setParent(_ parent: any Coordinatable) {
         self.parent = parent
     }
@@ -144,7 +133,7 @@ extension FlowStack {
         // NavigationStack on macOS, so the push snapped there while iOS
         // animated it either way. Carrying the stack's animation makes the
         // same call behave the same on both.
-        withAnimation(animation) {
+        withScaffoldingAnimation(animation) {
             destinations.append(destination)
         }
     }
@@ -154,7 +143,7 @@ extension FlowStack {
             coordinator?.dismissCoordinator()
             return
         }
-        let removed = withAnimation(animation) { destinations.removeLast() }
+        let removed = withScaffoldingAnimation(animation) { destinations.removeLast() }
         removed.resolveDismissal()
     }
 
@@ -162,22 +151,18 @@ extension FlowStack {
         let removeCount = min(max(count, 0), destinations.count)
         guard removeCount > 0 else { return }
         let removed = Array(destinations.suffix(removeCount))
-        withAnimation(animation) {
+        withScaffoldingAnimation(animation) {
             destinations.removeLast(removeCount)
         }
-        for destination in removed {
-            destination.resolveDismissal()
-        }
+        resolveDismissals(removed)
     }
 
     func popToRoot() {
         let removed = destinations
-        withAnimation(animation) {
+        withScaffoldingAnimation(animation) {
             destinations.removeAll()
         }
-        for destination in removed {
-            destination.resolveDismissal()
-        }
+        resolveDismissals(removed)
     }
 
     func popToFirst(_ destination: Coordinator.Destinations.Meta) -> Destination? {
@@ -200,29 +185,25 @@ extension FlowStack {
         let newCount = firstIndex + 1
         if destinations.count > newCount {
             let removed = Array(destinations[newCount...])
-            withAnimation(animation) {
+            withScaffoldingAnimation(animation) {
                 destinations.removeSubrange(newCount...)
             }
-            for destination in removed {
-                destination.resolveDismissal()
-            }
+            resolveDismissals(removed)
         }
 
         return targetDestination
     }
 
     func popToLast(_ destination: Coordinator.Destinations.Meta) -> Destination? {
-        if let root = root,
-           let rootMeta = root.meta as? Coordinator.Destinations.Meta,
-           rootMeta == destination {
-            popToRoot()
-            return root
-        }
-
         guard let lastIndex = destinations.lastIndex(where: { dest in
             guard let destMeta = dest.meta as? Coordinator.Destinations.Meta else { return false }
             return destMeta == destination
         }) else {
+            if let root, let rootMeta = root.meta as? Coordinator.Destinations.Meta,
+               rootMeta == destination {
+                popToRoot()
+                return root
+            }
             return nil
         }
 
@@ -231,48 +212,39 @@ extension FlowStack {
         let newCount = lastIndex + 1
         if destinations.count > newCount {
             let removed = Array(destinations[newCount...])
-            withAnimation(animation) {
+            withScaffoldingAnimation(animation) {
                 destinations.removeSubrange(newCount...)
             }
-            for destination in removed {
-                destination.resolveDismissal()
-            }
+            resolveDismissals(removed)
         }
 
         return targetDestination
     }
 
     func setRoot(root: Destination, animation: Animation?) {
-         withAnimation(animation ?? self.animation) {
-             // Clear pushed destinations before replacing the root.
-             // Destinations were pushed relative to the old root and are
-             // invalid once the root changes. Clearing them first ensures
-             // the NavigationStack path is empty before the root view
-             // switches, preventing a stale navigation bar.
-             let removedDestinations = destinations
-             destinations.removeAll()
-
-             // Pushed destinations and the previous root were torn down
-             // because the parent's state changed underneath them — that
-             // is a cancellation, not a user-initiated dismissal.
-             for destination in removedDestinations {
-                 destination.resolveDismissal()
-             }
-             self.root?.resolveDismissal()
-
-             var mutableRoot = root
-             _warnIfSplitInsideNavigationStack(mutableRoot.coordinatable)
-             mutableRoot.coordinatable?.setHasLayerNavigationCoordinatable(true)
-
-             if let coordinator {
-                 mutableRoot.coordinatable?.setParent(coordinator)
-             }
-
-             if let presentedAs = presentedAs, mutableRoot.pushType == nil {
-                 mutableRoot.setPushType(presentedAs)
-             }
-
-             self.root = mutableRoot
-         }
-     }
+        let removed = [self.root].compactMap { $0 } + destinations
+        withScaffoldingAnimation(animation ?? self.animation) {
+            destinations.removeAll()
+            var mutableRoot = root
+            _warnIfSplitInsideNavigationStack(mutableRoot.coordinatable)
+            if let coordinator {
+                mutableRoot.coordinatable?.attach(to: coordinator, navigationLayer: true, presentation: presentedAs)
+            }
+            if let presentedAs, mutableRoot.pushType == nil {
+                mutableRoot.setPushType(presentedAs)
+            }
+            self.root = mutableRoot
+        }
+        resolveDismissals(removed)
+    }
 }
+
+@MainActor
+protocol _MutableFlowStack: AnyFlowStack, _MutableCoordinatableData {
+    var root: Destination? { get set }
+    var destinations: [Destination] { get set }
+    var animation: Animation? { get set }
+    var presentedAs: PresentationType? { get set }
+}
+
+extension FlowStack: _MutableFlowStack {}

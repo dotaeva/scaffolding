@@ -24,15 +24,17 @@ public extension Coordinatable {
     ///
     /// ```swift
     /// let picking = Task { await favorites.addPlanet() }
-    /// await waitUntil { favorites.isPresentingModal }
+    /// guard await waitUntil({ favorites.isPresentingModal }) else {
+    ///     picking.cancel()
+    ///     return
+    /// }
     ///
     /// favorites.descendant(ofType: PlanetPickerCoordinator.self)?.pick("Mars")
     /// await picking.value
     /// ```
     ///
     /// This is for tests and debug tooling. Production code should stay with
-    /// the `expecting:` overloads or the typed trailing closures, which hand
-    /// the child over at the moment the route lands.
+    /// the `expecting:` overloads, which return the child when the route lands.
     func descendant<T: Coordinatable>(ofType type: T.Type = T.self) -> T? {
         descendants(ofType: type).first
     }

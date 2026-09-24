@@ -7,30 +7,37 @@
 
 import SwiftUI
 
-/// A shared interface for the observable state containers that back each
-/// coordinator type.
+/// The shared interface of the coordinator state containers.
 ///
-/// ``FlowStack``, ``TabItems``, and ``Root`` all conform to
-/// `CoordinatableData`. The protocol provides parent tracking, lazy setup,
-/// and identity so that SwiftUI can diff coordinator hierarchies
-/// efficiently.
+/// ``FlowStack``, ``Root``, ``TabItems``, and ``SplitColumns`` conform. Read a
+/// container's state freely; change it only through coordinator methods. The
+/// requirements below are framework plumbing.
 @MainActor
 public protocol CoordinatableData: Identifiable {
+    /// The coordinator that owns this container.
     associatedtype Coordinator: Coordinatable
 
-    /// The parent coordinator that owns this coordinator, if any.
-    var parent: (any Coordinatable)? { get set }
+    /// The host of the owning coordinator, or `nil` at the top level.
+    var parent: (any Coordinatable)? { get }
 
-    /// Whether a parent ``FlowCoordinatable`` provides the
-    /// `NavigationStack` layer.
-    var hasLayerNavigationCoordinator: Bool { get set }
+    /// Whether the owning coordinator renders inside a `NavigationStack`
+    /// owned by an ancestor flow.
+    var hasLayerNavigationCoordinator: Bool { get }
 
-    /// Assigns the parent coordinator reference.
+    /// Attaches the owning coordinator to its host. Framework use only.
     func setParent(_ parent: any Coordinatable) -> Void
 
-    /// Whether ``setup(for:)`` has already been called.
-    var isSetup: Bool { get set }
+    /// Whether ``setup(for:)`` has run.
+    var isSetup: Bool { get }
 
-    /// Performs one-time initialization using the owning coordinator.
+    /// Resolves the container's initial destinations for its coordinator.
+    /// Navigation and rendering call it on demand.
     func setup(for coordinator: Coordinator) -> Void
+}
+
+@MainActor
+protocol _MutableCoordinatableData: AnyObject, CoordinatableData {
+    var parent: (any Coordinatable)? { get set }
+    var hasLayerNavigationCoordinator: Bool { get set }
+    var isSetup: Bool { get set }
 }

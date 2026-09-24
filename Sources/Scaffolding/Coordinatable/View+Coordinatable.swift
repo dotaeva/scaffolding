@@ -38,16 +38,17 @@ extension View {
     /// shows (and dismisses) as a sheet instead of silently never
     /// appearing.
     func applyContainerModals<ModalContent: View>(
-        sheets sheetDestinations: [Destination],
-        fullScreenCovers coverDestinations: [Destination],
+        destinations: [Destination],
         onDismissSheet: @escaping (UUID) -> Void,
         onDismissFullScreenCover: @escaping (UUID) -> Void,
         modalContent: @escaping (Destination) -> ModalContent
     ) -> some View {
+        let first = Array(destinations.prefix(1))
 #if os(macOS)
-        let effectiveSheets = sheetDestinations + coverDestinations
+        let effectiveSheets = first
 #else
-        let effectiveSheets = sheetDestinations
+        let effectiveSheets = first.filter { $0.pushType == .sheet }
+        let coverDestinations = first.filter { $0.pushType == .fullScreenCover }
 #endif
 
         let withSheet = self.sheet(
@@ -91,6 +92,16 @@ extension View {
 
 @MainActor
 public extension View {
+    /// Injects a coordinator and its ancestors into this view's environment.
+    ///
+    /// Scaffolding applies this to every view it manages. Each coordinator is
+    /// injected unless it opts out with `@Scaffoldable(injectsCoordinator: false)`;
+    /// an opted-out coordinator's ancestors are still injected. Any other
+    /// `Observable` class is injected as is; other values leave the view
+    /// unchanged.
+    ///
+    /// - Parameter object: The coordinator or observable object to inject.
+    /// - Returns: The view with the environment applied.
     func environmentCoordinatable(_ object: Any) -> AnyView {
         let mirror = Mirror(reflecting: object)
 

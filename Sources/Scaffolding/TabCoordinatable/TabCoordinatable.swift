@@ -8,50 +8,140 @@
 import SwiftUI
 import Observation
 
-/// A coordinator that manages a tab bar interface.
+/// A coordinator that renders a `TabView` whose tabs are destinations.
 ///
-/// Conform to `TabCoordinatable` to build a `TabView` where each tab is
-/// a destination — either a plain view or a child coordinator. Provide a
-/// ``TabItems`` property and define tab functions using the
-/// ``Scaffoldable(injectsCoordinator:codable:)`` macro.
+/// Each tab is a view or a child coordinator, usually a flow with its own
+/// stack. Declare ``tabItems`` and tab routes that return content plus an
+/// optional label or `TabRole`:
 ///
 /// ```swift
-/// @Scaffoldable @Observable
+/// @MainActor @Observable @Scaffoldable
 /// final class MainTabCoordinator: @MainActor TabCoordinatable {
-///     var tabItems = TabItems<MainTabCoordinator>(
-///         tabs: [.home, .settings]
-///     )
+///     var tabItems = TabItems<MainTabCoordinator>(tabs: [.home, .settings])
 ///
-///     func home() -> any Coordinatable { HomeCoordinator() }
-///     func settings() -> some View { SettingsView() }
+///     func home() -> (any Coordinatable, some View) {
+///         (HomeCoordinator(), Label("Home", systemImage: "house"))
+///     }
+///     func settings() -> (some View, some View) {
+///         (SettingsView(), Label("Settings", systemImage: "gear"))
+///     }
 /// }
 /// ```
+///
+/// Selecting a tab keeps its state; ``setTabs(_:)`` replaces it. Tab children
+/// are structural and cannot dismiss themselves. See <doc:TabBars> and
+/// <doc:DeepLinking>.
+///
+/// ## Topics
+///
+/// ### Selecting Tabs
+///
+/// - ``selectFirstTab(_:)``
+/// - ``selectFirstTab(_:expecting:)``
+/// - ``selectLastTab(_:)``
+/// - ``selectLastTab(_:expecting:)``
+/// - ``select(index:)``
+/// - ``select(index:expecting:)``
+/// - ``select(id:)``
+/// - ``select(id:expecting:)``
+/// - ``shouldSelect(tab:isReselection:)``
+///
+/// ### Reading Selection
+///
+/// - ``selectedTabDestination``
+/// - ``selectedTabIndex``
+/// - ``isInTabItems(_:)``
+/// - ``tabItems``
+///
+/// ### Adding and Removing Tabs
+///
+/// - ``appendTab(_:)``
+/// - ``appendTab(_:expecting:)``
+/// - ``insertTab(_:at:)``
+/// - ``insertTab(_:at:expecting:)``
+/// - ``removeFirstTab(_:)``
+/// - ``removeLastTab(_:)``
+/// - ``setTabs(_:)``
+///
+/// ### Tab Appearance and Accessibility
+///
+/// - ``setBadge(_:for:)-6aae0``
+/// - ``setBadge(_:for:)-8l4hz``
+/// - ``badge(for:)``
+/// - ``setTabAccessibilityIdentifier(_:for:)``
+/// - ``tabAccessibilityIdentifier(for:)``
+/// - ``setTabBarVisibility(_:)``
+///
+/// ### Presenting and Receiving Results
+///
+/// - ``Coordinatable/present(_:as:policy:)``
+/// - ``Coordinatable/present(_:as:policy:expecting:)``
+/// - ``Coordinatable/present(_:as:policy:awaiting:)``
+/// - ``Coordinatable/present(_:as:policy:expecting:awaiting:)``
+///
+/// ### Closing Flows and Modals
+///
+/// - ``Coordinatable/dismissCoordinator()``
+/// - ``Coordinatable/dismissCoordinator(returning:)``
+/// - ``Coordinatable/dismissPresentedModal()``
+/// - ``Coordinatable/cancelPendingModals()``
+/// - ``Coordinatable/dismissModal()``
+/// - ``Coordinatable/dismissAllModals()``
+/// - ``Coordinatable/isPresentingModal``
+/// - ``Coordinatable/pendingModalCount``
+///
+/// ### Transition Animation
+///
+/// - ``setTransitionAnimation(_:)``
+///
+/// ### Type-Erased State
+///
+/// - ``anyTabItems``
+///
+/// ### Presentation Context
+///
+/// - ``setPresentedAs(_:)``
+///
+/// ### Deprecated Compatibility
+///
+/// - ``appendTab(_:_:)``
+/// - ``insertTab(_:at:_:)``
+/// - ``present(_:as:policy:onDismiss:)``
+/// - ``present(_:as:policy:onDismiss:_:)``
+/// - ``present(_:as:policy:onDismiss:expecting:)``
+/// - ``presentAndWait(_:as:policy:)``
+/// - ``select(id:_:)``
+/// - ``select(index:_:)``
+/// - ``selectFirstTab(_:_:)``
+/// - ``selectLastTab(_:_:)``
 @MainActor
 public protocol TabCoordinatable: Coordinatable where ViewType == TabCoordinatableView {
-    /// The observable container that holds this coordinator's tab
-    /// destinations.
+    /// The container holding this coordinator's tabs, selection, and modal requests.
     var tabItems: TabItems<Self> { get }
 
-    /// A type-erased accessor for the tab items.
+    /// The tab container as a read-only, type-erased value, with initial tabs resolved.
     var anyTabItems: any AnyTabItems { get }
 
-    /// Decides whether a user-initiated tab selection should be applied.
+    /// Framework plumbing: the container without resolving its initial tabs.
+    var _uninitializedTabItems: any AnyTabItems { get }
+
+    /// Decides whether a user tap selects `tab`.
     ///
-    /// The generated `TabView` consults this hook whenever the selection
-    /// binding is written through the UI. Return `false` to keep the
-    /// current tab — for example to present a login sheet instead of
-    /// switching. If the hook performs its own selection (e.g. via
-    /// ``selectFirstTab(_:)``), that redirect is preserved.
+    /// Return `false` to keep the current tab — for example, to present a login
+    /// sheet instead. To redirect, select another tab inside the hook and return
+    /// `false`.
     ///
-    /// When the user re-taps the tab that is already selected, the hook
-    /// fires with `isReselection == true` — useful for pop-to-root or
-    /// scroll-to-top behavior. The return value is ignored in that case,
-    /// since there is no selection change to veto.
+    /// A tap on the already-selected tab calls the hook with
+    /// `isReselection == true` and ignores the return value. Use it for
+    /// pop-to-root or scroll-to-top.
     ///
-    /// Programmatic selection (``selectFirstTab(_:)``, ``select(index:)``,
-    /// and friends) bypasses this hook.
+    /// Programmatic selection, such as ``selectFirstTab(_:)``, bypasses the hook.
+    /// The default implementation returns `true`. See <doc:TabBars#Intercept-taps>.
     ///
-    /// The default implementation returns `true`.
+    /// - Parameters:
+    ///   - tab: The tapped tab's case.
+    ///   - isReselection: Whether the tab is already selected.
+    /// - Returns: Whether to select the tab. Ignored on reselection.
     func shouldSelect(tab: Destinations.Meta, isReselection: Bool) -> Bool
 }
 
@@ -68,11 +158,17 @@ public extension TabCoordinatable {
         tabItems.id
     }
 
+    var _uninitializedTabItems: any AnyTabItems { tabItems }
+
     var anyTabItems: any AnyTabItems {
         tabItems.setup(for: self)
         return tabItems
     }
 
+    /// The rendered tab coordinator and everything below it.
+    ///
+    /// Show the top-level coordinator's `view` once, usually in a `WindowGroup`.
+    /// Child coordinators render through their parent.
     var view: TabCoordinatableView {
         tabItems.setup(for: self)
         return .init(coordinator: self)
@@ -87,17 +183,19 @@ public extension TabCoordinatable {
     }
 
     func setHasLayerNavigationCoordinatable(_ value: Bool) {
-        tabItems.hasLayerNavigationCoordinator = value
+        updateNavigationContext(navigationLayer: value, presentation: inheritedPresentation)
     }
 
     func setParent(_ parent: any Coordinatable) {
         tabItems.setParent(parent)
     }
 
-    /// Sets the visibility of the tab bar.
+    /// Shows or hides the native tab bar.
     ///
-    /// - Parameter value: The desired visibility (`.automatic`, `.visible`,
-    ///   or `.hidden`).
+    /// Takes effect on iOS, iPadOS, and Mac Catalyst. Hide it when you render a
+    /// custom bar; see <doc:TabBars#Build-a-custom-bar>.
+    ///
+    /// - Parameter value: `.automatic`, `.visible`, or `.hidden`.
     func setTabBarVisibility(_ value: Visibility) {
         tabItems.setTabBarVisibility(value)
     }
@@ -141,9 +239,12 @@ extension TabCoordinatable {
 
 @MainActor
 public extension TabCoordinatable {
-    /// Selects the **first** tab matching the given destination.
+    /// Selects the first tab whose case matches `tab`.
     ///
-    /// - Parameter tab: The destination meta to select.
+    /// Does nothing when no tab matches. Bypasses
+    /// ``shouldSelect(tab:isReselection:)``.
+    ///
+    /// - Parameter tab: The tab case to select.
     /// - Returns: `self` for chaining.
     @discardableResult
     func selectFirstTab(_ tab: Destinations.Meta) -> Self {
@@ -151,9 +252,12 @@ public extension TabCoordinatable {
         return self
     }
 
-    /// Selects the **last** tab matching the given destination.
+    /// Selects the last tab whose case matches `tab`.
     ///
-    /// - Parameter tab: The destination meta to select.
+    /// Does nothing when no tab matches. Bypasses
+    /// ``shouldSelect(tab:isReselection:)``.
+    ///
+    /// - Parameter tab: The tab case to select.
     /// - Returns: `self` for chaining.
     @discardableResult
     func selectLastTab(_ tab: Destinations.Meta) -> Self {
@@ -161,9 +265,12 @@ public extension TabCoordinatable {
         return self
     }
 
-    /// Selects a tab by its zero-based index.
+    /// Selects the tab at a zero-based position.
     ///
-    /// - Parameter index: The position of the tab to select.
+    /// Does nothing when `index` is out of range. Bypasses
+    /// ``shouldSelect(tab:isReselection:)``.
+    ///
+    /// - Parameter index: The tab's position.
     /// - Returns: `self` for chaining.
     @discardableResult
     func select(index: Int) -> Self {
@@ -171,9 +278,12 @@ public extension TabCoordinatable {
         return self
     }
 
-    /// Selects a tab by its unique identifier.
+    /// Selects the tab with the given destination identifier.
     ///
-    /// - Parameter id: The UUID of the tab to select.
+    /// Does nothing when no tab has `id`. Bypasses
+    /// ``shouldSelect(tab:isReselection:)``.
+    ///
+    /// - Parameter id: A tab's ``Destination/id``.
     /// - Returns: `self` for chaining.
     @discardableResult
     func select(id: UUID) -> Self {
@@ -181,16 +291,21 @@ public extension TabCoordinatable {
         return self
     }
 
-    /// Replaces all tabs with the given destinations.
+    /// Replaces every tab with fresh destinations.
     ///
-    /// - Parameter tabs: The new set of tab destinations.
+    /// The old tabs are torn down: their navigation state, badges, and
+    /// identifiers are discarded, and awaiting callers inside them resume with
+    /// `nil`. The first new tab is selected. To keep a tab's history, select it
+    /// instead.
+    ///
+    /// - Parameter tabs: The new tab cases, in display order.
     /// - Returns: `self` for chaining.
     @discardableResult
     func setTabs(_ tabs: [Destinations]) -> Self {
+        tabItems.setup(for: self)
         let tabs = tabs.map {
             let t = $0.resolvedValue(for: self)
-            t.coordinatable?.setHasLayerNavigationCoordinatable(self.hasLayerNavigationCoordinatable)
-            t.coordinatable?.setParent(self)
+            t.coordinatable?.attach(to: self, navigationLayer: hasLayerNavigationCoordinatable, presentation: tabItems.presentedAs)
             return t
         }
 
@@ -199,135 +314,167 @@ public extension TabCoordinatable {
         return self
     }
 
-    /// Appends a new tab to the end of the tab bar.
+    /// Adds a tab at the end.
     ///
-    /// - Parameter tab: The destination to add.
+    /// Selects it when no tab is selected.
+    ///
+    /// - Parameter tab: The tab case to add.
     /// - Returns: `self` for chaining.
     @discardableResult
     func appendTab(_ tab: Destinations) -> Self {
+        tabItems.setup(for: self)
         let tab = tab.resolvedValue(for: self)
-        tab.coordinatable?.setHasLayerNavigationCoordinatable(self.hasLayerNavigationCoordinatable)
-        tab.coordinatable?.setParent(self)
+        tab.coordinatable?.attach(to: self, navigationLayer: hasLayerNavigationCoordinatable, presentation: tabItems.presentedAs)
 
         let _ = tabItems.appendTab(tab)
 
         return self
     }
 
-    /// Inserts a new tab at the given index.
+    /// Inserts a tab at a position.
+    ///
+    /// Selects it when no tab is selected.
     ///
     /// - Parameters:
-    ///   - tab: The destination to insert.
-    ///   - index: The position at which to insert the tab. The value is
-    ///     clamped to the valid range.
+    ///   - tab: The tab case to insert.
+    ///   - index: The position, clamped to the valid range.
     /// - Returns: `self` for chaining.
     @discardableResult
     func insertTab(_ tab: Destinations, at index: Int) -> Self {
+        tabItems.setup(for: self)
         let tab = tab.resolvedValue(for: self)
-        tab.coordinatable?.setHasLayerNavigationCoordinatable(self.hasLayerNavigationCoordinatable)
-        tab.coordinatable?.setParent(self)
+        tab.coordinatable?.attach(to: self, navigationLayer: hasLayerNavigationCoordinatable, presentation: tabItems.presentedAs)
 
         let _ = tabItems.insertTab(tab, at: index)
 
         return self
     }
 
-    /// Removes the **first** tab matching the given destination.
+    /// Removes the first tab whose case matches `meta`.
     ///
-    /// - Parameter meta: The destination meta to remove.
+    /// The removed tab is torn down, and awaiting callers inside it resume with
+    /// `nil`. If it was selected, the next tab is selected, or the previous one
+    /// when it was last. Does nothing when no tab matches.
+    ///
+    /// - Parameter meta: The tab case to remove.
     /// - Returns: `self` for chaining.
     @discardableResult
     func removeFirstTab(_ meta: Destinations.Meta) -> Self {
+        tabItems.setup(for: self)
         tabItems.removeFirstTab(meta)
         return self
     }
 
-    /// Removes the **last** tab matching the given destination.
+    /// Removes the last tab whose case matches `meta`.
     ///
-    /// - Parameter meta: The destination meta to remove.
+    /// The removed tab is torn down, and awaiting callers inside it resume with
+    /// `nil`. If it was selected, the next tab is selected, or the previous one
+    /// when it was last. Does nothing when no tab matches.
+    ///
+    /// - Parameter meta: The tab case to remove.
     /// - Returns: `self` for chaining.
     @discardableResult
     func removeLastTab(_ meta: Destinations.Meta) -> Self {
+        tabItems.setup(for: self)
         tabItems.removeLastTab(meta)
         return self
     }
 
-    /// Sets or clears the badge on the **first** tab matching the given
-    /// destination.
+    /// Sets or clears the badge on the first tab whose case matches `tab`.
     ///
     /// ```swift
-    /// tabCoordinator.setBadge("3", for: .inbox)
-    /// tabCoordinator.setBadge(nil, for: .inbox)   // clear
+    /// tabs.setBadge("New", for: .inbox)
+    /// tabs.setBadge(nil, for: .inbox)   // clear
     /// ```
     ///
+    /// The tab keeps its content and state. Does nothing when no tab matches.
+    /// Badges do not render on tvOS or watchOS.
+    ///
     /// - Parameters:
-    ///   - value: The badge text, or `nil` to remove the badge.
-    ///   - tab: The destination meta of the tab to badge.
+    ///   - value: The badge text, or `nil` to clear it.
+    ///   - tab: The tab case.
     /// - Returns: `self` for chaining.
     @discardableResult
     func setBadge(_ value: String?, for tab: Destinations.Meta) -> Self {
-        _ = anyTabItems // resolve tabs before the first render if needed
+        _ = _resolvedTabItems // resolve tabs before the first render if needed
         tabItems.setBadge(value, forFirst: tab)
         return self
     }
 
-    /// Sets a numeric badge on the **first** tab matching the given
-    /// destination. A count of `0` removes the badge, matching SwiftUI's
-    /// `badge(_:)` behavior.
+    /// Sets a numeric badge on the first tab whose case matches `tab`.
+    ///
+    /// A count of `0` clears the badge, as SwiftUI's `badge(_:)` does.
     ///
     /// - Parameters:
-    ///   - count: The badge count. `0` clears the badge.
-    ///   - tab: The destination meta of the tab to badge.
+    ///   - count: The badge count; `0` clears it.
+    ///   - tab: The tab case.
     /// - Returns: `self` for chaining.
     @discardableResult
     func setBadge(_ count: Int, for tab: Destinations.Meta) -> Self {
         setBadge(count == 0 ? nil : String(count), for: tab)
     }
 
-    /// Returns the badge currently set on the **first** tab matching the
-    /// given destination, if any.
+    /// Returns the badge on the first tab whose case matches `tab`.
+    ///
+    /// Returns `nil` when that tab has no badge or no tab matches.
     func badge(for tab: Destinations.Meta) -> String? {
-        _ = anyTabItems // resolve tabs before the first render if needed
+        _ = _resolvedTabItems // resolve tabs before the first render if needed
         return tabItems.badge(forFirst: tab)
     }
 
-    /// Sets or clears the accessibility identifier on the **first** tab
-    /// matching the given destination.
+    /// Sets or clears the accessibility identifier on the first tab whose case
+    /// matches `tab`.
     ///
-    /// The identifier is applied to the rendered tab bar item, so UI tests
-    /// and accessibility tools can address the tab independently of its
-    /// localized label:
+    /// The identifier reaches the native tab bar item, so UI tests can find the
+    /// tab regardless of its localized label. An identifier on the label view
+    /// does not.
     ///
     /// ```swift
-    /// tabCoordinator.setTabAccessibilityIdentifier("tab.home", for: .home)
+    /// tabs.setTabAccessibilityIdentifier("tab.home", for: .home)
     /// ```
     ///
-    /// With a custom tab bar (``TabItems`` created with
-    /// `visibility: .hidden`), apply the identifier to your own button
-    /// using ``tabAccessibilityIdentifier(for:)``.
+    /// With a custom bar, apply ``tabAccessibilityIdentifier(for:)`` to your own
+    /// button. Does nothing when no tab matches.
     ///
     /// - Parameters:
-    ///   - identifier: The accessibility identifier, or `nil` to remove it.
-    ///   - tab: The destination meta of the tab.
+    ///   - identifier: The identifier, or `nil` to clear it.
+    ///   - tab: The tab case.
     /// - Returns: `self` for chaining.
     @discardableResult
     func setTabAccessibilityIdentifier(_ identifier: String?, for tab: Destinations.Meta) -> Self {
-        _ = anyTabItems // resolve tabs before the first render if needed
+        _ = _resolvedTabItems // resolve tabs before the first render if needed
         tabItems.setTabAccessibilityIdentifier(identifier, forFirst: tab)
         return self
     }
 
-    /// Returns the accessibility identifier currently set on the **first**
-    /// tab matching the given destination, if any.
+    /// Returns the accessibility identifier on the first tab whose case matches
+    /// `tab`.
+    ///
+    /// Returns `nil` when that tab has none or no tab matches.
     func tabAccessibilityIdentifier(for tab: Destinations.Meta) -> String? {
-        _ = anyTabItems // resolve tabs before the first render if needed
+        _ = _resolvedTabItems // resolve tabs before the first render if needed
         return tabItems.tabAccessibilityIdentifier(forFirst: tab)
     }
 
-    /// Returns whether the given destination is currently present in the
-    /// tab bar.
+    /// The position of the selected tab, or `nil` when there are no tabs.
+    ///
+    /// Resolves the initial tabs if needed, so it is valid before the first render.
+    var selectedTabIndex: Int? {
+        _resolvedTabItems.tabs.firstIndex { $0.id == tabItems.selectedTab }
+    }
+
+    /// The case of the selected tab, or `nil` when there are no tabs.
+    ///
+    /// Compare it directly: `selectedTabDestination == .home`. Resolves the
+    /// initial tabs if needed.
+    var selectedTabDestination: Destinations.Meta? {
+        guard let index = selectedTabIndex else { return nil }
+        return tabItems.tabs[index].meta as? Destinations.Meta
+    }
+
+    /// Returns whether any tab has the case `meta`.
     func isInTabItems(_ meta: Destinations.Meta) -> Bool {
-        tabItems.tabs.contains { tab in
+        _resolvedTabItems.tabs.contains { tab in
             guard let tabMeta = tab.meta as? Self.Destinations.Meta else { return false }
             return tabMeta == meta
         }
@@ -336,14 +483,16 @@ public extension TabCoordinatable {
 
 @MainActor
 public extension TabCoordinatable {
-    /// Selects the **first** tab matching the given destination and
-    /// invokes a typed callback with the tab's child coordinator, if any.
+    /// Deprecated. Use ``selectFirstTab(_:expecting:)`` instead.
+    ///
+    /// The replacement returns the child instead of calling a closure.
     @discardableResult
+    @available(*, deprecated, message: "Will be removed in a future update. Use the expecting: overload to access the child coordinator.")
     func selectFirstTab<T: Coordinatable>(
         _ tab: Destinations.Meta,
         _ action: @escaping @MainActor (T) -> Void
     ) -> Self {
-        _ = anyTabItems // resolve tabs so cold-launch deep links fire the callback
+        _ = _resolvedTabItems // resolve tabs so cold-launch deep links fire the callback
         if let dest = tabItems.select(first: tab),
            let coordinator = dest.coordinatable as? T {
             action(coordinator)
@@ -351,14 +500,16 @@ public extension TabCoordinatable {
         return self
     }
 
-    /// Selects the **last** tab matching the given destination and
-    /// invokes a typed callback with the tab's child coordinator, if any.
+    /// Deprecated. Use ``selectLastTab(_:expecting:)`` instead.
+    ///
+    /// The replacement returns the child instead of calling a closure.
     @discardableResult
+    @available(*, deprecated, message: "Will be removed in a future update. Use the expecting: overload to access the child coordinator.")
     func selectLastTab<T: Coordinatable>(
         _ tab: Destinations.Meta,
         _ action: @escaping @MainActor (T) -> Void
     ) -> Self {
-        _ = anyTabItems // resolve tabs so cold-launch deep links fire the callback
+        _ = _resolvedTabItems // resolve tabs so cold-launch deep links fire the callback
         if let dest = tabItems.select(last: tab),
            let coordinator = dest.coordinatable as? T {
             action(coordinator)
@@ -366,14 +517,16 @@ public extension TabCoordinatable {
         return self
     }
 
-    /// Selects a tab by index and invokes a typed callback with the
-    /// tab's child coordinator, if any.
+    /// Deprecated. Use ``select(index:expecting:)`` instead.
+    ///
+    /// The replacement returns the child instead of calling a closure.
     @discardableResult
+    @available(*, deprecated, message: "Will be removed in a future update. Use the expecting: overload to access the child coordinator.")
     func select<T: Coordinatable>(
         index: Int,
         _ action: @escaping @MainActor (T) -> Void
     ) -> Self {
-        _ = anyTabItems // resolve tabs so cold-launch deep links fire the callback
+        _ = _resolvedTabItems // resolve tabs so cold-launch deep links fire the callback
         if let dest = tabItems.select(index),
            let coordinator = dest.coordinatable as? T {
             action(coordinator)
@@ -381,14 +534,16 @@ public extension TabCoordinatable {
         return self
     }
 
-    /// Selects a tab by identifier and invokes a typed callback with the
-    /// tab's child coordinator, if any.
+    /// Deprecated. Use ``select(id:expecting:)`` instead.
+    ///
+    /// The replacement returns the child instead of calling a closure.
     @discardableResult
+    @available(*, deprecated, message: "Will be removed in a future update. Use the expecting: overload to access the child coordinator.")
     func select<T: Coordinatable>(
         id: UUID,
         _ action: @escaping @MainActor (T) -> Void
     ) -> Self {
-        _ = anyTabItems // resolve tabs so cold-launch deep links fire the callback
+        _ = _resolvedTabItems // resolve tabs so cold-launch deep links fire the callback
         if let dest = tabItems.select(id),
            let coordinator = dest.coordinatable as? T {
             action(coordinator)
@@ -396,16 +551,18 @@ public extension TabCoordinatable {
         return self
     }
 
-    /// Appends a tab and invokes a typed callback with the new tab's
-    /// child coordinator, if any.
+    /// Deprecated. Use ``appendTab(_:expecting:)`` instead.
+    ///
+    /// The replacement returns the child instead of calling a closure.
     @discardableResult
+    @available(*, deprecated, message: "Will be removed in a future update. Use the expecting: overload to access the child coordinator.")
     func appendTab<T: Coordinatable>(
         _ tab: Destinations,
         _ action: @escaping @MainActor (T) -> Void
     ) -> Self {
+        tabItems.setup(for: self)
         let resolved = tab.resolvedValue(for: self)
-        resolved.coordinatable?.setHasLayerNavigationCoordinatable(self.hasLayerNavigationCoordinatable)
-        resolved.coordinatable?.setParent(self)
+        resolved.coordinatable?.attach(to: self, navigationLayer: hasLayerNavigationCoordinatable, presentation: tabItems.presentedAs)
 
         let appended = tabItems.appendTab(resolved)
         if let coordinator = appended.coordinatable as? T {
@@ -414,17 +571,19 @@ public extension TabCoordinatable {
         return self
     }
 
-    /// Inserts a tab at the given index and invokes a typed callback with
-    /// the new tab's child coordinator, if any.
+    /// Deprecated. Use ``insertTab(_:at:expecting:)`` instead.
+    ///
+    /// The replacement returns the child instead of calling a closure.
     @discardableResult
+    @available(*, deprecated, message: "Will be removed in a future update. Use the expecting: overload to access the child coordinator.")
     func insertTab<T: Coordinatable>(
         _ tab: Destinations,
         at index: Int,
         _ action: @escaping @MainActor (T) -> Void
     ) -> Self {
+        tabItems.setup(for: self)
         let resolved = tab.resolvedValue(for: self)
-        resolved.coordinatable?.setHasLayerNavigationCoordinatable(self.hasLayerNavigationCoordinatable)
-        resolved.coordinatable?.setParent(self)
+        resolved.coordinatable?.attach(to: self, navigationLayer: hasLayerNavigationCoordinatable, presentation: tabItems.presentedAs)
 
         let inserted = tabItems.insertTab(resolved, at: index)
         if let coordinator = inserted.coordinatable as? T {
@@ -436,43 +595,51 @@ public extension TabCoordinatable {
 
 @MainActor
 public extension TabCoordinatable {
-    /// Presents a destination modally on this tab coordinator.
+    /// Presents a destination as a sheet or full-screen cover above the tabs.
     ///
-    /// The modal lives on this coordinator's container and is rendered
-    /// as a sheet or full-screen cover above the `TabView`.
-    ///
-    /// The `onDismiss` closure has `async` alternatives: `await`
-    /// ``TabCoordinatable/presentAndWait(_:as:policy:)`` to continue once the modal closes, or
-    /// ``TabCoordinatable/present(_:as:policy:awaiting:)`` to take a value back from it.
+    /// Requests queue on this coordinator: the first renders and later ones wait.
+    /// Add `expecting:` for the child or `awaiting:` for a result; see
+    /// <doc:ModalsAndResults>.
     ///
     /// - Parameters:
-    ///   - destination: The destination to present.
-    ///   - type: The modal presentation style. Defaults to `.sheet`.
-    ///   - policy: Pass ``RoutePolicy/distinct`` to skip the presentation
-    ///     when the same destination case is already presented. Defaults
-    ///     to ``RoutePolicy/always``.
-    ///   - onDismiss: A closure invoked when the modal is dismissed.
+    ///   - destination: The route to present.
+    ///   - type: `.sheet` (the default) or `.fullScreenCover`. Covers render as
+    ///     sheets on macOS.
+    ///   - policy: ``RoutePolicy/distinct`` skips a case this coordinator already
+    ///     requested, including queued requests. Associated values are ignored.
     /// - Returns: `self` for chaining.
     @discardableResult
     func present(
         _ destination: Destinations,
         as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always
+    ) -> Self {
+        guard !modalPolicySkips(destination, policy: policy) else { return self }
+        _ = performPresent(destination, as: type, onDismiss: { })
+        return self
+    }
+
+    /// Deprecated. Use ``Coordinatable/present(_:as:policy:awaiting:)`` instead.
+    ///
+    /// Pass `Void.self` to wait for dismissal only.
+    @available(*, deprecated, message: "Will be removed in a future update. Use await present with awaiting: instead; pass Void.self to wait without a result.")
+    @discardableResult
+    func present(
+        _ destination: Destinations,
+        as type: ModalPresentationType = .sheet,
         policy: RoutePolicy = .always,
-        onDismiss: @escaping @MainActor () -> Void = { }
+        onDismiss: @escaping @MainActor () -> Void
     ) -> Self {
         guard !modalPolicySkips(destination, policy: policy) else { return self }
         _ = performPresent(destination, as: type, onDismiss: onDismiss)
         return self
     }
 
-    /// Presents a destination modally and invokes a typed callback with the
-    /// resolved child coordinator.
+    /// Deprecated. Use ``Coordinatable/present(_:as:policy:expecting:)`` instead.
     ///
-    /// The callback fires once after the modal lands above the `TabView`,
-    /// receiving the newly created coordinator cast to `T`. If the
-    /// destination does not resolve to a coordinator of type `T`, the
-    /// callback is not invoked.
+    /// Add `awaiting:` when dismissal or a result also matters.
     @discardableResult
+    @available(*, deprecated, message: "Will be removed in a future update. Use expecting: for child access; combine it with awaiting: for dismissal/results.")
     func present<T: Coordinatable>(
         _ destination: Destinations,
         as type: ModalPresentationType = .sheet,
@@ -488,10 +655,9 @@ public extension TabCoordinatable {
         return self
     }
 
-    /// Whether this coordinator currently presents a modal (sheet or
-    /// full-screen cover) above the `TabView`.
+    /// Whether this coordinator has a modal request, visible or queued.
     var isPresentingModal: Bool {
-        !anyTabItems.modals.isEmpty
+        !_resolvedTabItems.modals.isEmpty
     }
 }
 
@@ -499,81 +665,112 @@ public extension TabCoordinatable {
 
 @MainActor
 public extension TabCoordinatable {
-    /// Selects the **first** tab matching the given destination and
-    /// returns the tab's child coordinator, if any.
+    /// Selects the first tab whose case matches `tab` and returns its child as
+    /// `T`, or `nil` for a view route or another type. The navigation happens
+    /// either way.
     ///
-    /// A non-closure alternative to ``selectFirstTab(_:_:)`` that
-    /// flattens deep-link chains — see
-    /// ``RootCoordinatable/setRoot(_:animation:expecting:)``.
+    /// Returns `nil` and changes nothing when no tab matches. Resolves the
+    /// initial tabs first, so it works on a cold launch. See <doc:DeepLinking>.
     func selectFirstTab<T: Coordinatable>(
         _ tab: Destinations.Meta,
         expecting coordinatorType: T.Type
     ) -> T? {
-        _ = anyTabItems // resolve tabs so cold-launch deep links work
+        _ = _resolvedTabItems // resolve tabs so cold-launch deep links work
         return tabItems.select(first: tab)?.coordinatable as? T
     }
 
-    /// Selects the **last** tab matching the given destination and
-    /// returns the tab's child coordinator, if any.
+    /// Selects the last tab whose case matches `tab` and returns its child as
+    /// `T`, or `nil` for a view route or another type. The navigation happens
+    /// either way.
+    ///
+    /// Returns `nil` and changes nothing when no tab matches. Resolves the
+    /// initial tabs first, so it works on a cold launch.
     func selectLastTab<T: Coordinatable>(
         _ tab: Destinations.Meta,
         expecting coordinatorType: T.Type
     ) -> T? {
-        _ = anyTabItems // resolve tabs so cold-launch deep links work
+        _ = _resolvedTabItems // resolve tabs so cold-launch deep links work
         return tabItems.select(last: tab)?.coordinatable as? T
     }
 
-    /// Selects a tab by index and returns the tab's child coordinator,
-    /// if any.
+    /// Selects the tab at `index` and returns its child as `T`, or `nil` for a
+    /// view route or another type. The navigation happens either way.
+    ///
+    /// Returns `nil` and changes nothing when `index` is out of range.
     func select<T: Coordinatable>(
         index: Int,
         expecting coordinatorType: T.Type
     ) -> T? {
-        _ = anyTabItems // resolve tabs so cold-launch deep links work
+        _ = _resolvedTabItems // resolve tabs so cold-launch deep links work
         return tabItems.select(index)?.coordinatable as? T
     }
 
-    /// Selects a tab by identifier and returns the tab's child
-    /// coordinator, if any.
+    /// Selects the tab with `id` and returns its child as `T`, or `nil` for a
+    /// view route or another type. The navigation happens either way.
+    ///
+    /// Returns `nil` and changes nothing when no tab has `id`.
     func select<T: Coordinatable>(
         id: UUID,
         expecting coordinatorType: T.Type
     ) -> T? {
-        _ = anyTabItems // resolve tabs so cold-launch deep links work
+        _ = _resolvedTabItems // resolve tabs so cold-launch deep links work
         return tabItems.select(id)?.coordinatable as? T
     }
 
-    /// Appends a tab and returns the new tab's child coordinator, if any.
+    /// Adds a tab at the end and returns its child as `T`, or `nil` for a view
+    /// route or another type. The tab is added either way.
+    ///
+    /// Selects the tab when no tab is selected.
     func appendTab<T: Coordinatable>(
         _ tab: Destinations,
         expecting coordinatorType: T.Type
     ) -> T? {
+        tabItems.setup(for: self)
         let resolved = tab.resolvedValue(for: self)
-        resolved.coordinatable?.setHasLayerNavigationCoordinatable(self.hasLayerNavigationCoordinatable)
-        resolved.coordinatable?.setParent(self)
+        resolved.coordinatable?.attach(to: self, navigationLayer: hasLayerNavigationCoordinatable, presentation: tabItems.presentedAs)
         return tabItems.appendTab(resolved).coordinatable as? T
     }
 
-    /// Inserts a tab at the given index and returns the new tab's child
-    /// coordinator, if any.
+    /// Inserts a tab at `index` and returns its child as `T`, or `nil` for a view
+    /// route or another type. The tab is added either way.
+    ///
+    /// `index` is clamped to the valid range. Selects the tab when no tab is
+    /// selected.
     func insertTab<T: Coordinatable>(
         _ tab: Destinations,
         at index: Int,
         expecting coordinatorType: T.Type
     ) -> T? {
+        tabItems.setup(for: self)
         let resolved = tab.resolvedValue(for: self)
-        resolved.coordinatable?.setHasLayerNavigationCoordinatable(self.hasLayerNavigationCoordinatable)
-        resolved.coordinatable?.setParent(self)
+        resolved.coordinatable?.attach(to: self, navigationLayer: hasLayerNavigationCoordinatable, presentation: tabItems.presentedAs)
         return tabItems.insertTab(resolved, at: index).coordinatable as? T
     }
 
-    /// Presents a destination modally and returns its resolved child
-    /// coordinator, if any.
+    /// Presents a destination above the tabs and returns the child as `T`, or
+    /// `nil` for a view route or another type. The navigation happens either way.
+    ///
+    /// Returns `nil` without presenting when ``RoutePolicy/distinct`` skips the
+    /// request.
     func present<T: Coordinatable>(
         _ destination: Destinations,
         as type: ModalPresentationType = .sheet,
         policy: RoutePolicy = .always,
-        onDismiss: @escaping @MainActor () -> Void = { },
+        expecting coordinatorType: T.Type
+    ) -> T? {
+        guard !modalPolicySkips(destination, policy: policy) else { return nil }
+        return performPresent(destination, as: type, onDismiss: { }).coordinatable as? T
+    }
+
+    /// Deprecated. Use ``Coordinatable/present(_:as:policy:expecting:awaiting:)`` instead.
+    ///
+    /// Await the returned `result()` for dismissal or a value.
+    @available(*, deprecated, message: "Will be removed in a future update. Use expecting: with awaiting: to get the child immediately and await its result.")
+    func present<T: Coordinatable>(
+        _ destination: Destinations,
+        as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always,
+        onDismiss: @escaping @MainActor () -> Void,
         expecting coordinatorType: T.Type
     ) -> T? {
         guard !modalPolicySkips(destination, policy: policy) else { return nil }
@@ -585,36 +782,60 @@ public extension TabCoordinatable {
 
 @MainActor
 public extension TabCoordinatable {
-    /// Presents a destination modally and suspends until it is dismissed.
+    /// Presents a destination above the tabs and returns its child and a result
+    /// waiter without suspending.
     ///
-    /// See ``FlowCoordinatable/presentAndWait(_:as:policy:)`` — identical
-    /// semantics, hosted above the `TabView`.
+    /// Configure `coordinator`, then call `await result()`. `coordinator` is `nil`
+    /// for a view route or another type. A ``RoutePolicy/distinct`` skip or an
+    /// already-cancelled task presents nothing and returns a `nil` child and a
+    /// `nil` result. See ``Coordinatable/present(_:as:policy:expecting:awaiting:)``.
+    func present<T: Coordinatable, Result>(
+        _ destination: Destinations,
+        as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always,
+        expecting coordinatorType: T.Type,
+        awaiting resultType: Result.Type
+    ) -> (coordinator: T?, result: @MainActor () async -> Result?) {
+        guard !Task.isCancelled, !modalPolicySkips(destination, policy: policy) else {
+            return (nil, { nil })
+        }
+        let dest = performPresent(destination, as: type, onDismiss: { })
+        return (dest.coordinatable as? T, dest.resolution.resultWaiter(for: resultType))
+    }
+
+    /// Deprecated. Use ``Coordinatable/present(_:as:policy:awaiting:)`` instead.
+    ///
+    /// Pass `awaiting: Void.self` to wait for dismissal only.
+    @available(*, deprecated, message: "Will be removed in a future update. Use await present with awaiting: Void.self to wait for dismissal, or awaiting: Result.self to receive a result.")
     func presentAndWait(
         _ destination: Destinations,
         as type: ModalPresentationType = .sheet,
         policy: RoutePolicy = .always
     ) async {
+        guard !Task.isCancelled else { return }
         guard !modalPolicySkips(destination, policy: policy) else { return }
         let dest = performPresent(destination, as: type, onDismiss: { })
         await dest.resolution.awaitResolution()
     }
 
-    /// Presents a destination modally and suspends until it is dismissed,
-    /// returning the value the presented coordinator handed back via
-    /// ``Coordinatable/dismissCoordinator(returning:)``.
+    /// Presents a destination above the tabs and suspends until it leaves.
     ///
-    /// See ``FlowCoordinatable/present(_:as:policy:awaiting:)`` —
-    /// identical semantics, hosted above the `TabView`.
+    /// Returns the value passed to ``Coordinatable/dismissCoordinator(returning:)``
+    /// or ``Destination/dismiss(returning:)``. Returns `nil` for an ordinary
+    /// dismissal, a mismatched type, a ``RoutePolicy/distinct`` skip, or a
+    /// cancelled task. Cancellation leaves the modal in place. See
+    /// <doc:ModalsAndResults>.
     func present<Result>(
         _ destination: Destinations,
         as type: ModalPresentationType = .sheet,
         policy: RoutePolicy = .always,
         awaiting resultType: Result.Type
     ) async -> Result? {
+        guard !Task.isCancelled else { return nil }
         guard !modalPolicySkips(destination, policy: policy) else { return nil }
         let dest = performPresent(destination, as: type, onDismiss: { })
         await dest.resolution.awaitResolution()
-        return dest.resolution.result as? Result
+        return Task.isCancelled ? nil : dest.resolution.result as? Result
     }
 }
 
@@ -622,7 +843,7 @@ public extension TabCoordinatable {
 extension TabCoordinatable {
     func modalPolicySkips(_ destination: Destinations, policy: RoutePolicy) -> Bool {
         guard case .distinct = policy else { return false }
-        return anyTabItems.modals.contains { dest in
+        return _resolvedTabItems.modals.contains { dest in
             guard let destMeta = dest.meta as? Destinations.Meta else { return false }
             return destMeta == destination.meta
         }
@@ -639,42 +860,19 @@ extension TabCoordinatable {
         dest.setPushType(type.presentationType)
         dest.setRouteType(DestinationType.from(presentationType: type.presentationType))
         dest.setModalConfiguration(type.configuration)
-        dest.coordinatable?.setHasLayerNavigationCoordinatable(false)
-        dest.coordinatable?.setParent(self)
+        dest.coordinatable?.attach(to: self, navigationLayer: false, presentation: type.presentationType)
 
-        if let flowCoordinator = dest.coordinatable as? any FlowCoordinatable {
-            flowCoordinator.setPresentedAs(type.presentationType)
-        } else if let tabCoordinator = dest.coordinatable as? any TabCoordinatable {
-            tabCoordinator.setPresentedAs(type.presentationType)
-        } else if let rootCoordinator = dest.coordinatable as? any RootCoordinatable {
-            rootCoordinator.setPresentedAs(type.presentationType)
-        } else if let splitCoordinator = dest.coordinatable as? any SplitCoordinatable {
-            splitCoordinator.setPresentedAs(type.presentationType)
-        }
-
-        anyTabItems.modals.append(dest)
+        withNavigationAnimation { tabItems.modals.append(dest) }
         return dest
     }
 }
 
 public extension TabCoordinatable {
+    /// Records the presentation style inherited from the parent.
+    ///
+    /// The framework calls this; apps don't need to.
     func setPresentedAs(_ type: PresentationType) {
-        anyTabItems.presentedAs = type
-        for i in anyTabItems.tabs.indices {
-            if anyTabItems.tabs[i].pushType == nil {
-                anyTabItems.tabs[i].setPushType(type)
-            }
-        }
-    }
-}
-
-private extension Destination {
-    /// Identity used when rendering tabs on the `Tab` builder API. Includes
-    /// the badge and accessibility identifier because `TabView` (observed on
-    /// iOS 26) does not apply changes to an already-created `Tab`; folding
-    /// them into the identity recreates the tab entry whenever either changes.
-    var tabRenderIdentity: String {
-        "\(id)|\(badge ?? "")|\(accessibilityIdentifier ?? "")"
+        inheritPresentation(type)
     }
 }
 
@@ -687,34 +885,33 @@ private extension Destination {
 /// hierarchy keep observing correctly, so this node re-renders on every
 /// badge change and converts it into a `@State` write, which SwiftUI always
 /// honors with a re-render of the owning view.
-private struct TabBadgeSync: View {
+private struct TabMetadataSync: View {
     let coordinator: any TabCoordinatable
     @Binding var trigger: Int
 
-    private var badges: [String?] {
-        coordinator.anyTabItems.tabs.map(\.badge)
+    private var metadata: [[String?]] {
+        coordinator._resolvedTabItems.tabs.map { [$0.badge, $0.accessibilityIdentifier] }
     }
 
     var body: some View {
         Color.clear
-            .onChange(of: badges) {
+            .onChange(of: metadata) {
                 trigger &+= 1
             }
     }
 }
 
-/// The SwiftUI view generated by a ``TabCoordinatable`` coordinator.
+/// The view a ``TabCoordinatable`` renders.
 ///
-/// You never create this view directly — access ``Coordinatable/view``
-/// on a `TabCoordinatable` coordinator to obtain it.
+/// Get it from ``Coordinatable/view``; don't create it directly.
 public struct TabCoordinatableView: CoordinatableView {
     private let _coordinator: any TabCoordinatable
 
-    /// Bumped by ``TabBadgeSync`` whenever a tab badge changes. `TabView`
+    /// Bumped by ``TabMetadataSync`` whenever a tab badge changes. `TabView`
     /// does not reliably re-evaluate this view's body when a badge mutates
     /// on the observable ``TabItems`` (observed on iOS 26); state changes
     /// always invalidate, so this guarantees the new badge is applied.
-    @State private var badgeRefreshTrigger = 0
+    @State private var metadataRefreshTrigger = 0
 
     public var coordinator: any Coordinatable {
         _coordinator
@@ -726,16 +923,14 @@ public struct TabCoordinatableView: CoordinatableView {
 
     private func flowCoordinatableView() -> some View {
         TabView(selection: _coordinator.selectedTabBinding) {
-            // The badge participates in each tab's identity: TabView applies
-            // `.badge` only when a `Tab` is created, ignoring later changes,
-            // so a badge change must recreate that tab's `Tab` entry.
-            // Selection is keyed by `tab.id` and survives the recreation.
-            ForEach(_coordinator.anyTabItems.tabs, id: \.tabRenderIdentity) { tab in
+            // Metadata updates must preserve the lifetime of the tab content.
+            ForEach(_coordinator._resolvedTabItems.tabs) { tab in
                 Tab(value: tab.id, role: tab.tabRole) {
                     wrappedView(tab)
                         .environmentCoordinatable(_coordinator)
 #if os(iOS)
-                        .toolbar(_coordinator.anyTabItems.tabBarVisibility, for: .tabBar)
+                        .background(NativeTabMetadata(coordinator: _coordinator).frame(width: 0, height: 0))
+                        .toolbar(_coordinator._resolvedTabItems.tabBarVisibility, for: .tabBar)
 #endif
                 } label: {
                     if let tabItem = tab.tabItem {
@@ -745,7 +940,9 @@ public struct TabCoordinatableView: CoordinatableView {
                 // With the Tab builder API the badge must be applied to the
                 // TabContent, not the content view — the view-level modifier
                 // is ignored inside `Tab { }`.
+#if !os(tvOS) && !os(watchOS)
                 .badge(tab.badge.map(Text.init))
+#endif
                 // Likewise for the accessibility identifier: only the
                 // TabContent modifier reaches the rendered tab bar item.
                 .accessibilityIdentifier(
@@ -754,28 +951,45 @@ public struct TabCoordinatableView: CoordinatableView {
                 )
             }
         }
-        .background(TabBadgeSync(coordinator: _coordinator, trigger: $badgeRefreshTrigger))
+        .background(TabMetadataSync(coordinator: _coordinator, trigger: $metadataRefreshTrigger))
     }
 
     private func modals(of type: ModalPresentationType) -> [Destination] {
         let target = type.presentationType
-        return _coordinator.anyTabItems.modals.filter { $0.pushType == target }
+        return _coordinator._resolvedTabItems.modals.filter { $0.pushType == target }
     }
 
     public var body: some View {
+        // Reading the value registers this body as a dependency. Passing only
+        // its Binding to TabMetadataSync does not subscribe to state changes.
+        let _ = metadataRefreshTrigger
         _coordinator.customize(
             AnyView(
                 flowCoordinatableView()
             )
         )
         .applyContainerModals(
-            sheets: modals(of: .sheet),
-            fullScreenCovers: modals(of: .fullScreenCover),
+            destinations: _coordinator._resolvedTabItems.modals,
             onDismissSheet: { id in (_coordinator as any Coordinatable).removeContainerModal(id: id, type: .sheet) },
             onDismissFullScreenCover: { id in (_coordinator as any Coordinatable).removeContainerModal(id: id, type: .fullScreenCover) },
             modalContent: wrappedView
         )
         .environmentCoordinatable(coordinator)
-        .id(_coordinator.anyTabItems.id)
+        .id(_coordinator._resolvedTabItems.id)
     }
+}
+
+@MainActor
+extension TabCoordinatable {
+    var _tabItems: any _MutableTabItems { tabItems }
+    var _resolvedTabItems: any _MutableTabItems {
+        tabItems.setup(for: self)
+        return tabItems
+    }
+}
+
+@MainActor
+public extension TabCoordinatable {
+    /// Sets the default animation for this coordinator's navigation changes. Pass `nil` to disable it.
+    func setTransitionAnimation(_ animation: Animation?) { tabItems.animation = animation }
 }

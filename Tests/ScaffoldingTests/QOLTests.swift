@@ -347,10 +347,10 @@ struct SeededPathTests {
     }
 }
 
-// MARK: - Sheet configuration
+// MARK: - Deprecated sheet configuration compatibility
 
 @MainActor
-@Suite("Presenter-side sheet configuration")
+@Suite("Deprecated presenter-side sheet configuration compatibility")
 struct SheetConfigurationTests {
 
     @Test("configured sheet carries detents and dismissal settings")

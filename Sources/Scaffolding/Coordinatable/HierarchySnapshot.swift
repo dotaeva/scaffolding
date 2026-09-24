@@ -5,63 +5,61 @@
 
 import SwiftUI
 
-/// The role a destination plays inside the coordinator that owns it.
+/// The role a destination plays in the coordinator that owns it.
 public enum HierarchyRole: Equatable, Sendable {
     /// The coordinator's root destination.
     case root
-    /// A destination pushed onto a flow's stack.
+    /// A screen or child pushed onto a flow.
     case push
-    /// A destination presented as a sheet.
+    /// A modal presented as a sheet.
     case sheet
-    /// A destination presented as a full-screen cover.
+    /// A modal presented as a full-screen cover.
     case fullScreenCover
-    /// A tab, with its index and whether it is currently selected.
+    /// The tab at `index`; `isSelected` marks the selected tab.
     case tab(index: Int, isSelected: Bool)
-    /// A column of a split view (sidebar, content, or detail).
+    /// A split-view column.
     case column(SplitColumn)
 
-    /// Whether the destination is presented modally.
+    /// Whether the role is `.sheet` or `.fullScreenCover`.
     public var isModal: Bool {
         self == .sheet || self == .fullScreenCover
     }
 
-    /// Whether the destination is a tab.
+    /// Whether the role is a tab.
     public var isTab: Bool {
         if case .tab = self { return true }
         return false
     }
 
-    /// Whether the destination is a split-view column.
+    /// Whether the role is a split-view column.
     public var isColumn: Bool {
         if case .column = self { return true }
         return false
     }
 }
 
-/// One destination in a snapshot of the live coordinator tree.
+/// One destination in a snapshot of the coordinator tree.
 ///
-/// Snapshots are side-effect free: a destination whose child coordinator has
-/// not been created yet reports ``coordinator`` as `nil` while
-/// ``hasCoordinator`` stays `true`, and is never materialised by inspection.
+/// Taking a snapshot never creates coordinators. A child that does not exist
+/// yet has ``hasCoordinator`` set to `true` and ``coordinator`` set to `nil`.
 @MainActor
 public struct HierarchyNode {
-    /// How the destination is displayed by its owner.
+    /// How the owner displays this destination.
     public let role: HierarchyRole
 
-    /// Metadata identifying which `Destinations` case this destination is.
+    /// The destination's route case, without its payload.
     public let meta: any DestinationMeta
 
-    /// The destination's child coordinator, if one has already been created.
+    /// The child coordinator, or `nil` for a view route or a child not yet created.
     public let coordinator: (any Coordinatable)?
 
-    /// Whether the destination is backed by a child coordinator at all,
-    /// created or not.
+    /// Whether the route builds a child coordinator, created or not.
     public let hasCoordinator: Bool
 
-    /// The child coordinator's own destinations, recursively.
+    /// The child coordinator's destinations, recursively. Empty for a view route.
     public let children: [HierarchyNode]
 
-    /// `.someCase`, as rendered by ``Coordinatable/debugHierarchy()``.
+    /// The case as ``Coordinatable/debugHierarchy()`` prints it, such as `.detail`.
     public var metaDescription: String {
         ".\(String(describing: meta))"
     }
@@ -69,33 +67,33 @@ public struct HierarchyNode {
 
 @MainActor
 public extension Coordinatable {
-    /// Returns a snapshot of this coordinator's destinations, recursively.
+    /// Returns this coordinator's destinations as a tree of ``HierarchyNode`` values.
     ///
-    /// This is the structured form of ``debugHierarchy()`` — use it to drive
-    /// a debug UI, or to assert on navigation state without matching strings:
+    /// This is the structured form of ``debugHierarchy()``, for tests and
+    /// debug UIs:
     ///
     /// ```swift
-    /// let pushed = coordinator.hierarchySnapshot()
-    ///     .filter { $0.role == .push }
+    /// let pushed = coordinator.hierarchySnapshot().filter { $0.role == .push }
     /// ```
     ///
-    /// Inspecting the tree has no side effects; child coordinators that have
-    /// not been created yet are reported as ``HierarchyNode/hasCoordinator``
-    /// with a `nil` ``HierarchyNode/coordinator``.
+    /// The root, tabs, or columns come first, then pushes and modals in order.
+    /// Taking a snapshot runs no route factories and creates no coordinators.
+    /// A container that has not resolved its initial destinations returns an
+    /// empty array; in tests, call `activated()` first. See <doc:Orientation>.
     func hierarchySnapshot() -> [HierarchyNode] {
         if let flow = self as? any FlowCoordinatable {
             var nodes: [HierarchyNode] = []
-            if let root = flow.anyStack.root {
+            if let root = flow._stack.root {
                 nodes.append(_node(for: root, role: .root))
             }
-            for destination in flow.anyStack.destinations {
+            for destination in flow._stack.destinations {
                 nodes.append(_node(for: destination, role: .init(destination.pushType)))
             }
             return nodes
         }
 
         if let tab = self as? any TabCoordinatable {
-            let items = tab.anyTabItems
+            let items = tab._tabItems
             var nodes = items.tabs.enumerated().map { index, destination in
                 _node(
                     for: destination,
@@ -108,15 +106,15 @@ public extension Coordinatable {
 
         if let root = self as? any RootCoordinatable {
             var nodes: [HierarchyNode] = []
-            if let rootDestination = root.anyRoot.root {
+            if let rootDestination = root._root.root {
                 nodes.append(_node(for: rootDestination, role: .root))
             }
-            nodes += root.anyRoot.modals.map { _node(for: $0, role: .init($0.pushType)) }
+            nodes += root._root.modals.map { _node(for: $0, role: .init($0.pushType)) }
             return nodes
         }
 
         if let split = self as? any SplitCoordinatable {
-            let columns = split.anySplitColumns
+            let columns = split._columns
             var nodes: [HierarchyNode] = []
             if let sidebar = columns.sidebar {
                 nodes.append(_node(for: sidebar, role: .column(.sidebar)))

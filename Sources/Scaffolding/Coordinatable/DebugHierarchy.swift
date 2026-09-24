@@ -9,32 +9,26 @@ import SwiftUI
 
 @MainActor
 public extension Coordinatable {
-    /// Returns a printable snapshot of the live coordinator tree rooted at
-    /// this coordinator.
+    /// Returns the coordinator tree below this coordinator as indented text.
     ///
-    /// Each line shows a destination's role (root, push, sheet,
-    /// full-screen cover, tab), its `Destinations` case, and — when the
-    /// destination is backed by a child coordinator — the child's type and
-    /// contents, recursively. The selected tab is marked with `*`.
+    /// Each line shows a destination's role, its case, and, for a child
+    /// coordinator, the child's type and kind. `*` marks the selected tab.
     ///
     /// ```
-    /// AppRootCoordinator [root]
+    /// AppCoordinator [root]
     ///   root .main → MainTabCoordinator [tab]
-    ///     tab[0]* .home → HomeFlowCoordinator [flow]
+    ///     tab[0]* .home → HomeCoordinator [flow]
     ///       root .home
-    ///       push .settings
-    ///       sheet .sheetFlow → LeafFlowCoordinator [flow]
-    ///         root .leaf
-    ///     tab[1] .profile → ProfileFlowCoordinator [flow]
+    ///       push .detail
+    ///       sheet .settings → SettingsCoordinator [flow]
+    ///         root .settings
+    ///     tab[1] .profile → ProfileCoordinator [flow]
     ///       root .profile
     /// ```
     ///
-    /// Inspecting the tree has no side effects: in the rare case where a
-    /// destination's child coordinator has not been created yet, it is
-    /// reported as `(not yet created)` rather than being materialised.
-    ///
-    /// For assertions and debug UIs, prefer the structured
-    /// ``hierarchySnapshot()`` over matching this string.
+    /// Like ``hierarchySnapshot()``, it creates nothing; a child that does not
+    /// exist yet prints as `(not yet created)`. For structured assertions, use
+    /// ``hierarchySnapshot()``.
     func debugHierarchy() -> String {
         var lines = ["\(String(describing: type(of: self))) [\(_kindLabel)]"]
         _appendNodes(hierarchySnapshot(), to: &lines, indent: "  ")

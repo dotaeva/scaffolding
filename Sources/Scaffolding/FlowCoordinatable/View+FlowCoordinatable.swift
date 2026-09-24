@@ -13,14 +13,11 @@ extension View {
         from coordinator: any FlowCoordinatable,
         modalContent: @escaping (Destination) -> ModalContent
     ) -> some View {
+        let first = coordinator.orderedModalDestinations().first
 #if os(macOS)
-        // macOS has no full-screen cover — fold covers into the sheet
-        // presentation so present(_:as: .fullScreenCover) still shows
-        // (and can be dismissed) instead of silently never appearing.
-        let sheetDestinations = coordinator.modalDestinations(for: .sheet)
-            + coordinator.modalDestinations(for: .fullScreenCover)
+        let sheetDestinations = [first].compactMap { $0 }
 #else
-        let sheetDestinations = coordinator.modalDestinations(for: .sheet)
+        let sheetDestinations = [first].compactMap { $0 }.filter { $0.pushType == .sheet }
 #endif
 
         return self.sheet(
@@ -54,7 +51,7 @@ extension View {
         return self
 #else
         
-        let coverDestinations = coordinator.modalDestinations(for: .fullScreenCover)
+        let coverDestinations = [coordinator.orderedModalDestinations().first].compactMap { $0 }.filter { $0.pushType == .fullScreenCover }
         
         return self.fullScreenCover(
             item: Binding<Destination?>(

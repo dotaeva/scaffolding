@@ -8,46 +8,46 @@
 import SwiftUI
 import Observation
 
-/// A column of a ``SplitCoordinatable``'s `NavigationSplitView`.
+/// A column of a ``SplitCoordinatable``.
+///
+/// Read a view's column from `@Environment(\.destination).column`.
 public enum SplitColumn: String, Equatable, Hashable, Sendable {
     /// The leading column.
     case sidebar
-    /// The optional middle column of a three-column split view.
+    /// The optional middle column.
     case content
     /// The trailing column.
     case detail
 }
 
-/// A type-erased protocol for ``SplitColumns`` that allows the framework
-/// to manipulate split-view state without knowing the concrete coordinator
-/// type.
+/// Read-only, type-erased access to a ``SplitColumns`` container.
+///
+/// Change columns and layout through the owning coordinator.
 @MainActor
 public protocol AnySplitColumns: AnyObject, CoordinatableData where Coordinator: SplitCoordinatable {
-    /// The resolved sidebar destination.
-    var sidebar: Destination? { get set }
-    /// The resolved content destination (three-column split views only).
-    var content: Destination? { get set }
-    /// The resolved detail destination.
-    var detail: Destination? { get set }
-    /// Whether a content column is currently present.
+    /// The sidebar destination.
+    var sidebar: Destination? { get }
+    /// The content destination, or `nil` for a two-column split.
+    var content: Destination? { get }
+    /// The detail destination.
+    var detail: Destination? { get }
+    /// Whether the split has a content column.
     var hasContentColumn: Bool { get }
-    /// The visibility of the split view's leading columns.
-    var columnVisibility: NavigationSplitViewVisibility { get set }
-    /// The column shown when the split view collapses to a single column.
-    var preferredCompactColumn: NavigationSplitViewColumn { get set }
-    /// The presentation type if this split coordinator was presented modally.
-    var presentedAs: PresentationType? { get set }
-    /// Modal destinations presented from this coordinator.
-    var modals: [Destination] { get set }
+    /// The requested column visibility.
+    var columnVisibility: NavigationSplitViewVisibility { get }
+    /// The column shown at compact width.
+    var preferredCompactColumn: NavigationSplitViewColumn { get }
+    /// How this coordinator was presented, or `nil` when it isn't modal.
+    var presentedAs: PresentationType? { get }
+    /// This coordinator's modal requests; the first is visible.
+    var modals: [Destination] { get }
 }
 
-/// Observable state container for a ``SplitCoordinatable`` coordinator.
+/// The state container of a ``SplitCoordinatable``: one destination per
+/// column, the column layout, and modal requests.
 ///
-/// `SplitColumns` holds one destination per column of a
-/// `NavigationSplitView` — sidebar, optional content, and detail — plus
-/// the column visibility. Column assignment happens here, in the
-/// initializer, so route functions keep the plain auto-tracked return
-/// types (`some View` / `any Coordinatable`):
+/// Assign the initial columns here, so routes keep their ordinary return
+/// types:
 ///
 /// ```swift
 /// var columns = SplitColumns<LibraryCoordinator>(
@@ -55,55 +55,57 @@ public protocol AnySplitColumns: AnyObject, CoordinatableData where Coordinator:
 ///     detail: .placeholder
 /// )
 /// ```
+///
+/// Properties are readable; change them through the coordinator's methods.
 @MainActor
 @Observable
 public class SplitColumns<Coordinator: SplitCoordinatable>: AnySplitColumns {
-    /// The parent coordinator that owns this split coordinator, if any.
-    public weak var parent: (any Coordinatable)?
-    /// Whether a parent flow coordinator provides the navigation layer.
-    public var hasLayerNavigationCoordinator: Bool = false
-    /// The presentation type when this coordinator was presented modally.
-    public var presentedAs: PresentationType?
-    /// Modal destinations presented from this coordinator.
-    public var modals: [Destination] = []
+    /// The coordinator hosting this split, or `nil` at the top level.
+    public internal(set) weak var parent: (any Coordinatable)?
+    /// Whether an enclosing flow provides the navigation stack.
+    public internal(set) var hasLayerNavigationCoordinator: Bool = false
+    /// How this coordinator was presented, or `nil` when it isn't modal.
+    public internal(set) var presentedAs: PresentationType?
+    /// This coordinator's modal requests; the first is visible, the rest wait.
+    public internal(set) var modals: [Destination] = []
 
-    /// The resolved sidebar destination.
-    public var sidebar: Destination?
-    /// The resolved content destination (three-column split views only).
-    public var content: Destination?
-    /// The resolved detail destination.
-    public var detail: Destination?
+    /// The sidebar destination.
+    public internal(set) var sidebar: Destination?
+    /// The content destination, or `nil` for a two-column split.
+    public internal(set) var content: Destination?
+    /// The detail destination.
+    public internal(set) var detail: Destination?
 
-    /// The visibility of the split view's leading columns.
-    public var columnVisibility: NavigationSplitViewVisibility
-    /// The column shown when the split view collapses to a single column.
-    public var preferredCompactColumn: NavigationSplitViewColumn
+    /// The requested column visibility, including user changes.
+    public internal(set) var columnVisibility: NavigationSplitViewVisibility
+    /// The column shown when the split collapses at compact width.
+    public internal(set) var preferredCompactColumn: NavigationSplitViewColumn
 
-    /// Whether a content column is currently present.
+    /// Whether the split has a content column.
     ///
-    /// The three-column initializer seeds one;
-    /// ``SplitCoordinatable/setContent(_:policy:)`` installs one at
-    /// runtime and ``SplitCoordinatable/removeContent()`` drops it. The
-    /// rendered container swaps between `NavigationSplitView`'s two- and
-    /// three-column forms when this changes.
+    /// The three-column initializer adds one,
+    /// ``SplitCoordinatable/setContent(_:policy:)`` adds one at runtime, and
+    /// ``SplitCoordinatable/removeContent()`` removes it.
     public var hasContentColumn: Bool { content != nil || initialContent != nil }
 
-    /// Whether ``setup(for:)`` has been called.
-    public var isSetup: Bool = false
+    /// The default animation for navigation changes. Set it with
+    /// ``SplitCoordinatable/setTransitionAnimation(_:)``.
+    public internal(set) var animation: Animation? = .default
+
+    /// Whether the initial columns have been resolved.
+    public internal(set) var isSetup: Bool = false
     private var initialSidebar: Coordinator.Destinations?
     private var initialContent: Coordinator.Destinations?
     private var initialDetail: Coordinator.Destinations?
-    private var coordinator: Coordinator?
+    private weak var coordinator: Coordinator?
 
-    /// Creates a two-column split container.
+    /// Creates a two-column split.
     ///
     /// - Parameters:
-    ///   - sidebar: The destination shown in the leading column.
-    ///   - detail: The destination shown in the detail column before any
-    ///     selection — typically a placeholder.
+    ///   - sidebar: The sidebar destination.
+    ///   - detail: The detail shown before any selection, usually a placeholder.
     ///   - visibility: The initial column visibility.
-    ///   - preferredCompactColumn: The column shown when the split view
-    ///     collapses to a single column (compact width).
+    ///   - preferredCompactColumn: The column shown at compact width.
     public init(
         sidebar: Coordinator.Destinations,
         detail: Coordinator.Destinations,
@@ -116,16 +118,14 @@ public class SplitColumns<Coordinator: SplitCoordinatable>: AnySplitColumns {
         self.preferredCompactColumn = preferredCompactColumn
     }
 
-    /// Creates a three-column split container.
+    /// Creates a three-column split.
     ///
     /// - Parameters:
-    ///   - sidebar: The destination shown in the leading column.
-    ///   - content: The destination shown in the middle column.
-    ///   - detail: The destination shown in the detail column before any
-    ///     selection — typically a placeholder.
+    ///   - sidebar: The sidebar destination.
+    ///   - content: The middle-column destination.
+    ///   - detail: The detail shown before any selection, usually a placeholder.
     ///   - visibility: The initial column visibility.
-    ///   - preferredCompactColumn: The column shown when the split view
-    ///     collapses to a single column (compact width).
+    ///   - preferredCompactColumn: The column shown at compact width.
     public init(
         sidebar: Coordinator.Destinations,
         content: Coordinator.Destinations,
@@ -140,11 +140,14 @@ public class SplitColumns<Coordinator: SplitCoordinatable>: AnySplitColumns {
         self.preferredCompactColumn = preferredCompactColumn
     }
 
-    /// Performs one-time setup, resolving the initial column destinations.
+    /// Resolves the initial columns once; later calls do nothing.
+    ///
+    /// The framework calls this before rendering or navigating.
     ///
     /// - Parameter coordinator: The coordinator that owns this container.
     public func setup(for coordinator: Coordinator) {
         guard !isSetup else { return }
+        isSetup = true
         self.coordinator = coordinator
 
         if let initialSidebar, sidebar == nil {
@@ -160,10 +163,9 @@ public class SplitColumns<Coordinator: SplitCoordinatable>: AnySplitColumns {
         initialContent = nil
         initialDetail = nil
 
-        self.isSetup = true
     }
 
-    /// Sets the parent coordinator reference.
+    /// Records the coordinator hosting this split. The framework calls it.
     public func setParent(_ parent: any Coordinatable) {
         self.parent = parent
     }
@@ -177,8 +179,7 @@ public class SplitColumns<Coordinator: SplitCoordinatable>: AnySplitColumns {
         dest.setColumn(column)
         // Each column provides its own navigation layer inside the split
         // view — a child flow builds its own NavigationStack there.
-        dest.coordinatable?.setHasLayerNavigationCoordinatable(false)
-        dest.coordinatable?.setParent(coordinator)
+        dest.coordinatable?.attach(to: coordinator, navigationLayer: false, presentation: presentedAs)
 
         if let presentedAs {
             dest.setPushType(presentedAs)
@@ -209,26 +210,21 @@ extension SplitColumns {
     func replace(_ column: SplitColumn, with destination: Destination) -> Destination {
         var dest = destination
         dest.setColumn(column)
-        dest.coordinatable?.setHasLayerNavigationCoordinatable(false)
         if let coordinator {
-            dest.coordinatable?.setParent(coordinator)
+            dest.coordinatable?.attach(to: coordinator, navigationLayer: false, presentation: presentedAs)
         }
         if let presentedAs, dest.pushType == nil {
             dest.setPushType(presentedAs)
             propagateDestinationType(to: dest.coordinatable, as: presentedAs)
         }
 
-        let previous: Destination?
-        switch column {
-        case .sidebar:
-            previous = sidebar
-            sidebar = dest
-        case .content:
-            previous = content
-            content = dest
-        case .detail:
-            previous = detail
-            detail = dest
+        let previous = self.destination(for: column)
+        withScaffoldingAnimation(animation) {
+            switch column {
+            case .sidebar: sidebar = dest
+            case .content: content = dest
+            case .detail: detail = dest
+            }
         }
         previous?.resolveDismissal()
         return dest
@@ -247,9 +243,25 @@ extension SplitColumns {
     /// destination exactly once. The container swaps back to the
     /// two-column form.
     func removeContent() {
-        initialContent = nil
         let previous = content
-        content = nil
+        withScaffoldingAnimation(animation) {
+            initialContent = nil
+            content = nil
+        }
         previous?.resolveDismissal()
     }
 }
+
+@MainActor
+protocol _MutableSplitColumns: AnySplitColumns, _MutableCoordinatableData {
+    var animation: Animation? { get set }
+    var sidebar: Destination? { get set }
+    var content: Destination? { get set }
+    var detail: Destination? { get set }
+    var columnVisibility: NavigationSplitViewVisibility { get set }
+    var preferredCompactColumn: NavigationSplitViewColumn { get set }
+    var presentedAs: PresentationType? { get set }
+    var modals: [Destination] { get set }
+}
+
+extension SplitColumns: _MutableSplitColumns {}

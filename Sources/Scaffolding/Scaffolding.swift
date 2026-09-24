@@ -1,50 +1,44 @@
-/// Generates a `Destinations` enum for a coordinator class.
+/// Generates the `Destinations` enum for a coordinator class.
 ///
-/// Apply `@Scaffoldable` to an `@Observable` class that conforms to
-/// ``FlowCoordinatable``, ``TabCoordinatable``, ``RootCoordinatable``,
-/// or ``SplitCoordinatable``.
-/// The macro inspects every function whose return type is `some View`,
-/// `any Coordinatable`, or a supported tab tuple and synthesises a
-/// `Destinations` enum with one case per function.
+/// Attach it to a class conforming to ``FlowCoordinatable``,
+/// ``TabCoordinatable``, ``RootCoordinatable``, or ``SplitCoordinatable``.
+/// Each class-body function returning `some View`, `any Coordinatable`, or a
+/// tab tuple becomes a case, and its parameters become associated values.
+/// Functions in extensions are never scanned.
 ///
 /// ```swift
-/// @Scaffoldable @Observable
-/// final class AppCoordinator: @MainActor FlowCoordinatable {
-///     var stack = FlowStack<AppCoordinator>(root: .home)
+/// @MainActor @Observable @Scaffoldable
+/// final class HomeCoordinator: @MainActor FlowCoordinatable {
+///     var stack = FlowStack<HomeCoordinator>(root: .home)
 ///
 ///     func home() -> some View { HomeView() }
-///     func detail(id: String) -> some View { DetailView(id: id) }
-///     func login(onComplete: @escaping (AuthToken) -> Void) -> any Coordinatable {
-///         LoginCoordinator(onComplete: onComplete)
-///     }
+///     func detail(id: Int) -> some View { DetailView(id: id) }
+///     func settings() -> any Coordinatable { SettingsCoordinator() }
 /// }
 ///
-/// // Use:
-/// coord.route(to: .detail(id: "x"))                       // push
-/// coord.present(.login(onComplete: { … }), as: .sheet)    // sheet
+/// coordinator.route(to: .detail(id: 42))
 /// ```
 ///
-/// Pass `injectsCoordinator: false` to opt this coordinator out of
-/// automatic environment injection — useful when a screen should not see
-/// the coordinator that owns it (for example, a reusable view that
-/// shouldn't bind to a specific flow).
+/// `injectsCoordinator` (default `true`) injects the coordinator into its
+/// views' environment. Pass `false` to hide this coordinator; its ancestors
+/// stay visible.
 ///
-/// Pass `codable: true` to make the generated `Destinations` enum conform
-/// to `Codable`, enabling ``Coordinatable/captureNavigationState()`` and
-/// ``Coordinatable/restoreNavigationState(from:)`` for this coordinator.
-/// Every route function's parameters must then be `Codable` themselves —
-/// the compiler enforces this at the enum synthesis.
+/// `codable` (default `false`) makes `Destinations` `Codable` for
+/// <doc:StateRestoration>. Every route parameter must then be `Codable`.
+///
+/// Both options take a literal `true` or `false`. See <doc:DefiningRoutes>.
 @attached(member, names: named(Destinations), named(_injectsCoordinator))
 public macro Scaffoldable(injectsCoordinator: Bool = true, codable: Bool = false) = #externalMacro(module: "ScaffoldingMacros", type: "ScaffoldableMacro")
 
-/// Excludes a function from the generated `Destinations` enum.
+/// Keeps a class-body function out of the generated `Destinations` enum.
 ///
-/// Apply `@ScaffoldingIgnored` to any function on a ``Scaffoldable(injectsCoordinator:codable:)``
-/// coordinator that should **not** become a destination case.
+/// Use it only on a function whose return type would otherwise make it a
+/// route, such as `customize(_:)` or a shared view builder. Properties,
+/// `Void` helpers, and functions in extensions need no annotation.
 ///
 /// ```swift
 /// @ScaffoldingIgnored
-/// func helperView() -> some View { Text("Not a destination") }
+/// func emptyState(message: String) -> some View { Text(message) }
 /// ```
 @attached(peer)
 public macro ScaffoldingIgnored() = #externalMacro(module: "ScaffoldingMacros", type: "ScaffoldingIgnoredMacro")

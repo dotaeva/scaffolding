@@ -9,32 +9,112 @@ import SwiftUI
 import Observation
 import os.log
 
-/// A coordinator that manages push/pop navigation with a
-/// `NavigationStack`.
+/// A coordinator that owns a push stack, rendered as a `NavigationStack`.
 ///
-/// Conform to `FlowCoordinatable` to build stack-based navigation flows.
-/// Provide a ``FlowStack`` property and define route functions — the
-/// ``Scaffoldable(injectsCoordinator:codable:)`` macro generates the `Destinations` enum for you.
+/// Declare a ``FlowStack`` and route functions in the class body;
+/// ``Scaffoldable(injectsCoordinator:codable:)`` generates the `Destinations` enum.
 ///
 /// ```swift
-/// @Scaffoldable @Observable
+/// @MainActor @Observable @Scaffoldable
 /// final class HomeCoordinator: @MainActor FlowCoordinatable {
 ///     var stack = FlowStack<HomeCoordinator>(root: .home)
 ///
 ///     func home() -> some View { HomeView() }
-///     func detail(item: String) -> some View { DetailView(item: item) }
+///     func detail(id: Int) -> some View { DetailView(id: id) }
 /// }
 /// ```
 ///
-/// Navigate with ``route(to:policy:onDismiss:)``,
-/// ``FlowCoordinatable/present(_:as:policy:onDismiss:)``, and ``pop()``.
+/// Push with ``route(to:policy:)``, go back with ``pop()``, and present with
+/// ``Coordinatable/present(_:as:policy:)``. A pushed child flow shares this
+/// stack; a presented child gets its own. See <doc:Flows> and
+/// <doc:Essentials>.
+///
+/// ## Topics
+///
+/// ### Pushing and Receiving Results
+///
+/// - ``route(to:policy:)``
+/// - ``route(to:policy:expecting:)``
+/// - ``route(to:policy:awaiting:)``
+/// - ``route(to:policy:expecting:awaiting:)``
+/// - ``routeAndWait(to:policy:)``
+///
+/// ### Going Back
+///
+/// - ``pop()``
+/// - ``pop(_:)``
+/// - ``popToRoot()``
+/// - ``popToFirst(_:)``
+/// - ``popToFirst(_:expecting:)``
+/// - ``popToLast(_:)``
+/// - ``popToLast(_:expecting:)``
+///
+/// ### Changing the Root
+///
+/// - ``setRoot(_:animation:)``
+/// - ``setRoot(_:animation:expecting:)``
+///
+/// ### Presenting and Receiving Results
+///
+/// - ``Coordinatable/present(_:as:policy:)``
+/// - ``Coordinatable/present(_:as:policy:expecting:)``
+/// - ``Coordinatable/present(_:as:policy:awaiting:)``
+/// - ``Coordinatable/present(_:as:policy:expecting:awaiting:)``
+///
+/// ### Closing Flows and Modals
+///
+/// - ``Coordinatable/dismissCoordinator()``
+/// - ``Coordinatable/dismissCoordinator(returning:)``
+/// - ``Coordinatable/dismissPresentedModal()``
+/// - ``Coordinatable/cancelPendingModals()``
+/// - ``Coordinatable/dismissModal()``
+/// - ``Coordinatable/dismissAllModals()``
+/// - ``Coordinatable/isPresentingModal``
+/// - ``Coordinatable/pendingModalCount``
+///
+/// ### Reading Navigation State
+///
+/// - ``stack``
+/// - ``depth``
+/// - ``topDestination``
+/// - ``isInStack(_:)``
+/// - ``count(of:)``
+///
+/// ### Transition Animation
+///
+/// - ``setTransitionAnimation(_:)``
+/// - ``setRootTransitionAnimation(_:)``
+///
+/// ### Type-Erased State
+///
+/// - ``anyStack``
+///
+/// ### Deprecated Compatibility
+///
+/// - ``popToFirst(_:_:)``
+/// - ``popToLast(_:_:)``
+/// - ``present(_:as:policy:onDismiss:)``
+/// - ``present(_:as:policy:onDismiss:_:)``
+/// - ``present(_:as:policy:onDismiss:expecting:)``
+/// - ``presentAndWait(_:as:policy:)``
+/// - ``replaceLast(with:)``
+/// - ``replaceLast(with:onDismiss:)``
+/// - ``route(to:policy:onDismiss:)``
+/// - ``route(to:policy:onDismiss:_:)``
+/// - ``route(to:policy:onDismiss:expecting:)``
+/// - ``setRoot(_:animation:_:)``
 @MainActor
 public protocol FlowCoordinatable: Coordinatable where ViewType == FlowCoordinatableView {
-    /// The observable navigation stack that holds this coordinator's state.
+    /// The flow's navigation state.
+    ///
+    /// Read it to inspect the flow; change it through the coordinator's methods.
     var stack: FlowStack<Self> { get }
 
-    /// A type-erased accessor for the navigation stack.
+    /// The stack as a read-only ``AnyFlowStack``.
     var anyStack: any AnyFlowStack { get }
+
+    /// Framework plumbing: the stack, without resolving its initial destinations.
+    var _uninitializedStack: any AnyFlowStack { get }
 }
 
 @MainActor
@@ -43,11 +123,17 @@ public extension FlowCoordinatable {
         stack.id
     }
 
+    var _uninitializedStack: any AnyFlowStack { stack }
+
     var anyStack: any AnyFlowStack {
         stack.setup(for: self)
         return stack
     }
 
+    /// The rendered flow and everything below it.
+    ///
+    /// Show the top-level coordinator's `view` once, usually in a `WindowGroup`.
+    /// Child coordinators render through their parent.
     var view: FlowCoordinatableView {
         stack.setup(for: self)
         return .init(coordinator: self)
@@ -62,15 +148,27 @@ public extension FlowCoordinatable {
     }
 
     func setHasLayerNavigationCoordinatable(_ value: Bool) {
-        stack.hasLayerNavigationCoordinator = value
+        updateNavigationContext(navigationLayer: value, presentation: inheritedPresentation)
     }
 
     func setParent(_ parent: any Coordinatable) {
         stack.setParent(parent)
     }
 
-    /// Sets the default animation used for root transitions.
+    /// Sets the default animation for this coordinator's navigation changes.
+    /// Pass `nil` to disable it.
+    ///
+    /// Same as ``setTransitionAnimation(_:)``.
     func setRootTransitionAnimation(_ animation: Animation?) {
+        setTransitionAnimation(animation)
+    }
+
+    /// Sets the default animation for this coordinator's navigation changes.
+    /// Pass `nil` to disable it.
+    ///
+    /// Covers root changes, pushes, pops, and modal changes. Override it for a
+    /// chain with ``withNavigationTransaction(animation:_:)``.
+    func setTransitionAnimation(_ animation: Animation?) {
         stack.setAnimation(animation: animation)
     }
 }
@@ -93,26 +191,26 @@ extension FlowCoordinatable {
 @MainActor
 extension FlowCoordinatable {
     func modalDestinations(for presentationType: PresentationType) -> [Destination] {
-        guard presentationType == .sheet || presentationType == .fullScreenCover else {
-            return []
-        }
+        orderedModalDestinations().filter { $0.pushType == presentationType }
+    }
 
+    func orderedModalDestinations() -> [Destination] {
         var flattened: [Destination] = []
 
-        if let rootDest = self.anyStack.root {
+        if let rootDest = self._resolvedStack.root {
             traverseCoordinatable(rootDest.coordinatable) { nestedFlow in
-                flattened.append(contentsOf: nestedFlow.modalDestinations(for: presentationType))
+                flattened.append(contentsOf: nestedFlow.orderedModalDestinations())
             }
         }
 
-        for destination in self.anyStack.destinations {
-            if destination.pushType == presentationType {
+        for destination in self._resolvedStack.destinations {
+            if destination.routeType.isModal {
                 flattened.append(destination)
             }
 
             if destination.pushType == .push {
                 traverseCoordinatable(destination.coordinatable) { nestedFlow in
-                    flattened.append(contentsOf: nestedFlow.modalDestinations(for: presentationType))
+                    flattened.append(contentsOf: nestedFlow.orderedModalDestinations())
                 }
             }
         }
@@ -121,19 +219,15 @@ extension FlowCoordinatable {
     }
 
     func removeModalDestination(withId id: UUID, type: PresentationType) {
-        if let rootDest = self.anyStack.root {
+        if let rootDest = self._resolvedStack.root {
             traverseCoordinatable(rootDest.coordinatable) { nestedFlow in
                 nestedFlow.removeModalDestination(withId: id, type: type)
             }
         }
 
-        let toRemove = anyStack.destinations.filter { $0.id == id && $0.pushType == type }
-        anyStack.destinations.removeAll { $0.id == id && $0.pushType == type }
-        for destination in toRemove {
-            destination.resolveDismissal()
-        }
+        removeOwnModals { $0.id == id && $0.pushType == type }
 
-        for destination in anyStack.destinations where destination.pushType == .push {
+        for destination in _resolvedStack.destinations where destination.pushType == .push {
             traverseCoordinatable(destination.coordinatable) { nestedFlow in
                 nestedFlow.removeModalDestination(withId: id, type: type)
             }
@@ -158,10 +252,10 @@ private extension FlowCoordinatable {
 
                 if destination.pushType == .push {
                     traverseCoordinatable(destination.coordinatable) { nestedFlow in
-                        if let rootDest = nestedFlow.anyStack.root {
+                        if let rootDest = nestedFlow._resolvedStack.root {
                             traverseRoots(rootDest.coordinatable)
                         }
-                        flattenRecursively(nestedFlow.anyStack.destinations)
+                        flattenRecursively(nestedFlow._resolvedStack.destinations)
                     }
                 }
             }
@@ -174,28 +268,28 @@ private extension FlowCoordinatable {
 
             if let flowCoordinator = coordinatable as? any FlowCoordinatable {
                 if flowCoordinator.hasLayerNavigationCoordinatable {
-                    if let rootDest = flowCoordinator.anyStack.root {
+                    if let rootDest = flowCoordinator._resolvedStack.root {
                         traverseRoots(rootDest.coordinatable)
                     }
 
-                    flattenRecursively(flowCoordinator.anyStack.destinations)
+                    flattenRecursively(flowCoordinator._resolvedStack.destinations)
                 }
             } else if let tabCoordinator = coordinatable as? any TabCoordinatable {
-                if let selectedTabId = tabCoordinator.anyTabItems.selectedTab,
-                   let selectedTab = tabCoordinator.anyTabItems.tabs.first(where: { $0.id == selectedTabId }) {
+                if let selectedTabId = tabCoordinator._resolvedTabItems.selectedTab,
+                   let selectedTab = tabCoordinator._resolvedTabItems.tabs.first(where: { $0.id == selectedTabId }) {
                     traverseRoots(selectedTab.coordinatable)
                 }
             } else if let rootCoordinator = coordinatable as? any RootCoordinatable,
-                      let rootDestination = rootCoordinator.anyRoot.root {
+                      let rootDestination = rootCoordinator._resolvedRoot.root {
                 traverseRoots(rootDestination.coordinatable)
             }
         }
 
-        if let rootDest = self.anyStack.root {
+        if let rootDest = self._resolvedStack.root {
             traverseRoots(rootDest.coordinatable)
         }
 
-        flattenRecursively(self.anyStack.destinations)
+        flattenRecursively(self._resolvedStack.destinations)
 
         return flattened
     }
@@ -214,37 +308,14 @@ private extension FlowCoordinatable {
         /// observe a settled hierarchy rather than a half-reconstructed one.
         var dropped: [Destination] = []
 
-        /// A dropped destination takes its subtree with it: the coordinator
-        /// it hosts is unreachable now, so anything pushed *inside* that
-        /// coordinator must resolve too. Walks only already-materialised
-        /// children — tearing a branch down must never build the rest of it.
         func collectDropped(_ destination: Destination) {
             dropped.append(destination)
-
-            guard let child = destination.materializedCoordinatable else { return }
-            collectDroppedBelow(child)
-        }
-
-        func collectDroppedBelow(_ coordinatable: any Coordinatable) {
-            if let flow = coordinatable as? any FlowCoordinatable {
-                let nested = flow.anyStack.destinations
-                flow.anyStack.destinations = []
-                for destination in nested { collectDropped(destination) }
-            } else if let tabs = coordinatable as? any TabCoordinatable {
-                for tab in tabs.anyTabItems.tabs {
-                    guard let child = tab.materializedCoordinatable else { continue }
-                    collectDroppedBelow(child)
-                }
-            } else if let root = coordinatable as? any RootCoordinatable,
-                      let child = root.anyRoot.root?.materializedCoordinatable {
-                collectDroppedBelow(child)
-            }
         }
 
         func reconstructRecursively(for coordinator: any FlowCoordinatable) -> [Destination] {
             var newDestinations: [Destination] = []
 
-            for originalDestination in coordinator.anyStack.destinations {
+            for originalDestination in coordinator._resolvedStack.destinations {
                 if originalDestination.pushType == .sheet || originalDestination.pushType == .fullScreenCover {
                     newDestinations.append(originalDestination)
                     continue
@@ -260,11 +331,11 @@ private extension FlowCoordinatable {
 
                             if originalDestination.pushType == .push {
                                 traverseCoordinatable(originalDestination.coordinatable) { nestedFlow in
-                                    if let rootDest = nestedFlow.anyStack.root {
+                                    if let rootDest = nestedFlow._resolvedStack.root {
                                         traverseAndReconstructRoots(rootDest.coordinatable)
                                     }
                                     let reconstructedNested = reconstructRecursively(for: nestedFlow)
-                                    nestedFlow.anyStack.destinations = reconstructedNested
+                                    nestedFlow._resolvedStack.destinations = reconstructedNested
                                 }
                             }
                         } else {
@@ -288,42 +359,40 @@ private extension FlowCoordinatable {
 
             if let flowCoordinator = coordinatable as? any FlowCoordinatable {
                 if flowCoordinator.hasLayerNavigationCoordinatable {
-                    if let rootDest = flowCoordinator.anyStack.root {
+                    if let rootDest = flowCoordinator._resolvedStack.root {
                         traverseAndReconstructRoots(rootDest.coordinatable)
                     }
 
-                    if flatIndex < flattenedDestinations.count || !flowCoordinator.anyStack.destinations.isEmpty {
+                    if flatIndex < flattenedDestinations.count || !flowCoordinator._resolvedStack.destinations.isEmpty {
                         let reconstructed = reconstructRecursively(for: flowCoordinator)
-                        flowCoordinator.anyStack.destinations = reconstructed
+                        flowCoordinator._resolvedStack.destinations = reconstructed
                     } else {
-                        flowCoordinator.anyStack.destinations = []
+                        flowCoordinator._resolvedStack.destinations = []
                     }
                 }
             } else if let tabCoordinator = coordinatable as? any TabCoordinatable {
-                if let selectedTabId = tabCoordinator.anyTabItems.selectedTab,
-                   let selectedTab = tabCoordinator.anyTabItems.tabs.first(where: { $0.id == selectedTabId }) {
+                if let selectedTabId = tabCoordinator._resolvedTabItems.selectedTab,
+                   let selectedTab = tabCoordinator._resolvedTabItems.tabs.first(where: { $0.id == selectedTabId }) {
                     traverseAndReconstructRoots(selectedTab.coordinatable)
                 }
             } else if let rootCoordinator = coordinatable as? any RootCoordinatable,
-                      let rootDestination = rootCoordinator.anyRoot.root {
+                      let rootDestination = rootCoordinator._resolvedRoot.root {
                 traverseAndReconstructRoots(rootDestination.coordinatable)
             }
         }
 
-        if let rootDest = self.anyStack.root {
+        if let rootDest = self._resolvedStack.root {
             traverseAndReconstructRoots(rootDest.coordinatable)
         }
 
         let reconstructed = reconstructRecursively(for: self)
-        self.anyStack.destinations = reconstructed
+        self._resolvedStack.destinations = reconstructed
 
         // Topmost first, matching the order the programmatic pop family
         // resolves in. `resolveDismissal()` is single-shot, so a
         // destination already resolved by a `pop()` that SwiftUI is only
         // now catching up with is a no-op here.
-        for destination in dropped.reversed() {
-            destination.resolveDismissal()
-        }
+        resolveDismissals(dropped)
     }
 }
 
@@ -335,107 +404,110 @@ private extension FlowCoordinatable {
         if let flowCoordinator = coordinatable as? any FlowCoordinatable {
             action(flowCoordinator)
         } else if let tabCoordinator = coordinatable as? any TabCoordinatable {
-            if let selectedTabId = tabCoordinator.anyTabItems.selectedTab,
-               let selectedTab = tabCoordinator.anyTabItems.tabs.first(where: { $0.id == selectedTabId }),
-               let nestedFlow = selectedTab.coordinatable as? any FlowCoordinatable {
-                action(nestedFlow)
+            if let selectedTabId = tabCoordinator._resolvedTabItems.selectedTab,
+               let selectedTab = tabCoordinator._resolvedTabItems.tabs.first(where: { $0.id == selectedTabId }) {
+                traverseCoordinatable(selectedTab.coordinatable, action: action)
             }
         } else if let rootCoordinator = coordinatable as? any RootCoordinatable,
-                  let rootDestination = rootCoordinator.anyRoot.root {
+                  let rootDestination = rootCoordinator._resolvedRoot.root {
             traverseCoordinatable(rootDestination.coordinatable, action: action)
         }
     }
 
-    func checkForMultipleModals(pushType: PresentationType) {
-        func findLayerFlowParent(lookup: (any Coordinatable)?) -> any FlowCoordinatable {
-            if let flowCoordinatable = lookup as? (any FlowCoordinatable) {
-                if !flowCoordinatable.anyStack.hasLayerNavigationCoordinator {
-                    return flowCoordinatable
-                }
-                return findLayerFlowParent(lookup: flowCoordinatable.anyStack.parent)
-            }
-            return self
-        }
 
-        let existingModals = findLayerFlowParent(lookup: self).modalDestinations(for: pushType)
-
-        if existingModals.count > 1 {
-            let logger = Logger(subsystem: "Scaffolding", category: "Modal")
-            logger.critical("Scaffolding: Currently, only presenting a single sheet is supported.\nThe next sheet will be presented when the currently presented sheet gets dismissed.")
-        }
-    }
 }
 
 @MainActor
 public extension FlowCoordinatable {
-    /// Replaces the root destination of this flow coordinator.
+    /// Replaces the flow's root and removes every pushed and presented entry.
+    ///
+    /// The new root is built fresh, even for the same case. Removed entries
+    /// resume their waiters with `nil`.
     ///
     /// - Parameters:
-    ///   - destination: The new root destination.
-    ///   - animation: An optional animation override. When `nil` the
-    ///     stack's default animation is used.
-    /// - Returns: `self` for chaining.
+    ///   - destination: The new root.
+    ///   - animation: An animation for this change, or `nil` for the default.
+    /// - Returns: `self`, for chaining.
     @discardableResult
     func setRoot(_ destination: Destinations, animation: Animation? = nil) -> Self {
+        stack.setup(for: self)
         let dest = destination.resolvedValue(for: self)
-        dest.coordinatable?.setParent(self)
         stack.setRoot(root: dest, animation: animation)
         return self
     }
 
-    /// Pushes a destination onto the navigation stack.
+    /// Pushes a destination onto the stack.
     ///
-    /// `route(to:)` is a push-only operation — to present a destination
-    /// modally, use ``FlowCoordinatable/present(_:as:policy:onDismiss:)`` instead.
-    ///
-    /// The `onDismiss` closure has an `async` alternative: to continue
-    /// straight after the pushed destination is popped, `await`
-    /// ``FlowCoordinatable/routeAndWait(to:policy:)`` instead of passing a
-    /// callback.
+    /// To present modally, use ``Coordinatable/present(_:as:policy:)``. To wait
+    /// for a result, use ``route(to:policy:awaiting:)``.
     ///
     /// - Parameters:
     ///   - destination: The destination to push.
-    ///   - policy: Pass ``RoutePolicy/distinct`` to skip the push when the
-    ///     same destination case is already on top — a guard against
-    ///     double-taps. Defaults to ``RoutePolicy/always``.
-    ///   - onDismiss: A closure invoked when the pushed destination is
-    ///     popped or otherwise removed from the stack.
-    /// - Returns: `self` for chaining.
+    ///   - policy: ``RoutePolicy/distinct`` skips the push when the same case is
+    ///     already on top. Defaults to ``RoutePolicy/always``.
+    /// - Returns: `self`, for chaining.
+    @discardableResult
+    func route(
+        to destination: Destinations,
+        policy: RoutePolicy = .always
+    ) -> Self {
+        guard !policySkips(destination, policy: policy, as: .push) else { return self }
+        performRoute(to: destination, as: .push, onDismiss: { })
+        return self
+    }
+
+    /// Deprecated. Use ``route(to:policy:awaiting:)`` instead.
+    ///
+    /// Await it with `awaiting: Void.self` and run the dismissal code after it.
+    @available(*, deprecated, message: "Will be removed in a future update. Use await route with awaiting: instead; pass Void.self to wait without a result.")
     @discardableResult
     func route(
         to destination: Destinations,
         policy: RoutePolicy = .always,
-        onDismiss: @escaping @MainActor () -> Void = { }
+        onDismiss: @escaping @MainActor () -> Void
     ) -> Self {
         guard !policySkips(destination, policy: policy, as: .push) else { return self }
         performRoute(to: destination, as: .push, onDismiss: onDismiss)
         return self
     }
 
-    /// Presents a destination modally on this flow coordinator.
+    /// Presents a destination as a sheet or full-screen cover.
     ///
-    /// The modal lives on this coordinator's stack and is rendered as a
-    /// sheet or full-screen cover by the flow's view layer.
-    ///
-    /// The `onDismiss` closure has `async` alternatives: `await`
-    /// ``FlowCoordinatable/presentAndWait(_:as:policy:)`` to continue once the
-    /// modal closes, or ``FlowCoordinatable/present(_:as:policy:awaiting:)``
-    /// to take a value back from it.
+    /// The request is stored on this flow's stack and joins its host's modal
+    /// queue. To wait for a result, use ``Coordinatable/present(_:as:policy:awaiting:)``.
     ///
     /// - Parameters:
     ///   - destination: The destination to present.
-    ///   - type: The modal presentation style. Defaults to `.sheet`.
-    ///   - policy: Pass ``RoutePolicy/distinct`` to skip the presentation
-    ///     when the same destination case is already presented. Defaults
-    ///     to ``RoutePolicy/always``.
-    ///   - onDismiss: A closure invoked when the modal is dismissed.
-    /// - Returns: `self` for chaining.
+    ///   - type: `.sheet` (the default) or `.fullScreenCover`.
+    ///   - policy: ``RoutePolicy/distinct`` skips the request when the same case
+    ///     is already requested, including queued requests.
+    /// - Returns: `self`, for chaining.
+    @discardableResult
+    func present(
+        _ destination: Destinations,
+        as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always
+    ) -> Self {
+        guard !policySkips(destination, policy: policy, as: type.presentationType) else { return self }
+        performRoute(
+            to: destination,
+            as: type.presentationType,
+            configuration: type.configuration,
+            onDismiss: { }
+        )
+        return self
+    }
+
+    /// Deprecated. Use ``Coordinatable/present(_:as:policy:awaiting:)`` instead.
+    ///
+    /// Await it with `awaiting: Void.self` and run the dismissal code after it.
+    @available(*, deprecated, message: "Will be removed in a future update. Use await present with awaiting: instead; pass Void.self to wait without a result.")
     @discardableResult
     func present(
         _ destination: Destinations,
         as type: ModalPresentationType = .sheet,
         policy: RoutePolicy = .always,
-        onDismiss: @escaping @MainActor () -> Void = { }
+        onDismiss: @escaping @MainActor () -> Void
     ) -> Self {
         guard !policySkips(destination, policy: policy, as: type.presentationType) else { return self }
         performRoute(
@@ -447,136 +519,156 @@ public extension FlowCoordinatable {
         return self
     }
 
-    /// Pops the top destination from the navigation stack.
+    /// Removes the last pushed or presented entry.
     ///
-    /// If the stack is empty the coordinator dismisses itself from its
-    /// parent instead.
+    /// The last entry may be a modal. On an empty stack, this dismisses the
+    /// coordinator instead. Use ``pop(_:)`` to stop at the root, or
+    /// ``Coordinatable/dismissPresentedModal()`` to close only the visible modal.
     ///
-    /// - Returns: `self` for chaining.
+    /// - Returns: `self`, for chaining.
     @discardableResult
     func pop() -> Self {
+        stack.setup(for: self)
         stack.pop()
         return self
     }
 
-    /// Pops all pushed destinations, returning to the root.
+    /// Removes every pushed and presented entry above the root.
     ///
-    /// - Returns: `self` for chaining.
+    /// - Returns: `self`, for chaining.
     @discardableResult
     func popToRoot() -> Self {
+        stack.setup(for: self)
         stack.popToRoot()
         return self
     }
 
-    /// Pops the stack back to the **first** occurrence of the given
-    /// destination.
+    /// Returns to the first entry matching a case and removes everything above it.
     ///
-    /// - Parameter destination: The destination meta to search for.
-    /// - Returns: `self` for chaining.
+    /// Checks the root first, then entries from the bottom. Does nothing when
+    /// no entry matches.
+    ///
+    /// - Parameter destination: The case to return to.
+    /// - Returns: `self`, for chaining.
     @discardableResult
     func popToFirst(_ destination: Destinations.Meta) -> Self {
+        stack.setup(for: self)
         _ = stack.popToFirst(destination)
         return self
     }
 
-    /// Pops the stack back to the **last** occurrence of the given
-    /// destination.
+    /// Returns to the last entry matching a case and removes everything above it.
     ///
-    /// - Parameter destination: The destination meta to search for.
-    /// - Returns: `self` for chaining.
+    /// Falls back to the root when only the root matches. Does nothing when no
+    /// entry matches.
+    ///
+    /// - Parameter destination: The case to return to.
+    /// - Returns: `self`, for chaining.
     @discardableResult
     func popToLast(_ destination: Destinations.Meta) -> Self {
+        stack.setup(for: self)
         _ = stack.popToLast(destination)
         return self
     }
 
-    /// Returns whether the given destination is currently in the
-    /// navigation stack.
+    /// Returns whether a pushed or presented entry matches a case.
+    ///
+    /// The root is not checked. Associated values are ignored.
     func isInStack(_ destination: Destinations.Meta) -> Bool {
-        stack.destinations.contains { dest in
+        _resolvedStack.destinations.contains { dest in
             guard let destMeta = dest.meta as? Self.Destinations.Meta else { return false }
             return destMeta == destination
         }
     }
 
-    /// The number of destinations pushed above the root.
+    /// The number of screens pushed above the root.
     ///
-    /// Modally presented destinations are not counted — this is the depth
-    /// of the push stack. `0` means the flow is at its root.
+    /// Modals are not counted. `0` means the flow shows its root.
     var depth: Int {
-        stack.destinations.count { $0.pushType == .push }
+        _resolvedStack.destinations.count { $0.pushType == .push }
     }
 
-    /// The destination case currently on top of the push stack.
+    /// The case of the top pushed screen, or of the root when nothing is pushed.
     ///
-    /// Returns the meta of the topmost *pushed* destination, or the root's
-    /// meta when nothing is pushed. Modals are ignored.
+    /// Modals are ignored.
     var topDestination: Destinations.Meta? {
-        if let last = stack.destinations.last(where: { $0.pushType == .push }) {
+        if let last = _resolvedStack.destinations.last(where: { $0.pushType == .push }) {
             return last.meta as? Destinations.Meta
         }
-        return anyStack.root?.meta as? Destinations.Meta
+        return _resolvedStack.root?.meta as? Destinations.Meta
     }
 
-    /// Whether this coordinator currently presents a modal (sheet or
-    /// full-screen cover) on its own stack.
+    /// Whether this flow has a modal request of its own, visible or queued.
     var isPresentingModal: Bool {
-        stack.destinations.contains {
+        _resolvedStack.destinations.contains {
             $0.pushType == .sheet || $0.pushType == .fullScreenCover
         }
     }
 
-    /// The number of occurrences of the given destination case in the
-    /// navigation stack (pushed and presented destinations; the root is
-    /// not counted).
+    /// The number of pushed and presented entries matching a case.
+    ///
+    /// The root is not counted. Associated values are ignored.
     func count(of destination: Destinations.Meta) -> Int {
-        stack.destinations.count { dest in
+        _resolvedStack.destinations.count { dest in
             guard let destMeta = dest.meta as? Self.Destinations.Meta else { return false }
             return destMeta == destination
         }
     }
 
-    /// Pops up to `count` destinations from the navigation stack.
+    /// Removes up to `count` entries from the top of the stack.
     ///
-    /// Unlike repeated calls to ``pop()``, this stops at the root — it
-    /// never dismisses the coordinator itself when the stack runs out.
+    /// Stops at the root; unlike ``pop()``, it never dismisses the coordinator.
     ///
-    /// - Parameter count: The number of destinations to remove.
-    /// - Returns: `self` for chaining.
+    /// - Parameter count: The maximum number of entries to remove.
+    /// - Returns: `self`, for chaining.
     @discardableResult
     func pop(_ count: Int) -> Self {
+        stack.setup(for: self)
         stack.pop(count: count)
         return self
     }
 
-    /// Replaces the topmost pushed destination with a new one.
+    /// Deprecated. Use ``pop()`` and then ``route(to:policy:)`` instead.
     ///
-    /// The replaced destination's `onDismiss` fires exactly once. Use this
-    /// for transitions where back should skip the current screen — e.g.
-    /// replacing a loading screen with its result, or advancing a wizard
-    /// step without letting the user return to it.
+    /// Pop only when `depth > 0` and no modal is queued; use
+    /// ``setRoot(_:animation:)`` for a new flow root. See
+    /// <doc:Flows#Replace-the-root-or-the-top-screen>.
+    @available(*, deprecated, message: "Will be removed in a future update. Use pop() followed by route(to:), or setRoot(_:) to replace the whole flow.")
+    @discardableResult
+    func replaceLast(
+        with destination: Destinations
+    ) -> Self {
+        stack.setup(for: self)
+        guard let index = stack.destinations.lastIndex(where: { $0.pushType == .push }) else {
+            return route(to: destination)
+        }
+
+        let dest = makeDestination(for: destination, as: .push, onDismiss: { })
+        let replaced = stack.destinations[index]
+        withScaffoldingAnimation(stack.animation) { stack.destinations[index] = dest }
+        replaced.resolveDismissal()
+        return self
+    }
+
+    /// Deprecated. Use ``pop()`` and then ``route(to:policy:)`` instead.
     ///
-    /// When nothing is pushed the destination is pushed normally, like
-    /// ``route(to:policy:onDismiss:)`` — the root is never replaced (use
-    /// ``setRoot(_:animation:)`` for that).
-    ///
-    /// - Parameters:
-    ///   - destination: The destination that takes the top position.
-    ///   - onDismiss: A closure invoked when the new destination is
-    ///     popped or otherwise removed from the stack.
-    /// - Returns: `self` for chaining.
+    /// Pop only when `depth > 0` and no modal is queued; use
+    /// ``setRoot(_:animation:)`` for a new flow root. See
+    /// <doc:Flows#Replace-the-root-or-the-top-screen>.
+    @available(*, deprecated, message: "Will be removed in a future update. Use pop() followed by route(to:), or setRoot(_:) to replace the whole flow.")
     @discardableResult
     func replaceLast(
         with destination: Destinations,
-        onDismiss: @escaping @MainActor () -> Void = { }
+        onDismiss: @escaping @MainActor () -> Void
     ) -> Self {
+        stack.setup(for: self)
         guard let index = stack.destinations.lastIndex(where: { $0.pushType == .push }) else {
             return route(to: destination, onDismiss: onDismiss)
         }
 
         let dest = makeDestination(for: destination, as: .push, onDismiss: onDismiss)
         let replaced = stack.destinations[index]
-        stack.destinations[index] = dest
+        withScaffoldingAnimation(stack.animation) { stack.destinations[index] = dest }
         replaced.resolveDismissal()
         return self
     }
@@ -584,14 +676,11 @@ public extension FlowCoordinatable {
 
 @MainActor
 public extension FlowCoordinatable {
-    /// Pushes a destination and invokes a typed callback with the resolved
-    /// child coordinator.
+    /// Deprecated. Use ``route(to:policy:expecting:)`` instead.
     ///
-    /// The callback fires once after the destination is pushed, receiving
-    /// the newly created coordinator cast to `T`. If the destination does
-    /// not resolve to a coordinator of type `T`, the callback is not
-    /// invoked.
+    /// To also wait for dismissal, use ``route(to:policy:expecting:awaiting:)``.
     @discardableResult
+    @available(*, deprecated, message: "Will be removed in a future update. Use expecting: for child access; combine it with awaiting: for dismissal/results.")
     func route<T: Coordinatable>(
         to destination: Destinations,
         policy: RoutePolicy = .always,
@@ -606,14 +695,11 @@ public extension FlowCoordinatable {
         return self
     }
 
-    /// Presents a destination modally and invokes a typed callback with the
-    /// resolved child coordinator.
+    /// Deprecated. Use ``Coordinatable/present(_:as:policy:expecting:)`` instead.
     ///
-    /// The callback fires once after the modal lands on the stack, receiving
-    /// the newly created coordinator cast to `T`. If the destination does
-    /// not resolve to a coordinator of type `T`, the callback is not
-    /// invoked.
+    /// To also wait for dismissal, use ``Coordinatable/present(_:as:policy:expecting:awaiting:)``.
     @discardableResult
+    @available(*, deprecated, message: "Will be removed in a future update. Use expecting: for child access; combine it with awaiting: for dismissal/results.")
     func present<T: Coordinatable>(
         _ destination: Destinations,
         as type: ModalPresentationType = .sheet,
@@ -634,16 +720,16 @@ public extension FlowCoordinatable {
         return self
     }
 
-    /// Replaces the root and invokes a typed callback with the resolved
-    /// child coordinator.
+    /// Deprecated. Use ``setRoot(_:animation:expecting:)`` instead.
     @discardableResult
+    @available(*, deprecated, message: "Will be removed in a future update. Use the expecting: overload to access the child coordinator.")
     func setRoot<T: Coordinatable>(
         _ destination: Destinations,
         animation: Animation? = nil,
         _ action: @escaping @MainActor (T) -> Void
     ) -> Self {
+        stack.setup(for: self)
         let dest = destination.resolvedValue(for: self)
-        dest.coordinatable?.setParent(self)
         stack.setRoot(root: dest, animation: animation)
         if let coordinator = dest.coordinatable as? T {
             action(coordinator)
@@ -651,13 +737,14 @@ public extension FlowCoordinatable {
         return self
     }
 
-    /// Pops to the **first** matching destination and invokes a typed
-    /// callback with the destination's coordinator, if any.
+    /// Deprecated. Use ``popToFirst(_:expecting:)`` instead.
     @discardableResult
+    @available(*, deprecated, message: "Will be removed in a future update. Use the expecting: overload to access the child coordinator.")
     func popToFirst<T: Coordinatable>(
         _ destination: Destinations.Meta,
         _ action: @escaping @MainActor (T) -> Void
     ) -> Self {
+        stack.setup(for: self)
         if let dest = stack.popToFirst(destination),
            let coordinator = dest.coordinatable as? T {
             action(coordinator)
@@ -665,13 +752,14 @@ public extension FlowCoordinatable {
         return self
     }
 
-    /// Pops to the **last** matching destination and invokes a typed
-    /// callback with the destination's coordinator, if any.
+    /// Deprecated. Use ``popToLast(_:expecting:)`` instead.
     @discardableResult
+    @available(*, deprecated, message: "Will be removed in a future update. Use the expecting: overload to access the child coordinator.")
     func popToLast<T: Coordinatable>(
         _ destination: Destinations.Meta,
         _ action: @escaping @MainActor (T) -> Void
     ) -> Self {
+        stack.setup(for: self)
         if let dest = stack.popToLast(destination),
            let coordinator = dest.coordinatable as? T {
             action(coordinator)
@@ -688,6 +776,7 @@ extension FlowCoordinatable {
         configuration: SheetConfiguration? = nil,
         onDismiss: @escaping @MainActor () -> Void
     ) -> Destination {
+        stack.setup(for: self)
         var dest = destination.resolvedValue(for: self)
 
         dest.setOnDismiss(onDismiss)
@@ -699,12 +788,7 @@ extension FlowCoordinatable {
             // its own navigation context. Pushing a split view is not.
             _warnIfSplitInsideNavigationStack(dest.coordinatable)
         }
-        dest.coordinatable?.setHasLayerNavigationCoordinatable(pushType == .push)
-        dest.coordinatable?.setParent(self)
-
-        if let flowCoordinator = dest.coordinatable as? any FlowCoordinatable {
-            flowCoordinator.setPresentedAs(pushType)
-        }
+        dest.coordinatable?.attach(to: self, navigationLayer: pushType == .push, presentation: pushType)
 
         return dest
     }
@@ -725,7 +809,6 @@ extension FlowCoordinatable {
 
         stack.push(destination: dest)
 
-        checkForMultipleModals(pushType: pushType)
         return dest
     }
 
@@ -735,6 +818,7 @@ extension FlowCoordinatable {
         policy: RoutePolicy,
         as pushType: PresentationType
     ) -> Bool {
+        stack.setup(for: self)
         guard case .distinct = policy else { return false }
 
         if pushType == .push {
@@ -753,23 +837,34 @@ extension FlowCoordinatable {
 
 @MainActor
 public extension FlowCoordinatable {
-    /// Pushes a destination and returns its resolved child coordinator.
+    /// Pushes a destination and returns the child as `T`, or `nil` for a view
+    /// route or another type. The navigation happens either way.
     ///
-    /// A non-closure alternative to
-    /// ``route(to:policy:onDismiss:_:)`` that flattens deep-link chains:
+    /// A ``RoutePolicy/distinct`` skip also returns `nil`, without pushing.
     ///
     /// ```swift
-    /// let settings = route(to: .settings, expecting: SettingsCoordinator.self)
-    /// settings?.route(to: .account)
+    /// route(to: .settings, expecting: SettingsCoordinator.self)?.route(to: .account)
     /// ```
     ///
-    /// - Returns: The child coordinator cast to `T`, or `nil` when the
-    ///   destination is view-only, resolves to a different type, or the
-    ///   policy skipped the push.
+    /// - Returns: The pushed child, or `nil`.
     func route<T: Coordinatable>(
         to destination: Destinations,
         policy: RoutePolicy = .always,
-        onDismiss: @escaping @MainActor () -> Void = { },
+        expecting coordinatorType: T.Type
+    ) -> T? {
+        guard !policySkips(destination, policy: policy, as: .push) else { return nil }
+        let dest = performRoute(to: destination, as: .push, onDismiss: { })
+        return dest.coordinatable as? T
+    }
+
+    /// Deprecated. Use ``route(to:policy:expecting:awaiting:)`` instead.
+    ///
+    /// Run the dismissal code after awaiting the returned `result()`.
+    @available(*, deprecated, message: "Will be removed in a future update. Use expecting: with awaiting: to get the child immediately and await its result.")
+    func route<T: Coordinatable>(
+        to destination: Destinations,
+        policy: RoutePolicy = .always,
+        onDismiss: @escaping @MainActor () -> Void,
         expecting coordinatorType: T.Type
     ) -> T? {
         guard !policySkips(destination, policy: policy, as: .push) else { return nil }
@@ -777,13 +872,35 @@ public extension FlowCoordinatable {
         return dest.coordinatable as? T
     }
 
-    /// Presents a destination modally and returns its resolved child
-    /// coordinator. See ``route(to:policy:onDismiss:expecting:)``.
+    /// Presents a destination and returns the child as `T`, or `nil` for a view
+    /// route or another type. The navigation happens either way.
+    ///
+    /// A ``RoutePolicy/distinct`` skip also returns `nil`, without presenting.
     func present<T: Coordinatable>(
         _ destination: Destinations,
         as type: ModalPresentationType = .sheet,
         policy: RoutePolicy = .always,
-        onDismiss: @escaping @MainActor () -> Void = { },
+        expecting coordinatorType: T.Type
+    ) -> T? {
+        guard !policySkips(destination, policy: policy, as: type.presentationType) else { return nil }
+        let dest = performRoute(
+            to: destination,
+            as: type.presentationType,
+            configuration: type.configuration,
+            onDismiss: { }
+        )
+        return dest.coordinatable as? T
+    }
+
+    /// Deprecated. Use ``Coordinatable/present(_:as:policy:expecting:awaiting:)`` instead.
+    ///
+    /// Run the dismissal code after awaiting the returned `result()`.
+    @available(*, deprecated, message: "Will be removed in a future update. Use expecting: with awaiting: to get the child immediately and await its result.")
+    func present<T: Coordinatable>(
+        _ destination: Destinations,
+        as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always,
+        onDismiss: @escaping @MainActor () -> Void,
         expecting coordinatorType: T.Type
     ) -> T? {
         guard !policySkips(destination, policy: policy, as: type.presentationType) else { return nil }
@@ -796,35 +913,43 @@ public extension FlowCoordinatable {
         return dest.coordinatable as? T
     }
 
-    /// Replaces the root and returns its resolved child coordinator.
-    /// See ``route(to:policy:onDismiss:expecting:)``.
+    /// Replaces the flow's root and returns the child as `T`, or `nil` for a
+    /// view route or another type. The navigation happens either way.
+    ///
+    /// Removes every pushed and presented entry, like ``setRoot(_:animation:)``.
     func setRoot<T: Coordinatable>(
         _ destination: Destinations,
         animation: Animation? = nil,
         expecting coordinatorType: T.Type
     ) -> T? {
+        stack.setup(for: self)
         let dest = destination.resolvedValue(for: self)
-        dest.coordinatable?.setParent(self)
         stack.setRoot(root: dest, animation: animation)
         return dest.coordinatable as? T
     }
 
-    /// Pops to the **first** matching destination and returns its child
-    /// coordinator, if any.
+    /// Returns to the first entry matching a case and returns its child as `T`.
+    ///
+    /// Returns `nil` for a view route or another type. With no match, nothing
+    /// is removed and the result is `nil`.
     func popToFirst<T: Coordinatable>(
         _ destination: Destinations.Meta,
         expecting coordinatorType: T.Type
     ) -> T? {
-        stack.popToFirst(destination)?.coordinatable as? T
+        stack.setup(for: self)
+        return stack.popToFirst(destination)?.coordinatable as? T
     }
 
-    /// Pops to the **last** matching destination and returns its child
-    /// coordinator, if any.
+    /// Returns to the last entry matching a case and returns its child as `T`.
+    ///
+    /// Returns `nil` for a view route or another type. With no match, nothing
+    /// is removed and the result is `nil`.
     func popToLast<T: Coordinatable>(
         _ destination: Destinations.Meta,
         expecting coordinatorType: T.Type
     ) -> T? {
-        stack.popToLast(destination)?.coordinatable as? T
+        stack.setup(for: self)
+        return stack.popToLast(destination)?.coordinatable as? T
     }
 }
 
@@ -832,47 +957,139 @@ public extension FlowCoordinatable {
 
 @MainActor
 public extension FlowCoordinatable {
-    /// Pushes a destination and suspends until it is popped or otherwise
-    /// removed from the stack.
+    /// Pushes a destination and returns its child and a result waiter without
+    /// suspending.
     ///
-    /// The suspension resumes exactly once, no matter how the destination
-    /// leaves the stack — `pop()`, `popToRoot()`, a back swipe, a root
-    /// swap, or the whole coordinator being dismissed.
+    /// Configure the child, then await `result()`:
     ///
     /// ```swift
-    /// await routeAndWait(to: .picker)
-    /// // picker was closed — read whatever state it wrote
+    /// let (picker, result) = route(
+    ///     to: .picker, expecting: PickerCoordinator.self, awaiting: Item.self
+    /// )
+    /// picker?.route(to: .favorites)
+    /// let item = await result()
+    /// ```
+    ///
+    /// Called from a cancelled task, it pushes nothing and returns `nil` for both.
+    ///
+    /// - Parameters:
+    ///   - destination: The destination to push.
+    ///   - policy: A ``RoutePolicy/distinct`` skip returns a `nil` child and a
+    ///     `result()` that returns `nil` immediately.
+    ///   - coordinatorType: The expected child type.
+    ///   - resultType: The expected result type. Use `Void.self` to wait only.
+    /// - Returns: The child, or `nil` for a view route or another type, and a
+    ///   `result()` closure. `result()` returns the dismissal value, or `nil`
+    ///   for dismissal without one, a type mismatch, or cancellation of the
+    ///   waiting task, which leaves the screen in place. It keeps returning the
+    ///   same value after dismissal.
+    func route<T: Coordinatable, Result>(
+        to destination: Destinations,
+        policy: RoutePolicy = .always,
+        expecting coordinatorType: T.Type,
+        awaiting resultType: Result.Type
+    ) -> (coordinator: T?, result: @MainActor () async -> Result?) {
+        guard !Task.isCancelled,
+              !policySkips(destination, policy: policy, as: .push) else {
+            return (nil, { nil })
+        }
+        let dest = performRoute(to: destination, as: .push, onDismiss: { })
+        return (dest.coordinatable as? T, dest.resolution.resultWaiter(for: resultType))
+    }
+
+    /// Presents a destination and returns its child and a result waiter without
+    /// suspending.
+    ///
+    /// ```swift
+    /// let (settings, result) = present(
+    ///     .settings, expecting: SettingsCoordinator.self, awaiting: Void.self
+    /// )
+    /// settings?.route(to: .account)
+    /// _ = await result()
+    /// ```
+    ///
+    /// The child, `result()`, cancellation, and ``RoutePolicy/distinct`` behave
+    /// as in ``route(to:policy:expecting:awaiting:)``.
+    func present<T: Coordinatable, Result>(
+        _ destination: Destinations,
+        as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always,
+        expecting coordinatorType: T.Type,
+        awaiting resultType: Result.Type
+    ) -> (coordinator: T?, result: @MainActor () async -> Result?) {
+        guard !Task.isCancelled,
+              !policySkips(destination, policy: policy, as: type.presentationType) else {
+            return (nil, { nil })
+        }
+        let dest = performRoute(
+            to: destination,
+            as: type.presentationType,
+            configuration: type.configuration,
+            onDismiss: { }
+        )
+        return (dest.coordinatable as? T, dest.resolution.resultWaiter(for: resultType))
+    }
+
+    /// Pushes a destination and suspends until it leaves, returning its result.
+    ///
+    /// A screen returns a value with ``Destination/dismiss(returning:)``; a child
+    /// coordinator uses ``Coordinatable/dismissCoordinator(returning:)``.
+    ///
+    /// ```swift
+    /// let item = await route(to: .picker, awaiting: Item.self)
     /// ```
     ///
     /// - Parameters:
     ///   - destination: The destination to push.
-    ///   - policy: See ``route(to:policy:onDismiss:)``. When the policy
-    ///     skips the push, this returns immediately.
+    ///   - policy: A ``RoutePolicy/distinct`` skip returns `nil` immediately.
+    ///   - resultType: The expected result type. Use `Void.self` to wait only.
+    /// - Returns: The result, or `nil` for a back action or ``pop()``, a type
+    ///   mismatch, a skipped push, or cancellation. Cancellation leaves the
+    ///   screen in place.
+    func route<Result>(
+        to destination: Destinations,
+        policy: RoutePolicy = .always,
+        awaiting resultType: Result.Type
+    ) async -> Result? {
+        guard !Task.isCancelled else { return nil }
+        guard !policySkips(destination, policy: policy, as: .push) else { return nil }
+        let dest = performRoute(to: destination, as: .push, onDismiss: { })
+        await dest.resolution.awaitResolution()
+        return Task.isCancelled ? nil : dest.resolution.result as? Result
+    }
+
+    /// Pushes a destination and suspends until it leaves the stack.
+    ///
+    /// Resumes once, however the screen leaves: a pop, a back swipe, a root
+    /// swap, or the flow's dismissal. Cancelling the task also resumes it and
+    /// leaves the screen in place. For a result, use ``route(to:policy:awaiting:)``.
+    ///
+    /// ```swift
+    /// await routeAndWait(to: .help)
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - destination: The destination to push.
+    ///   - policy: A ``RoutePolicy/distinct`` skip returns immediately.
     func routeAndWait(
         to destination: Destinations,
         policy: RoutePolicy = .always
     ) async {
+        guard !Task.isCancelled else { return }
         guard !policySkips(destination, policy: policy, as: .push) else { return }
         let dest = performRoute(to: destination, as: .push, onDismiss: { })
         await dest.resolution.awaitResolution()
     }
 
-    /// Presents a destination modally and suspends until it is dismissed.
-    ///
-    /// The suspension resumes exactly once, whether the modal is dismissed
-    /// interactively, via ``Coordinatable/dismissModal()``, or by the
-    /// presented coordinator calling ``Coordinatable/dismissCoordinator()``.
-    ///
-    /// - Parameters:
-    ///   - destination: The destination to present.
-    ///   - type: The modal presentation style. Defaults to `.sheet`.
-    ///   - policy: See ``present(_:as:policy:onDismiss:)``. When the
-    ///     policy skips the presentation, this returns immediately.
+    /// Deprecated. Use ``Coordinatable/present(_:as:policy:awaiting:)`` with
+    /// `awaiting: Void.self` instead.
+    @available(*, deprecated, message: "Will be removed in a future update. Use await present with awaiting: Void.self to wait for dismissal, or awaiting: Result.self to receive a result.")
     func presentAndWait(
         _ destination: Destinations,
         as type: ModalPresentationType = .sheet,
         policy: RoutePolicy = .always
     ) async {
+        guard !Task.isCancelled else { return }
         guard !policySkips(destination, policy: policy, as: type.presentationType) else { return }
         let dest = performRoute(
             to: destination,
@@ -883,37 +1100,34 @@ public extension FlowCoordinatable {
         await dest.resolution.awaitResolution()
     }
 
-    /// Presents a destination modally and suspends until it is dismissed,
-    /// returning the value the presented coordinator handed back.
+    /// Presents a destination and suspends until it is dismissed, returning its
+    /// result.
     ///
-    /// The presented coordinator delivers the result with
-    /// ``Coordinatable/dismissCoordinator(returning:)``. Any other form of
-    /// dismissal — an interactive swipe, ``Coordinatable/dismissModal()``,
-    /// a plain ``Coordinatable/dismissCoordinator()`` — resumes with `nil`,
-    /// so cancellation is handled for free:
+    /// The presented content returns a value with ``Destination/dismiss(returning:)``
+    /// or ``Coordinatable/dismissCoordinator(returning:)``. A swipe,
+    /// ``Coordinatable/dismissPresentedModal()``, or a plain
+    /// ``Coordinatable/dismissCoordinator()`` returns `nil`.
     ///
     /// ```swift
-    /// guard let token = await present(.login, awaiting: AuthToken.self) else {
-    ///     return // user backed out
-    /// }
+    /// guard let token = await present(.login, awaiting: AuthToken.self) else { return }
     /// session.store(token)
     /// ```
     ///
     /// - Parameters:
     ///   - destination: The destination to present.
-    ///   - type: The modal presentation style. Defaults to `.sheet`.
-    ///   - policy: See ``present(_:as:policy:onDismiss:)``. When the
-    ///     policy skips the presentation, this returns `nil` immediately.
-    ///   - resultType: The type of value expected back.
-    /// - Returns: The value passed to `dismissCoordinator(returning:)`,
-    ///   or `nil` when the modal was dismissed without a result (or with a
-    ///   result of a different type).
+    ///   - type: `.sheet` (the default) or `.fullScreenCover`.
+    ///   - policy: A ``RoutePolicy/distinct`` skip returns `nil` immediately.
+    ///   - resultType: The expected result type. Use `Void.self` to wait only.
+    /// - Returns: The result, or `nil` for dismissal without one, a type
+    ///   mismatch, a skipped request, or cancellation. Cancellation leaves the
+    ///   modal in place.
     func present<Result>(
         _ destination: Destinations,
         as type: ModalPresentationType = .sheet,
         policy: RoutePolicy = .always,
         awaiting resultType: Result.Type
     ) async -> Result? {
+        guard !Task.isCancelled else { return nil }
         guard !policySkips(destination, policy: policy, as: type.presentationType) else { return nil }
         let dest = performRoute(
             to: destination,
@@ -922,18 +1136,14 @@ public extension FlowCoordinatable {
             onDismiss: { }
         )
         await dest.resolution.awaitResolution()
-        return dest.resolution.result as? Result
+        return Task.isCancelled ? nil : dest.resolution.result as? Result
     }
 }
 
 @MainActor
 extension FlowCoordinatable {
     func setPresentedAs(_ type: PresentationType) {
-        stack.presentedAs = type
-        if var root = stack.root, root.pushType == nil {
-            root.setPushType(type)
-            stack.root = root
-        }
+        inheritPresentation(type)
     }
 }
 
@@ -982,10 +1192,9 @@ private struct FlowNavigationStackView: View {
     }
 }
 
-/// The SwiftUI view generated by a ``FlowCoordinatable`` coordinator.
+/// The view that renders a ``FlowCoordinatable``.
 ///
-/// You never create this view directly — access ``Coordinatable/view``
-/// on a `FlowCoordinatable` coordinator to obtain it.
+/// Get it from the coordinator's ``Coordinatable/view``; don't create it directly.
 public struct FlowCoordinatableView: CoordinatableView {
     private let _coordinator: any FlowCoordinatable
 
@@ -999,9 +1208,9 @@ public struct FlowCoordinatableView: CoordinatableView {
 
     @ViewBuilder
     private func coordinatorView() -> some View {
-        if let rootView = _coordinator.anyStack.root?.view {
+        if let rootView = _coordinator._resolvedStack.root?.view {
             flowCoordinatableView(view: AnyView(rootView))
-        } else if let c = _coordinator.anyStack.root?.coordinatable {
+        } else if let c = _coordinator._resolvedStack.root?.coordinatable {
             flowCoordinatableView(view: AnyView(c.view))
         } else {
             EmptyView()
@@ -1018,7 +1227,7 @@ public struct FlowCoordinatableView: CoordinatableView {
         // drops any stale internal navigation state (e.g. lingering
         // navigation bar from a previous root's deep push hierarchy). The
         // reset also re-arms the deferred path activation below.
-        .id(_coordinator.anyStack.root?.id)
+        .id(_coordinator._resolvedStack.root?.id)
         .applySheets(from: _coordinator, modalContent: wrappedView)
         .applyFullScreenCovers(from: _coordinator, modalContent: wrappedView)
     }
@@ -1027,10 +1236,10 @@ public struct FlowCoordinatableView: CoordinatableView {
         _coordinator.customize(
             AnyView(
                 Group {
-                    if _coordinator.anyStack.hasLayerNavigationCoordinator {
-                        if let rootView = _coordinator.anyStack.root?.view {
+                    if _coordinator._resolvedStack.hasLayerNavigationCoordinator {
+                        if let rootView = _coordinator._resolvedStack.root?.view {
                             AnyView(rootView)
-                        } else if let c = _coordinator.anyStack.root?.coordinatable {
+                        } else if let c = _coordinator._resolvedStack.root?.coordinatable {
                             AnyView(c.view)
                                 .environmentCoordinatable(c)
                         } else {
@@ -1043,6 +1252,15 @@ public struct FlowCoordinatableView: CoordinatableView {
             )
         )
         .environmentCoordinatable(_coordinator)
-        .id(_coordinator.anyStack.id)
+        .id(_coordinator._resolvedStack.id)
+    }
+}
+
+@MainActor
+extension FlowCoordinatable {
+    var _stack: any _MutableFlowStack { stack }
+    var _resolvedStack: any _MutableFlowStack {
+        stack.setup(for: self)
+        return stack
     }
 }

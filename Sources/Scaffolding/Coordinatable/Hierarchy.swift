@@ -9,42 +9,35 @@ import SwiftUI
 
 @MainActor
 public extension Coordinatable {
-    /// How this coordinator was reached from its parent.
+    /// How this coordinator entered its parent: `.root`, `.push`, `.sheet`,
+    /// or `.fullScreenCover`.
     ///
-    /// - `.push` — routed onto a parent flow's stack.
-    /// - `.sheet` / `.fullScreenCover` — presented modally.
-    /// - `.root` — a flow's root destination, a tab child, a
-    ///   `RootCoordinatable`'s root, or the top of the coordinator tree.
-    ///
-    /// The coordinator-side counterpart of the view-side
-    /// `@Environment(\.destination).routeType`. The two can differ for the
-    /// same screen: a view pushed inside a sheet-presented flow reads
-    /// `.push` from its destination while the flow itself reads `.sheet`.
-    ///
-    /// Use it to make dismissal decisions without knowing the surrounding
-    /// structure — e.g. a sub-flow that closes itself the same way
-    /// regardless of how it was presented calls `dismissCoordinator()`,
-    /// but one that only offers "Close" when modal checks
-    /// `routeType.isModal` first.
+    /// Roots, tabs, split columns, and the top of the tree read `.root`. This
+    /// can differ from a view's `@Environment(\.destination).routeType`: in a
+    /// flow presented as a sheet, the coordinator reads `.sheet` while a pushed
+    /// screen reads `.push`. Check ``DestinationType/isModal`` before offering
+    /// Close. See <doc:Orientation>.
     var routeType: DestinationType {
         _owningDestination()?.routeType ?? .root
     }
 
-    /// This coordinator's nearest ancestor of the given type, walking the
-    /// ``parent`` chain upward. `nil` when no ancestor matches.
+    /// Returns the nearest ancestor of the given type, or `nil` when none matches.
     ///
-    /// This is the coordinator-side way to reach up the tree — e.g. a
-    /// flow exposing a sign-out action that belongs to the app root:
+    /// Walks ``parent`` upward, starting above this coordinator. Use it to
+    /// call an action the ancestor owns:
     ///
     /// ```swift
     /// func signOut() {
-    ///     ancestor(ofType: AppCoordinator.self)?.setRoot(.unauthenticated)
+    ///     ancestor(ofType: AppCoordinator.self)?.signOut()
     /// }
     /// ```
     ///
-    /// Views don't need this: every ancestor coordinator is already
-    /// injected into their environment
-    /// (`@Environment(AppCoordinator.self)`).
+    /// Views read ancestors from the environment instead:
+    /// `@Environment(AppCoordinator.self)`.
+    ///
+    /// Both need the ancestor's concrete type, so they suit single-module
+    /// apps. A feature in its own package can't name its host; inject a
+    /// capability instead. See <doc:MonolithicApps> and <doc:ModularApps>.
     func ancestor<T: Coordinatable>(ofType type: T.Type = T.self) -> T? {
         var node = parent
         while let current = node {
@@ -54,11 +47,10 @@ public extension Coordinatable {
         return nil
     }
 
-    /// The topmost coordinator of the tree this coordinator lives in —
-    /// `self` when it has no parent.
+    /// The top coordinator of this tree, or `self` when there is no parent.
     ///
-    /// Handy with ``debugHierarchy()`` to dump the whole tree from
-    /// anywhere: `print(coordinator.hierarchyRoot.debugHierarchy())`.
+    /// Print the whole tree from anywhere with
+    /// `print(coordinator.hierarchyRoot.debugHierarchy())`.
     var hierarchyRoot: any Coordinatable {
         var node: any Coordinatable = self
         while let parent = node.parent {

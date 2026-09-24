@@ -7,28 +7,30 @@
 
 import SwiftUI
 
-/// A SwiftUI view that is associated with a specific coordinator.
+/// A view that renders a coordinator.
 ///
-/// ``FlowCoordinatableView``, ``TabCoordinatableView``, and
-/// ``RootCoordinatableView`` all conform to this protocol. It provides
-/// the ``wrappedView(_:)`` helper used internally to resolve a
-/// ``Destination`` into its final SwiftUI view tree.
+/// ``FlowCoordinatableView``, ``RootCoordinatableView``,
+/// ``TabCoordinatableView``, and ``SplitCoordinatableView`` conform. Get one
+/// from ``Coordinatable/view``; you don't create them yourself.
 @MainActor
 public protocol CoordinatableView: View {
-    /// The coordinator this view belongs to.
+    /// The coordinator this view renders.
     var coordinator: any Coordinatable { get }
 }
 
 @MainActor
 public extension CoordinatableView {
-    /// Resolves a ``Destination`` into its SwiftUI view, injecting the
-    /// coordinator into the environment and applying any `customize(_:)`
-    /// wrapper defined on the destination's parent.
+    /// Renders a destination's view or child coordinator, with its owner
+    /// injected into the environment.
+    ///
+    /// When the owner is another coordinator, such as a pushed child flow
+    /// sharing this stack, the owner's `customize(_:)` wraps the result.
+    /// Framework use.
     @ViewBuilder
     func wrappedView(_ destination: Destination) -> some View {
         let content = Group {
-            if let view = destination.view {
-                AnyView(view.environmentCoordinatable(destination.parent))
+            if let view = destination.view, let parent = destination.parent {
+                AnyView(view.environmentCoordinatable(parent))
             } else if let c = destination.coordinatable {
                 AnyView(c.view)
             } else {
@@ -36,8 +38,8 @@ public extension CoordinatableView {
             }
         }
 
-        if destination.parent._dataId != coordinator._dataId {
-            AnyView(destination.parent.customizeErased(AnyView(content)))
+        if let parent = destination.parent, parent._dataId != coordinator._dataId {
+            AnyView(parent.customizeErased(AnyView(content)))
         } else {
             AnyView(content)
         }

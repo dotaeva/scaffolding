@@ -1,0 +1,131 @@
+import Testing
+import SwiftBasicFormat
+import SwiftParser
+import SwiftSyntax
+import SwiftSyntaxMacroExpansion
+import ScaffoldingMacros
+
+@Suite("Scaffoldable syntax and diagnostics")
+struct ScaffoldableMacroTests {
+    private func expand(_ body: String, arguments: String = "", kind: String = "FlowCoordinatable", access: String = "") throws -> (String, [String]) {
+        let file = Parser.parse(source: "@Scaffoldable\(arguments) \(access) final class Example: \(kind) {\n\(body)\n}")
+        let declaration = try #require(file.statements.first?.item.as(ClassDeclSyntax.self))
+        let attribute = try #require(declaration.attributes.first?.as(AttributeSyntax.self))
+        let context = BasicMacroExpansionContext()
+        let members = try ScaffoldableMacro.expansion(
+            of: attribute, providingMembersOf: declaration, conformingTo: [], in: context
+        )
+        let source = members.map { $0.formatted().description }.joined(separator: "\n")
+        #expect(!Parser.parse(source: source).hasError, "Generated declarations must parse: \(source)")
+        return (source, context.diagnostics.map(\.message))
+    }
+
+    @Test(arguments: [
+        "some SwiftUI.View", "any Scaffolding.Coordinatable",
+        "(some View,\n some View)", "(any Coordinatable,\n some View)",
+        "(some SwiftUI.View, SwiftUI.TabRole)",
+        "(any Scaffolding.Coordinatable, some SwiftUI.View, SwiftUI.TabRole)"
+    ])
+    func recognizesStructuredReturns(_ type: String) throws {
+        let (source, diagnostics) = try expand("func screen() -> \(type) { fatalError() }", kind: "Scaffolding.TabCoordinatable")
+        #expect(source.contains("case `screen`"))
+        #expect(diagnostics.isEmpty)
+    }
+
+    @Test(arguments: ["() -> (any Coordinatable, TabRole)", "[any Coordinatable]", "Factory<some View>", "ConcreteCoordinator", "Void"])
+    func ignoresNonRoutes(_ type: String) throws {
+        let (source, diagnostics) = try expand("func helper() -> \(type) { fatalError() }")
+        #expect(!source.contains("case `helper`"))
+        #expect(diagnostics.isEmpty)
+    }
+
+    @Test(arguments: [
+        "func screen() async -> some View { fatalError() }",
+        "func screen() throws -> some View { fatalError() }",
+        "func screen<T>(value: T) -> some View { fatalError() }",
+        "func screen(value: some View) -> some View { fatalError() }",
+        "func screen(value: [some View]) -> some View { fatalError() }",
+        "static func screen() -> some View { fatalError() }",
+        "func screen(value: inout Int) -> some View { fatalError() }",
+        "func screen(values: Int...) -> some View { fatalError() }"
+    ])
+    func diagnosesUnsupportedRoutes(_ function: String) throws {
+        let (_, diagnostics) = try expand(function)
+        #expect(diagnostics.count == 1)
+        #expect(diagnostics.first?.contains("Scaffolding route") == true)
+    }
+
+    @Test func diagnosesOverloads() throws {
+        let (_, diagnostics) = try expand("func screen(id: Int) -> some View {} ; func screen(name: String) -> some View {}")
+        #expect(diagnostics.count == 1)
+        #expect(diagnostics.first?.contains("unique names") == true)
+    }
+
+    @Test func rejectsNonliteralFlags() {
+        #expect(throws: (any Error).self) {
+            try expand("", arguments: "(injectsCoordinator: 1 == 2)")
+        }
+    }
+
+    @Test func ignoresQualifiedAttribute() throws {
+        let (source, diagnostics) = try expand("@Scaffolding.ScaffoldingIgnored func helper() -> some View {}")
+        #expect(!source.contains("case `helper`"))
+        #expect(diagnostics.isEmpty)
+    }
+
+    @Test func preservesAutoclosureDefaultAndNames() throws {
+        let (source, diagnostics) = try expand("func screen(instance: Int, meta: Int, value: @autoclosure () -> Bool = true) -> some View {}")
+        #expect(source.contains("__scaffoldingArgument0"))
+        #expect(source.contains("__scaffoldingArgument2()"))
+        #expect(source.contains("meta: self.meta"))
+        #expect(source.split(whereSeparator: { $0.isWhitespace }).joined(separator: " ").contains("{ true }"))
+        #expect(diagnostics.isEmpty)
+    }
+
+    @Test func preservesPackageAccess() throws {
+        let (source, diagnostics) = try expand("func home() -> some View {}", arguments: "(injectsCoordinator: false)", access: "package")
+        for declaration in ["enum Destinations", "enum Meta", "typealias Owner", "var meta", "var isAvailable", "func value", "nonisolated var _injectsCoordinator"] {
+            #expect(source.contains("package " + declaration))
+        }
+        #expect(diagnostics.isEmpty)
+    }
+
+    @Test func preservesMutuallyExclusiveBranches() throws {
+        let (source, diagnostics) = try expand("""
+        #if os(macOS)
+        func screen(id: Int) -> some View {}
+        #elseif os(iOS)
+        func screen(name: String) -> some View {}
+        #else
+        #if DEBUG
+        func screen() -> some View {}
+        #endif
+        #endif
+        """)
+        #expect(source.contains("#elseif os(iOS)"))
+        #expect(source.contains("#if DEBUG"))
+        #expect(diagnostics.isEmpty)
+        let (_, duplicates) = try expand("""
+        func screen() -> some View {}
+        #if os(macOS)
+        func screen(id: Int) -> some View {}
+        #endif
+        """)
+        #expect(duplicates.count == 1)
+    }
+
+    @Test func guardsAvailableFactories() throws {
+        let (source, diagnostics) = try expand("@available(macOS 27, iOS 27, *) func newer() -> some View {}")
+        #expect(source.contains("@available(macOS 27, iOS 27, *)"))
+        #expect(source.contains("#available(macOS 27, iOS 27, *)"))
+        #expect(source.contains("return false"))
+        #expect(diagnostics.isEmpty)
+    }
+
+    @Test(arguments: ["@available(*, unavailable)", "@available(macOS, obsoleted: 27)", "@available(swift 6.2)"])
+    func diagnosesUnsupportedAvailability(_ attribute: String) throws {
+        let (_, diagnostics) = try expand("\(attribute) func screen() -> some View {}")
+        #expect(diagnostics.count == 1)
+        #expect(diagnostics.first?.contains("#if") == true)
+    }
+}

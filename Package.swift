@@ -8,7 +8,7 @@ let package = Package(
     name: "Scaffolding",
     platforms: [.macOS(.v15), .iOS(.v18), .tvOS(.v18), .watchOS(.v11), .macCatalyst(.v18)],
     products: [
-        // Products define the executables∫ and libraries a package produces, making them visible to other packages.
+        // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "Scaffolding",
             targets: ["Scaffolding"]
@@ -41,6 +41,15 @@ let package = Package(
 
         .target(name: "ScaffoldingTesting", dependencies: ["Scaffolding"]),
 
+        .testTarget(
+            name: "ScaffoldingMacrosTests",
+            dependencies: [
+                "ScaffoldingMacros",
+                .product(name: "SwiftParser", package: "swift-syntax"),
+                .product(name: "SwiftBasicFormat", package: "swift-syntax"),
+                .product(name: "SwiftSyntaxMacroExpansion", package: "swift-syntax")
+            ]
+        ),
         .testTarget(
             name: "ScaffoldingTests",
             dependencies: ["Scaffolding", "ScaffoldingTesting"]
