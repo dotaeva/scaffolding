@@ -122,6 +122,24 @@ struct ScaffoldableMacroTests {
         #expect(diagnostics.isEmpty)
     }
 
+    @Test func payloadAvailabilityGuardsFactoriesWithoutAnnotatingCases() throws {
+        let (source, diagnostics) = try expand("@available(macOS 99, *) func newer(id: Int) -> some View {}")
+        #expect(source.contains("case `newer`(`id`: Int)"))
+        #expect(!source.contains("@available"))
+        #expect(source.contains("#available(macOS 99, *)"))
+        #expect(diagnostics.isEmpty)
+    }
+
+    @Test func defaultsUseIsolatedConvenienceFactories() throws {
+        let (source, diagnostics) = try expand("func detail(id: Int = defaultID, title: String = defaultTitle) -> some View {}", access: "public")
+        #expect(source.contains("case `detail`(`id`: Int, `title`: String)"))
+        #expect(source.components(separatedBy: "public static func `detail`").count == 3)
+        #expect(source.contains("@MainActor"))
+        #expect(source.contains("__scaffoldingDefault_detail_0()"))
+        #expect(source.contains("__scaffoldingDefault_detail_1()"))
+        #expect(diagnostics.isEmpty)
+    }
+
     @Test(arguments: ["@available(*, unavailable)", "@available(macOS, obsoleted: 27)", "@available(swift 6.2)"])
     func diagnosesUnsupportedAvailability(_ attribute: String) throws {
         let (_, diagnostics) = try expand("\(attribute) func screen() -> some View {}")

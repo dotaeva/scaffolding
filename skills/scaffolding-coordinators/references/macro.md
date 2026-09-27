@@ -80,6 +80,11 @@ func login(onComplete: @escaping @MainActor (AuthToken) -> Void) -> any Coordina
 // present(.login(onComplete: { token in ... }))  // closures ride along as payload
 ```
 
+Defaulted calls use generated `@MainActor` convenience factories, so a default
+may read the coordinator's actor-isolated static state. Explicitly supplied
+arguments and the stored enum payload are unchanged. `#fileID` and `#line`
+defaults describe the construction call site.
+
 Closure parameters are useful for repeated updates before dismissal; prefer `awaiting:` for a single result (see `scaffolding-routing` → `dismissal-and-results.md`).
 
 ## `@ScaffoldingIgnored` — needed rarely, and only on functions
@@ -135,8 +140,12 @@ There is no opt-in attribute. Auto-tracking by return type plus `@ScaffoldingIgn
 Generated members preserve `public` and `package` access. Class-body `#if`,
 `#elseif`, and `#else` routes retain their conditions, including nested blocks;
 mutually exclusive branches can share a route name. OS-introduction `@available`
-annotations propagate to cases and factories; `Destinations.isAvailable` permits
-checking decoded routes. Unsupported `unavailable`, `obsoleted`, and
+annotations guard factories at runtime; `Destinations.isAvailable` permits
+checking decoded routes. Parameterless cases also keep the annotation. Swift
+forbids introduction availability on payload-bearing cases, so those cases stay
+constructible and their payload types must exist at the coordinator's deployment
+floor. Navigation methods skip unavailable routes; check `isAvailable` before
+choosing an initial container route. Unsupported `unavailable`, `obsoleted`, and
 Swift-language availability forms are diagnosed; use `#if` for those cases.
 
 Route factories must be synchronous, nonthrowing instance methods. Overloads

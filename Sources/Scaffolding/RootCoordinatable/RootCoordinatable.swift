@@ -150,6 +150,7 @@ public extension RootCoordinatable {
     /// - Returns: `self`, for chaining.
     @discardableResult
     func setRoot(_ destination: Destinations, animation: Animation? = nil) -> Self {
+        guard destination.isAvailable else { return self }
         root.setup(for: self)
         let dest = destination.resolvedValue(for: self)
 
@@ -176,6 +177,7 @@ public extension RootCoordinatable {
         animation: Animation? = nil,
         _ action: @escaping @MainActor (T) -> Void
     ) -> Self {
+        guard destination.isAvailable else { return self }
         root.setup(for: self)
         let dest = destination.resolvedValue(for: self)
         root.setRoot(root: dest, animation: animation)
@@ -279,6 +281,7 @@ public extension RootCoordinatable {
         animation: Animation? = nil,
         expecting coordinatorType: T.Type
     ) -> T? {
+        guard destination.isAvailable else { return nil }
         root.setup(for: self)
         let dest = destination.resolvedValue(for: self)
         root.setRoot(root: dest, animation: animation)
@@ -378,6 +381,7 @@ public extension RootCoordinatable {
 @MainActor
 extension RootCoordinatable {
     func modalPolicySkips(_ destination: Destinations, policy: RoutePolicy) -> Bool {
+        guard destination.isAvailable else { return true }
         guard case .distinct = policy else { return false }
         return _resolvedRoot.modals.contains { dest in
             guard let destMeta = dest.meta as? Destinations.Meta else { return false }
@@ -436,11 +440,6 @@ public struct RootCoordinatableView: CoordinatableView {
         } else {
             EmptyView()
         }
-    }
-
-    private func modals(of type: ModalPresentationType) -> [Destination] {
-        let target = type.presentationType
-        return _coordinator._resolvedRoot.modals.filter { $0.pushType == target }
     }
 
     public var body: some View {

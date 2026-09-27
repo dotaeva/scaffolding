@@ -45,7 +45,9 @@ print(report.restoredRoutes, report.skippedRoutes)
 ```
 
 - `.replace` clears existing pushes and modal requests before restoration.
-  Use it for repeated restoration or seeded stacks.
+  Use it for repeated restoration or seeded stacks. A structural child with no
+  saved state is recreated through its route factory, even when its route is
+  unchanged. `.replay` retains that child's current navigation.
 - The report API defaults to `.replace`.
 - The older `restoreNavigationState(from:)` overload keeps `.replay`, applying
   captured pushes/modals on top of the current state. Do not assume it replaces.

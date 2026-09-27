@@ -430,6 +430,7 @@ public extension FlowCoordinatable {
     /// - Returns: `self`, for chaining.
     @discardableResult
     func setRoot(_ destination: Destinations, animation: Animation? = nil) -> Self {
+        guard destination.isAvailable else { return self }
         stack.setup(for: self)
         let dest = destination.resolvedValue(for: self)
         stack.setRoot(root: dest, animation: animation)
@@ -638,6 +639,7 @@ public extension FlowCoordinatable {
     func replaceLast(
         with destination: Destinations
     ) -> Self {
+        guard destination.isAvailable else { return self }
         stack.setup(for: self)
         guard let index = stack.destinations.lastIndex(where: { $0.pushType == .push }) else {
             return route(to: destination)
@@ -661,6 +663,7 @@ public extension FlowCoordinatable {
         with destination: Destinations,
         onDismiss: @escaping @MainActor () -> Void
     ) -> Self {
+        guard destination.isAvailable else { return self }
         stack.setup(for: self)
         guard let index = stack.destinations.lastIndex(where: { $0.pushType == .push }) else {
             return route(to: destination, onDismiss: onDismiss)
@@ -728,6 +731,7 @@ public extension FlowCoordinatable {
         animation: Animation? = nil,
         _ action: @escaping @MainActor (T) -> Void
     ) -> Self {
+        guard destination.isAvailable else { return self }
         stack.setup(for: self)
         let dest = destination.resolvedValue(for: self)
         stack.setRoot(root: dest, animation: animation)
@@ -818,6 +822,7 @@ extension FlowCoordinatable {
         policy: RoutePolicy,
         as pushType: PresentationType
     ) -> Bool {
+        guard destination.isAvailable else { return true }
         stack.setup(for: self)
         guard case .distinct = policy else { return false }
 
@@ -922,6 +927,7 @@ public extension FlowCoordinatable {
         animation: Animation? = nil,
         expecting coordinatorType: T.Type
     ) -> T? {
+        guard destination.isAvailable else { return nil }
         stack.setup(for: self)
         let dest = destination.resolvedValue(for: self)
         stack.setRoot(root: dest, animation: animation)

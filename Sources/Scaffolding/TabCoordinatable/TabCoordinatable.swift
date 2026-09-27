@@ -302,6 +302,7 @@ public extension TabCoordinatable {
     /// - Returns: `self` for chaining.
     @discardableResult
     func setTabs(_ tabs: [Destinations]) -> Self {
+        guard tabs.allSatisfy(\.isAvailable) else { return self }
         tabItems.setup(for: self)
         let tabs = tabs.map {
             let t = $0.resolvedValue(for: self)
@@ -322,6 +323,7 @@ public extension TabCoordinatable {
     /// - Returns: `self` for chaining.
     @discardableResult
     func appendTab(_ tab: Destinations) -> Self {
+        guard tab.isAvailable else { return self }
         tabItems.setup(for: self)
         let tab = tab.resolvedValue(for: self)
         tab.coordinatable?.attach(to: self, navigationLayer: hasLayerNavigationCoordinatable, presentation: tabItems.presentedAs)
@@ -341,6 +343,7 @@ public extension TabCoordinatable {
     /// - Returns: `self` for chaining.
     @discardableResult
     func insertTab(_ tab: Destinations, at index: Int) -> Self {
+        guard tab.isAvailable else { return self }
         tabItems.setup(for: self)
         let tab = tab.resolvedValue(for: self)
         tab.coordinatable?.attach(to: self, navigationLayer: hasLayerNavigationCoordinatable, presentation: tabItems.presentedAs)
@@ -560,6 +563,7 @@ public extension TabCoordinatable {
         _ tab: Destinations,
         _ action: @escaping @MainActor (T) -> Void
     ) -> Self {
+        guard tab.isAvailable else { return self }
         tabItems.setup(for: self)
         let resolved = tab.resolvedValue(for: self)
         resolved.coordinatable?.attach(to: self, navigationLayer: hasLayerNavigationCoordinatable, presentation: tabItems.presentedAs)
@@ -581,6 +585,7 @@ public extension TabCoordinatable {
         at index: Int,
         _ action: @escaping @MainActor (T) -> Void
     ) -> Self {
+        guard tab.isAvailable else { return self }
         tabItems.setup(for: self)
         let resolved = tab.resolvedValue(for: self)
         resolved.coordinatable?.attach(to: self, navigationLayer: hasLayerNavigationCoordinatable, presentation: tabItems.presentedAs)
@@ -725,6 +730,7 @@ public extension TabCoordinatable {
         _ tab: Destinations,
         expecting coordinatorType: T.Type
     ) -> T? {
+        guard tab.isAvailable else { return nil }
         tabItems.setup(for: self)
         let resolved = tab.resolvedValue(for: self)
         resolved.coordinatable?.attach(to: self, navigationLayer: hasLayerNavigationCoordinatable, presentation: tabItems.presentedAs)
@@ -741,6 +747,7 @@ public extension TabCoordinatable {
         at index: Int,
         expecting coordinatorType: T.Type
     ) -> T? {
+        guard tab.isAvailable else { return nil }
         tabItems.setup(for: self)
         let resolved = tab.resolvedValue(for: self)
         resolved.coordinatable?.attach(to: self, navigationLayer: hasLayerNavigationCoordinatable, presentation: tabItems.presentedAs)
@@ -842,6 +849,7 @@ public extension TabCoordinatable {
 @MainActor
 extension TabCoordinatable {
     func modalPolicySkips(_ destination: Destinations, policy: RoutePolicy) -> Bool {
+        guard destination.isAvailable else { return true }
         guard case .distinct = policy else { return false }
         return _resolvedTabItems.modals.contains { dest in
             guard let destMeta = dest.meta as? Destinations.Meta else { return false }
@@ -952,11 +960,6 @@ public struct TabCoordinatableView: CoordinatableView {
             }
         }
         .background(TabMetadataSync(coordinator: _coordinator, trigger: $metadataRefreshTrigger))
-    }
-
-    private func modals(of type: ModalPresentationType) -> [Destination] {
-        let target = type.presentationType
-        return _coordinator._resolvedTabItems.modals.filter { $0.pushType == target }
     }
 
     public var body: some View {

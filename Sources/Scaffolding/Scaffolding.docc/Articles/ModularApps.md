@@ -7,7 +7,8 @@ through results and injected contracts instead of ancestor lookups.
 
 In a modular app each feature is a Swift package with a public coordinator
 and internal screens. Dependencies point one way: the composition root
-imports features, and features import only shared modules.
+imports features; features import shared modules and the child features they
+compose.
 
 That means a feature cannot name the coordinator hosting it — and should not
 try. The same feature may be pushed in a tab, placed in a split column, or
@@ -167,15 +168,18 @@ See <doc:DeepLinking>.
 
 ## Test each package alone
 
-Test a feature coordinator with a stub capability; no other module is needed:
+Test a feature coordinator with a stub capability on the main actor. The test
+target imports `Testing`, `ScaffoldingTesting`, the feature, and its shared
+contract module:
 
+<!-- checked-swift: modular-coordinator-test -->
 ```swift
 @MainActor final class SessionSpy: SessionActions {
     var didSignOut = false
     func signOut() { didSignOut = true }
 }
 
-@Test func signOutReachesTheSession() {
+@MainActor @Test func signOutReachesTheSession() {
     let spy = SessionSpy()
     let settings = SettingsCoordinator(session: spy).activated()
     settings.signOut()

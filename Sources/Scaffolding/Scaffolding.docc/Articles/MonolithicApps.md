@@ -78,16 +78,18 @@ or `nil` when the coordinator is not inside such an ancestor.
 ## Test through the real tree
 
 `ancestor(ofType:)` returns `nil` for a coordinator built alone. Build the
-parent, navigate, and take the child from the tree:
+parent, navigate, and take the child from the tree. Run the test on the main
+actor, with the imports described in <doc:TestingCoordinators>:
 
+<!-- checked-swift: monolithic-coordinator-test -->
 ```swift
-@Test func settingsRestartsOnboarding() {
+@MainActor @Test func settingsRestartsOnboarding() throws {
     let app = AppCoordinator().activated()
     app.finishOnboarding()
-    let settings = app.descendant(ofType: MainTabCoordinator.self)?
-        .selectFirstTab(.settings, expecting: SettingsCoordinator.self)
+    let settings = try #require(app.descendant(ofType: MainTabCoordinator.self)?
+        .selectFirstTab(.settings, expecting: SettingsCoordinator.self))
 
-    settings?.restartOnboarding()
+    settings.restartOnboarding()
 
     #expect(app.isRoot(.onboarding))
 }

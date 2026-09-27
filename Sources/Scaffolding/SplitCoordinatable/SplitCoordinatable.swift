@@ -453,6 +453,7 @@ extension SplitCoordinatable {
         column: SplitColumn,
         policy: RoutePolicy
     ) -> Bool {
+        guard destination.isAvailable else { return true }
         guard case .distinct = policy else { return false }
         _ = _resolvedSplitColumns // resolve initial columns before comparing
         guard let currentMeta = columns.destination(for: column)?.meta as? Destinations.Meta else {
@@ -622,6 +623,7 @@ public extension SplitCoordinatable {
 @MainActor
 extension SplitCoordinatable {
     func modalPolicySkips(_ destination: Destinations, policy: RoutePolicy) -> Bool {
+        guard destination.isAvailable else { return true }
         guard case .distinct = policy else { return false }
         return _resolvedSplitColumns.modals.contains { dest in
             guard let destMeta = dest.meta as? Destinations.Meta else { return false }
@@ -738,11 +740,6 @@ public struct SplitCoordinatableView: CoordinatableView {
                 column(_coordinator._resolvedSplitColumns.detail)
             }
         }
-    }
-
-    private func modals(of type: ModalPresentationType) -> [Destination] {
-        let target = type.presentationType
-        return _coordinator._resolvedSplitColumns.modals.filter { $0.pushType == target }
     }
 
     public var body: some View {

@@ -344,7 +344,6 @@ extension Coordinatable {
     /// that wraps `self`.
     func _owningDestination() -> Destination? {
         guard let parent else { return nil }
-        let selfId = AnyHashable(self.id)
 
         let candidates: [Destination] = {
             if let flow = parent as? any FlowCoordinatable {
@@ -375,10 +374,7 @@ extension Coordinatable {
             return []
         }()
 
-        return candidates.first(where: {
-            guard let cId = $0.materializedCoordinatable?.id else { return false }
-            return AnyHashable(cId) == selfId
-        })
+        return candidates.first { $0.materializedCoordinatable === self }
     }
 }
 

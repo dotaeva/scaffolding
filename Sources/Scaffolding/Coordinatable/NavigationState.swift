@@ -265,7 +265,10 @@ public extension FlowCoordinatable where Destinations: Codable {
         _ = _resolvedStack
         if NavigationStateContext.mode == .replace { popToRoot() }
         if let data = node.rootRoute, let route = decodeStateRoute(data, owner: self, at: "root") {
-            if !_sameRoute(stack.root?.source as? Destinations, route) { setRoot(route) }
+            if !_sameRoute(stack.root?.source as? Destinations, route) ||
+                needsInitialState(stack.root, savedChild: node.rootChild) {
+                setRoot(route)
+            }
             didRestoreStateRoute()
             restoreStateChild(node.rootChild, into: stack.root, at: "root")
         }
@@ -295,7 +298,10 @@ public extension RootCoordinatable where Destinations: Codable {
         _ = _resolvedRoot
         if NavigationStateContext.mode == .replace { dismissAllModals() }
         if let data = node.rootRoute, let route = decodeStateRoute(data, owner: self, at: "root") {
-            if !_sameRoute(root.root?.source as? Destinations, route) { setRoot(route) }
+            if !_sameRoute(root.root?.source as? Destinations, route) ||
+                needsInitialState(root.root, savedChild: node.rootChild) {
+                setRoot(route)
+            }
             didRestoreStateRoute()
             restoreStateChild(node.rootChild, into: root.root, at: "root")
         }
@@ -333,7 +339,24 @@ public extension TabCoordinatable where Destinations: Codable {
                 let unchanged = decoded.count == items.tabs.count && zip(items.tabs, decoded).allSatisfy {
                     _sameRoute($0.0.source as? Destinations, $0.1)
                 }
-                if !unchanged { setTabs(decoded) }
+                if !unchanged {
+                    setTabs(decoded)
+                } else {
+                    var tabs = items.tabs
+                    var replaced = false
+                    for index in decoded.indices {
+                        let child = index < node.tabChildren.count ? node.tabChildren[index] : nil
+                        guard needsInitialState(tabs[index], savedChild: child) else { continue }
+                        let destination = decoded[index].resolvedValue(for: self)
+                        destination.coordinatable?.attach(
+                            to: self, navigationLayer: hasLayerNavigationCoordinatable,
+                            presentation: items.presentedAs
+                        )
+                        tabs[index] = destination
+                        replaced = true
+                    }
+                    if replaced { tabItems.setTabs(tabs) }
+                }
                 for index in decoded.indices {
                     didRestoreStateRoute()
                     let child = index < node.tabChildren.count ? node.tabChildren[index] : nil
@@ -396,7 +419,8 @@ public extension SplitCoordinatable where Destinations: Codable {
 
     private func restoreStateColumn(_ column: SplitColumn, route: Data?, child: NavigationStateNode?) {
         guard let route, let decoded = decodeStateRoute(route, owner: self, at: column.rawValue) else { return }
-        if !_sameRoute(columns.destination(for: column)?.source as? Destinations, decoded) {
+        if !_sameRoute(columns.destination(for: column)?.source as? Destinations, decoded) ||
+            needsInitialState(columns.destination(for: column), savedChild: child) {
             _ = performSetColumn(column, to: decoded)
         }
         didRestoreStateRoute()
@@ -451,6 +475,14 @@ private func _decodeSplitVisibility(_ value: String) -> NavigationSplitViewVisib
 }
 
 // MARK: - Shared helpers
+
+/// A missing child snapshot means the route factory supplies its initial state.
+/// Reusing a live child during replacement would retain navigation that was
+/// never captured. Replay deliberately keeps that existing state.
+@MainActor
+private func needsInitialState(_ destination: Destination?, savedChild: NavigationStateNode?) -> Bool {
+    NavigationStateContext.mode == .replace && savedChild == nil && destination?.hasCoordinatable == true
+}
 
 extension NavigationStateNode.Presentation {
     @MainActor

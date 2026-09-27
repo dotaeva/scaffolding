@@ -53,6 +53,12 @@ if let data = UserDefaults.standard.data(forKey: "navigation") {
 | ``NavigationRestorationMode/replace`` | Clears existing pushes and modals first. Use it for seeded stacks and repeated restores. |
 | ``NavigationRestorationMode/replay`` | Replays the snapshot on top of the current state; a flow whose saved root differs is cleared by the root change. The default of ``Coordinatable/restoreNavigationState(from:)``. |
 
+In `.replace` mode, an unchanged root, tab, or column whose child has no saved
+state is rebuilt through its route factory. This resets unsupported children to
+their initial state and resolves pending results on the removed branch. Unaffected
+tabs keep their identity. In `.replay` mode, an unchanged child with no saved
+state keeps its existing navigation.
+
 Unknown or undecodable routes are skipped with their children, so removing a
 route in an update degrades gracefully. Reapply badges, identifiers, and sheet
 settings after restoring.

@@ -74,9 +74,17 @@ Properties, `Void` helpers, and anything in an extension need no annotation.
 - Generated code keeps the coordinator's `public` or `package` access.
 - Routes inside class-body `#if` blocks keep their conditions, including
   nesting. Mutually exclusive branches may reuse a route name.
-- `@available(iOS 27, macOS 27, *)` copies onto the case. The factory checks
-  availability at runtime; restoration skips unavailable routes;
-  `Destinations.isAvailable` lets your code check.
+- `@available(iOS 27, macOS 27, *)` guards the factory at runtime. Navigation
+  methods and restoration skip unavailable routes; `Destinations.isAvailable`
+  lets your code check before choosing an initial container route.
+- Parameterless cases also carry the availability annotation. Swift forbids
+  that annotation on cases with associated values, so payload-bearing cases
+  remain constructible. Their payload types must be available at the
+  coordinator's deployment floor; the factory still runs only on supported OSes.
+- Default arguments use generated main-actor convenience factories. Calls such
+  as `.detail()` can read coordinator static state without changing the stored
+  payload or its Codable representation. Defaults are evaluated at the call;
+  source-location defaults such as `#fileID` and `#line` retain the caller's location.
 
 ## Use the generated types
 

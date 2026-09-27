@@ -329,7 +329,14 @@ public struct ScaffoldableMacro: MemberMacro {
     ) throws -> EnumDeclSyntax {
         let metaCases = functions.map { $0.wrapping("case \($0.name)") }.joined(separator: "\n")
         let mainCases = try functions.map {
-            $0.wrapping($0.availabilityAttributes + (try generateEnumCaseDecl(for: $0)).description)
+            // Swift forbids introduction availability on payload-bearing cases.
+            // Their payloads must exist at the coordinator's deployment floor;
+            // isAvailable and value(for:) still guard the route factory.
+            let availability = $0.parameters.isEmpty ? $0.availabilityAttributes : ""
+            return $0.wrapping(availability + (try generateEnumCaseDecl(for: $0)).description)
+        }.joined(separator: "\n")
+        let defaultFactories = functions.map {
+            generateDefaultFactories(for: $0, accessModifier: accessModifier)
         }.joined(separator: "\n")
         let metaSwitch = functions.map {
             $0.wrapping("case .\($0.name): return .\($0.name)")
@@ -354,6 +361,7 @@ public struct ScaffoldableMacro: MemberMacro {
                 \(raw: metaCases)
             }
             \(raw: mainCases)
+            \(raw: defaultFactories)
             \(raw: accessModifier)var meta: Meta {
                 switch self {
                     \(raw: metaSwitch)
@@ -391,17 +399,11 @@ public struct ScaffoldableMacro: MemberMacro {
                         firstName: .identifier(label),
                         colon: .colonToken(),
                         type: IdentifierTypeSyntax(name: .identifier(param.type)),
-                        defaultValue: param.defaultValue.map {
-                            InitializerClauseSyntax(value: ExprSyntax(stringLiteral: $0))
-                        },
                         trailingComma: isLast ? nil : .commaToken()
                     )
                 } else {
                     return EnumCaseParameterSyntax(
                         type: IdentifierTypeSyntax(name: .identifier(param.type)),
-                        defaultValue: param.defaultValue.map {
-                            InitializerClauseSyntax(value: ExprSyntax(stringLiteral: $0))
-                        },
                         trailingComma: isLast ? nil : .commaToken()
                     )
                 }
@@ -418,6 +420,90 @@ public struct ScaffoldableMacro: MemberMacro {
             
             return enumCaseDecl.with(\.leadingTrivia, docTrivia)
         }
+    }
+
+    /// Enum-case constructors are nonisolated, even in a main-actor enum.
+    /// Keep stored cases free of defaults and evaluate defaults in isolated
+    /// convenience factories instead. A renamed label makes each factory
+    /// applicable only when that original argument is omitted. Keeping the
+    /// expression in a default argument also preserves #fileID/#line semantics.
+    private static func generateDefaultFactories(for function: TrackedFunction, accessModifier: String) -> String {
+        let parameters = function.parameters
+        let defaults = parameters.indices.filter { parameters[$0].defaultValue != nil }
+        guard !defaults.isEmpty else { return "" }
+
+        var defaultValues = parameters.map(\.defaultValue)
+        var providers: [String] = []
+        if accessModifier == "public " {
+            // Public defaults are serialized into clients and cannot directly
+            // mention an owner's private state. An ABI-visible internal helper
+            // keeps that expression in the defining module. Bare source-location
+            // literals must stay directly in the caller's default argument.
+            for index in defaults {
+                let expression = defaultValues[index]!
+                if ["#file", "#fileID", "#filePath", "#function", "#line", "#column"].contains(expression) { continue }
+                let name = "__scaffoldingDefault_\(function.name.replacingOccurrences(of: "`", with: ""))_\(index)"
+                defaultValues[index] = "\(name)()"
+                providers.append(function.wrapping("""
+                \(function.availabilityAttributes)@usableFromInline @MainActor
+                internal static func \(name)() -> \(parameters[index].type) {
+                    \(expression)
+                }
+                """))
+            }
+        }
+
+        var omissions: [Set<Int>] = []
+        let hasUnlabeledDefault = defaults.contains { parameters[$0].label == nil }
+        if hasUnlabeledDefault {
+            // Explicit overloads preserve Swift's left-to-right matching of
+            // unlabeled arguments. Deduplicate equivalent visible signatures,
+            // preferring to supply earlier parameters and omit later ones.
+            func collect(_ offset: Int, omitted: Set<Int>) {
+                guard offset < defaults.count else {
+                    if !omitted.isEmpty { omissions.append(omitted) }
+                    return
+                }
+                collect(offset + 1, omitted: omitted)
+                collect(offset + 1, omitted: omitted.union([defaults[offset]]))
+            }
+            collect(0, omitted: [])
+        } else {
+            // The first omitted label determines the overload. Later defaults
+            // stay optional, requiring only one factory per defaulted argument.
+            omissions = defaults.map { [$0] }
+        }
+
+        let labels = Set(parameters.compactMap(\.label).map { $0.replacingOccurrences(of: "`", with: "") })
+        var signatures = Set<String>()
+        let factories = omissions.compactMap { omitted -> String? in
+            let signature = parameters.indices.filter { !omitted.contains($0) }.map {
+                "\(parameters[$0].label ?? "_"):\(parameters[$0].type)"
+            }.joined(separator: ",")
+            guard signatures.insert(signature).inserted else { return nil }
+            let firstOmitted = omitted.min()!
+            let arguments = parameters.enumerated().map { index, parameter in
+                var label = parameter.label ?? "_"
+                if omitted.contains(index) {
+                    label = "__scaffoldingDefault\(index)"
+                    while labels.contains(label) { label += "_" }
+                }
+                let usesDefault = omitted.contains(index) || (!hasUnlabeledDefault && index > firstOmitted)
+                let value = usesDefault ? defaultValues[index].map { " = \($0)" } ?? "" : ""
+                let type = (parameter.isFunction ? "@escaping " : "") + parameter.type
+                return "\(label) __scaffoldingArgument\(index): \(type)\(value)"
+            }.joined(separator: ", ")
+            let values = parameters.enumerated().map { index, parameter in
+                (parameter.label.map { $0.replacingOccurrences(of: "`", with: "") + ": " } ?? "") + "__scaffoldingArgument\(index)"
+            }.joined(separator: ", ")
+            return function.wrapping("""
+            \(function.availabilityAttributes)@MainActor
+            \(accessModifier)static func \(function.name)(\(arguments)) -> Self {
+                .\(function.name)(\(values))
+            }
+            """)
+        }
+        return (providers + factories).joined(separator: "\n")
     }
     
     private static func generateDocumentationTrivia(for function: TrackedFunction) -> Trivia {
@@ -681,6 +767,7 @@ struct Parameter {
     let type: String
     let defaultValue: String?
     let isAutoclosure: Bool
+    let isFunction: Bool
     
     init(from param: FunctionParameterSyntax) throws {
         // Handle parameter labels
@@ -691,9 +778,13 @@ struct Parameter {
         }
         
         var storedType = param.type
+        var hasEscapingAttribute = false
         if var attributed = storedType.as(AttributedTypeSyntax.self) {
             self.isAutoclosure = attributed.attributes.contains {
                 $0.as(AttributeSyntax.self)?.attributeName.trimmedDescription == "autoclosure"
+            }
+            hasEscapingAttribute = attributed.attributes.contains {
+                $0.as(AttributeSyntax.self)?.attributeName.trimmedDescription == "escaping"
             }
             attributed.attributes = attributed.attributes.filter {
                 guard let attribute = $0.as(AttributeSyntax.self) else { return true }
@@ -704,6 +795,8 @@ struct Parameter {
             self.isAutoclosure = false
         }
         self.type = storedType.trimmedDescription
+        self.isFunction = hasEscapingAttribute || isAutoclosure ||
+            (storedType.as(AttributedTypeSyntax.self)?.baseType ?? storedType).is(FunctionTypeSyntax.self)
         if let value = param.defaultValue?.value.trimmedDescription {
             self.defaultValue = isAutoclosure ? "{ \(value) }" : value
         } else {

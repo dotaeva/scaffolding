@@ -71,17 +71,19 @@ func showNext(id: Int) {
 
 ## Guard duplicate pushes
 
-`route(to: .detail(id: 42), policy: .distinct)` skips the push when the top
-entry has the same case. It ignores associated values, so guard record
-identity on your own state:
+Use `.distinct` to absorb repeated taps while a detail screen is on top:
 
+<!-- checked-swift: distinct-push -->
 ```swift
-func open(_ item: Item) {
-    guard openItemID != item.id else { return }
-    openItemID = item.id
-    route(to: .detail(id: item.id))
-}
+route(to: .detail(id: 42), policy: .distinct)
 ```
+
+The policy checks the current top pushed destination, falling back to the root.
+After returning to `.home`, the same detail can open again. Associated values
+are ignored: `.detail(id: 1)` also blocks `.detail(id: 2)`. Use `.always` if
+different records should stack. A record-specific guard must follow the live
+destination's lifetime; caching only the last opened ID leaves stale state
+after a pop, a back gesture, or restoration.
 
 ## API
 

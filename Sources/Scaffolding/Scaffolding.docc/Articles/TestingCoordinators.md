@@ -121,15 +121,31 @@ cards.dismissPresentedModal()
 
 ## Test restoration
 
-```swift
-let original = AppCoordinator().activated()
-original.openProfile(userID: 7)
-let data = try original.captureNavigationState()
+Check the report, the restored structure, and the inputs that identify the
+restored record. Here the root route `.profile(userID:)` builds a
+`ProfileCoordinator` with a readable `userID`; both coordinators use
+`@Scaffoldable(codable: true)`.
 
-let restored = AppCoordinator().activated()
-try restored.restoreNavigationState(from: data, mode: .replace)
-#expect(restored.debugHierarchy() == original.debugHierarchy())
+<!-- checked-swift: restoration-test -->
+```swift
+@MainActor @Test func restoresProfile() throws {
+    let original = AppCoordinator().activated()
+    original.setRoot(.profile(userID: 7))
+    let data = try original.captureNavigationState()
+
+    let restored = AppCoordinator().activated()
+    let report = try restored.restoreNavigationStateWithReport(from: data, mode: .replace)
+    #expect(report.issues.isEmpty)
+    #expect(restored.isRoot(.profile))
+    let profile = try #require(restored.descendant(ofType: ProfileCoordinator.self))
+    #expect(profile.userID == 7)
+}
 ```
+
+`debugHierarchy()` and case-based hierarchy queries omit route payloads.
+Matching them alone cannot distinguish user 7 from user 99. For routes that
+build views, verify the restored input through an app-owned model or a rendered
+test; coordinator-only tests cannot inspect view state.
 
 ## Rules
 
