@@ -112,6 +112,14 @@ public struct SheetConfiguration: Equatable, Sendable {
     }
 }
 
+/// Internal storage for the deprecated presenter-side configuration. Keep the
+/// compatibility type at the API boundary so normal routing builds warning-free.
+struct LegacySheetConfiguration: Equatable, Sendable {
+    var detents: Set<PresentationDetent>
+    var dragIndicator: Visibility
+    var interactiveDismissDisabled: Bool
+}
+
 /// The modal style for ``Coordinatable/present(_:as:policy:)``: a sheet or a
 /// full-screen cover.
 ///
@@ -141,7 +149,7 @@ public struct ModalPresentationType: Equatable {
     }
 
     let kind: Kind
-    let configuration: SheetConfiguration?
+    let configuration: LegacySheetConfiguration?
 
     /// A sheet. The default for `present`.
     public static let sheet = ModalPresentationType(kind: .sheet, configuration: nil)
@@ -168,7 +176,7 @@ public struct ModalPresentationType: Equatable {
     ) -> ModalPresentationType {
         ModalPresentationType(
             kind: .sheet,
-            configuration: SheetConfiguration(
+            configuration: LegacySheetConfiguration(
                 detents: detents,
                 dragIndicator: dragIndicator,
                 interactiveDismissDisabled: interactiveDismissDisabled
@@ -373,7 +381,28 @@ public struct Destination: Identifiable {
     /// Only ``ModalPresentationType/sheet(detents:dragIndicator:interactiveDismissDisabled:)``
     /// sets this; native modifiers are not reflected.
     @available(*, deprecated, message: "Apply SwiftUI presentation modifiers to the presented view and keep any settings it needs in view inputs or state. Native modifiers are not reflected in this property.")
-    public internal(set) var modalConfiguration: SheetConfiguration?
+    public internal(set) var modalConfiguration: SheetConfiguration? {
+        get {
+            sheetConfiguration.map {
+                SheetConfiguration(
+                    detents: $0.detents,
+                    dragIndicator: $0.dragIndicator,
+                    interactiveDismissDisabled: $0.interactiveDismissDisabled
+                )
+            }
+        }
+        set {
+            sheetConfiguration = newValue.map {
+                LegacySheetConfiguration(
+                    detents: $0.detents,
+                    dragIndicator: $0.dragIndicator,
+                    interactiveDismissDisabled: $0.interactiveDismissDisabled
+                )
+            }
+        }
+    }
+
+    var sheetConfiguration: LegacySheetConfiguration?
 
     /// The badge on this destination's tab item, or `nil`.
     ///
@@ -616,8 +645,8 @@ public struct Destination: Identifiable {
         _source = value
     }
 
-    mutating func setModalConfiguration(_ value: SheetConfiguration?) {
-        modalConfiguration = value
+    mutating func setModalConfiguration(_ value: LegacySheetConfiguration?) {
+        sheetConfiguration = value
     }
 
     // MARK: - Resolution

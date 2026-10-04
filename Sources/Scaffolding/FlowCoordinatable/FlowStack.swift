@@ -67,7 +67,8 @@ public class FlowStack<Coordinator: FlowCoordinatable>: AnyFlowStack {
     /// Creates a stack with a root and screens already pushed above it.
     ///
     /// Use it to seed a preview, a test, or a deep entry point. The path is
-    /// built on first use.
+    /// built on first use. Pushes unavailable on the current OS are skipped;
+    /// the root must be available.
     ///
     /// ```swift
     /// var stack = FlowStack<HomeCoordinator>(root: .home, pushing: [.detail(id: 42)])
@@ -102,7 +103,7 @@ public class FlowStack<Coordinator: FlowCoordinatable>: AnyFlowStack {
             self.initialRoot = nil
         }
         if !initialPath.isEmpty {
-            for element in initialPath {
+            for element in initialPath where element.isAvailable {
                 var dest = element.resolvedValue(for: coordinator)
 
                 _warnIfSplitInsideNavigationStack(dest.coordinatable)

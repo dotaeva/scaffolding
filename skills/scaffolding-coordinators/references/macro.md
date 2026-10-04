@@ -85,6 +85,27 @@ may read the coordinator's actor-isolated static state. Explicitly supplied
 arguments and the stored enum payload are unchanged. `#fileID` and `#line`
 defaults describe the construction call site.
 
+Closure typealiases declared in the class body are recognized, including
+conditional `#if` branches, alias chains, and parenthesized function types.
+An alias may be a closure in one branch and a value in another. For closure aliases declared
+outside the class body, write `@escaping` explicitly when the route has default
+arguments; the macro cannot resolve those aliases. Payload types named `Meta`
+or `Owner` keep their original meaning inside the generated route enum.
+Source-location defaults also preserve the call site on `@autoclosure` parameters.
+
+Top-level `sending` is removed from the stored payload type; the original route
+factory keeps its annotation, and Swift checks the generated call to that
+factory. `sending String` works, including defaults and Codable restoration.
+Constructing a route does not promise an exclusive transfer: its payload can be
+retained and reused. Swift may therefore reject forwarding a non-`Sendable`
+payload to a `sending` factory outside the main actor. Prefer a `Sendable` value
+or transfer the object into a coordinator action before constructing the route.
+`sending` inside a closure parameter/result type is preserved.
+
+Route `///` and `/** ... */` documentation is copied to the generated enum
+case and default-argument factories. Implementation bodies and ordinary
+comments are omitted; undocumented routes get no synthesized documentation.
+
 Closure parameters are useful for repeated updates before dismissal; prefer `awaiting:` for a single result (see `scaffolding-routing` → `dismissal-and-results.md`).
 
 ## `@ScaffoldingIgnored` — needed rarely, and only on functions
@@ -144,8 +165,9 @@ annotations guard factories at runtime; `Destinations.isAvailable` permits
 checking decoded routes. Parameterless cases also keep the annotation. Swift
 forbids introduction availability on payload-bearing cases, so those cases stay
 constructible and their payload types must exist at the coordinator's deployment
-floor. Navigation methods skip unavailable routes; check `isAvailable` before
-choosing an initial container route. Unsupported `unavailable`, `obsoleted`, and
+floor. Navigation methods and seeded flow pushes skip unavailable routes;
+check `isAvailable` before choosing an initial root, tab, or split column.
+Unsupported `unavailable`, `obsoleted`, and
 Swift-language availability forms are diagnosed; use `#if` for those cases.
 
 Route factories must be synchronous, nonthrowing instance methods. Overloads

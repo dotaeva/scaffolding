@@ -66,7 +66,6 @@ public class TabItems<Coordinator: TabCoordinatable>: AnyTabItems {
     private var initialTabs: [Coordinator.Destinations] = .init()
 
     private var pendingSelectionIndex: Int? = nil
-    private var pendingSelectionId: UUID? = nil
     private var pendingSelectionFirstMeta: Coordinator.Destinations.Meta? = nil
     private var pendingSelectionLastMeta: Coordinator.Destinations.Meta? = nil
 
@@ -108,14 +107,11 @@ public class TabItems<Coordinator: TabCoordinatable>: AnyTabItems {
             return t
         }
 
-        if let pendingId = pendingSelectionId,
-           let foundTab = tabs.first(where: { $0.id == pendingId }) {
-            selectedTab = foundTab.id
-        } else if let pendingMeta = pendingSelectionFirstMeta,
-                  let foundTab = tabs.first(where: { destination in
-                      guard let destinationMeta = destination.meta as? Coordinator.Destinations.Meta else { return false }
-                      return destinationMeta == pendingMeta
-                  }) {
+        if let pendingMeta = pendingSelectionFirstMeta,
+           let foundTab = tabs.first(where: { destination in
+               guard let destinationMeta = destination.meta as? Coordinator.Destinations.Meta else { return false }
+               return destinationMeta == pendingMeta
+           }) {
             selectedTab = foundTab.id
         } else if let pendingMeta = pendingSelectionLastMeta,
                   let foundTab = tabs.last(where: { destination in
@@ -131,7 +127,6 @@ public class TabItems<Coordinator: TabCoordinatable>: AnyTabItems {
         }
 
         pendingSelectionIndex = nil
-        pendingSelectionId = nil
         pendingSelectionFirstMeta = nil
         pendingSelectionLastMeta = nil
         initialTabs = []
@@ -166,10 +161,10 @@ public class TabItems<Coordinator: TabCoordinatable>: AnyTabItems {
 extension TabItems {
     func select(first tab: Coordinator.Destinations.Meta) -> Destination? {
         guard isSetup else {
+            guard initialTabs.contains(where: { $0.meta == tab }) else { return nil }
             pendingSelectionFirstMeta = tab
             pendingSelectionLastMeta = nil
             pendingSelectionIndex = nil
-            pendingSelectionId = nil
             return nil
         }
 
@@ -185,10 +180,10 @@ extension TabItems {
 
     func select(last tab: Coordinator.Destinations.Meta) -> Destination? {
         guard isSetup else {
+            guard initialTabs.contains(where: { $0.meta == tab }) else { return nil }
             pendingSelectionLastMeta = tab
             pendingSelectionFirstMeta = nil
             pendingSelectionIndex = nil
-            pendingSelectionId = nil
             return nil
         }
 
@@ -208,7 +203,6 @@ extension TabItems {
                 pendingSelectionIndex = index
                 pendingSelectionFirstMeta = nil
                 pendingSelectionLastMeta = nil
-                pendingSelectionId = nil
             }
             return nil
         }
@@ -220,13 +214,9 @@ extension TabItems {
     }
 
     func select(_ id: UUID) -> Destination? {
-        guard isSetup else {
-            pendingSelectionId = id
-            pendingSelectionIndex = nil
-            pendingSelectionFirstMeta = nil
-            pendingSelectionLastMeta = nil
-            return nil
-        }
+        // Destination IDs do not exist until setup, so a cold ID lookup
+        // cannot match and must leave any pending selection intact.
+        guard isSetup else { return nil }
 
         if let foundTab = tabs.first(where: { $0.id == id }) {
             withScaffoldingAnimation(animation) { selectedTab = foundTab.id }

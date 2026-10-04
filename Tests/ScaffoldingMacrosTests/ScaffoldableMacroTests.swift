@@ -47,12 +47,49 @@ struct ScaffoldableMacroTests {
         "func screen(value: [some View]) -> some View { fatalError() }",
         "static func screen() -> some View { fatalError() }",
         "func screen(value: inout Int) -> some View { fatalError() }",
+        "func screen(value: inout sending String) -> some View { fatalError() }",
         "func screen(values: Int...) -> some View { fatalError() }"
     ])
     func diagnosesUnsupportedRoutes(_ function: String) throws {
         let (_, diagnostics) = try expand(function)
         #expect(diagnostics.count == 1)
         #expect(diagnostics.first?.contains("Scaffolding route") == true)
+    }
+
+    @Test func conditionalClosureAliasesAreEscapingInDefaultFactories() throws {
+        let (source, diagnostics) = try expand("""
+        #if os(macOS)
+        typealias Handler = () -> Int
+        #elseif os(iOS)
+        typealias Handler = @MainActor () -> Int
+        #else
+        #if DEBUG
+        typealias Handler = (() -> Int)
+        #else
+        typealias Handler = () -> Int
+        #endif
+        #endif
+        typealias Callback = Handler
+        func detail(callback: Callback = { 1 }) -> some View {}
+        """)
+        #expect(source.contains("@escaping Callback"))
+        #expect(source.contains("#elseif os(iOS)"))
+        #expect(source.contains("#if DEBUG"))
+        #expect(diagnostics.isEmpty)
+    }
+
+    @Test func sendingIsRemovedFromStorageButStillCallsTheOriginalFactory() throws {
+        let (source, diagnostics) = try expand("func detail(value: sending String = \"default\") -> some View {}")
+        #expect(diagnostics.isEmpty)
+        #expect(source.contains("case `detail`(`value`: String)"))
+        #expect(!source.contains("sending String"))
+        #expect(source.contains("instance.`detail`(value: __scaffoldingArgument0)"))
+    }
+
+    @Test func nestedSendingFunctionParametersRemainInPayloadTypes() throws {
+        let (source, diagnostics) = try expand("func detail(callback: @escaping (sending String) -> Void) -> some View {}")
+        #expect(diagnostics.isEmpty)
+        #expect(source.contains("(sending String) -> Void"))
     }
 
     @Test func diagnosesOverloads() throws {
@@ -145,5 +182,52 @@ struct ScaffoldableMacroTests {
         let (_, diagnostics) = try expand("\(attribute) func screen() -> some View {}")
         #expect(diagnostics.count == 1)
         #expect(diagnostics.first?.contains("#if") == true)
+    }
+
+    @Test func preservesRouteDocumentationOnCaseAndDefaultFactory() throws {
+        let (source, diagnostics) = try expand("""
+        // Implementation note that should not become API documentation.
+        /// Opens the selected record.
+        ///
+        /// - Parameter id: The record to edit.
+        /// - Returns: An editor for the record.
+        @available(macOS 27, *)
+        func detail(id: Int = 42) -> some View { Text("Private implementation") }
+        """, access: "public")
+        let declaration = try #require(Parser.parse(source: source).statements.first?.item.as(EnumDeclSyntax.self))
+        let route = try #require(declaration.memberBlock.members.compactMap { $0.decl.as(EnumCaseDeclSyntax.self) }.first)
+        let factory = try #require(declaration.memberBlock.members.compactMap { $0.decl.as(FunctionDeclSyntax.self) }.first { $0.name.text == "`detail`" })
+        for documentation in [route.leadingTrivia.description, factory.leadingTrivia.description] {
+            #expect(documentation.contains("Opens the selected record."))
+            #expect(documentation.contains("- Parameter id: The record to edit."))
+            #expect(documentation.contains("- Returns: An editor for the record."))
+        }
+        #expect(!source.contains("Implementation note"))
+        #expect(!source.contains("Private implementation"))
+        #expect(diagnostics.isEmpty)
+    }
+
+    @Test func preservesBlockDocumentationInsideConditionalRoutes() throws {
+        let (source, diagnostics) = try expand("""
+        #if os(macOS)
+        /**
+         Opens the library.
+
+         Use this route to start browsing.
+         */
+        func library() -> some View { EmptyView() }
+        #endif
+        """)
+        #expect(source.contains("Opens the library."))
+        #expect(source.contains("Use this route to start browsing."))
+        #expect(source.contains("#if os(macOS)"))
+        #expect(diagnostics.isEmpty)
+    }
+
+    @Test func undocumentedRoutesDoNotPublishImplementationBodies() throws {
+        let (source, _) = try expand("func home() -> some View { Text(\"Implementation detail\") }")
+        #expect(source.contains("case `home`"))
+        #expect(!source.contains("Implementation detail"))
+        #expect(!source.contains("///"))
     }
 }

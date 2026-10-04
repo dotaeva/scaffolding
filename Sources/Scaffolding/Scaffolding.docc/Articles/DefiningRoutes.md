@@ -10,6 +10,11 @@ one case per route function. Parameters become associated values; labels and
 default values carry over. A nested `Destinations.Meta` enum names each case
 without its payload.
 
+Write `///` or `/** ... */` documentation on the route function. The macro
+copies it to the generated case and default-argument convenience factories.
+Undocumented routes get no synthesized documentation; implementation bodies
+and ordinary comments are omitted.
+
 ```swift
 @MainActor @Observable @Scaffoldable
 final class HomeCoordinator: @MainActor FlowCoordinatable {
@@ -75,8 +80,9 @@ Properties, `Void` helpers, and anything in an extension need no annotation.
 - Routes inside class-body `#if` blocks keep their conditions, including
   nesting. Mutually exclusive branches may reuse a route name.
 - `@available(iOS 27, macOS 27, *)` guards the factory at runtime. Navigation
-  methods and restoration skip unavailable routes; `Destinations.isAvailable`
-  lets your code check before choosing an initial container route.
+  methods, restoration, and seeded flow pushes skip unavailable routes;
+  `Destinations.isAvailable` lets your code check before choosing an initial
+  root, tab, or split column.
 - Parameterless cases also carry the availability annotation. Swift forbids
   that annotation on cases with associated values, so payload-bearing cases
   remain constructible. Their payload types must be available at the
@@ -84,7 +90,21 @@ Properties, `Void` helpers, and anything in an extension need no annotation.
 - Default arguments use generated main-actor convenience factories. Calls such
   as `.detail()` can read coordinator static state without changing the stored
   payload or its Codable representation. Defaults are evaluated at the call;
-  source-location defaults such as `#fileID` and `#line` retain the caller's location.
+  source-location defaults such as `#fileID` and `#line` retain the caller's location,
+  including on `@autoclosure` parameters.
+- Closure typealiases declared in the class body (including `#if` branches) and
+  parenthesized function types work in default-argument factories. An alias may
+  be a closure in one branch and a value in another. For a closure alias declared
+  elsewhere, write `@escaping` explicitly when the route has default arguments;
+  the macro cannot resolve aliases outside the class body.
+- Payload types named `Meta` or `Owner` retain their original meaning; the
+  generated enum's types do not shadow them.
+- A top-level `sending` annotation stays on the route factory, but is removed
+  from the enum's stored payload type. Swift checks the transfer at the generated
+  factory call. `sending String` works; forwarding a retained non-`Sendable`
+  object outside the main actor can still be rejected by Swift. Route
+  construction itself is not an exclusive transfer. Annotations inside closure
+  parameter/result types are preserved.
 
 ## Use the generated types
 

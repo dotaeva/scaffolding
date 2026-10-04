@@ -1,0 +1,69 @@
+name: Validate package
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: ${{ matrix.toolchain }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - toolchain: Swift 6.2
+            runner: macos-15
+            xcode: '26.2'
+          - toolchain: Latest installed Xcode
+            runner: macos-latest
+            xcode: latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        env:
+          REQUESTED_XCODE: ${{ matrix.xcode }}
+        run: |
+          if [[ "$REQUESTED_XCODE" == latest ]]; then
+            selected=$(find /Applications -maxdepth 1 -name 'Xcode*.app' | sort -V | tail -1)
+          else
+            selected="/Applications/Xcode_${REQUESTED_XCODE}.app"
+          fi
+          test -d "$selected"
+          sudo xcode-select -s "$selected/Contents/Developer"
+          xcodebuild -version
+          swift --version
+          if [[ "$REQUESTED_XCODE" != latest ]]; then
+            swift --version | grep -E 'Swift version 6\.2([. ]|$)'
+          fi
+
+      - name: Cache dependency checkouts
+        uses: actions/cache@v4
+        with:
+          path: |
+            .build/checkouts
+            .build/repositories
+          key: ${{ runner.os }}-${{ runner.arch }}-${{ matrix.xcode }}-dependencies-${{ hashFiles('Package.swift') }}
+
+      - name: Build library without warnings
+        run: swift build --target Scaffolding -Xswiftc -warnings-as-errors
+
+      - name: Run package tests
+        run: swift test
+
+      - name: Compile public consumers
+        run: python3 .github/scripts/validate.py consumers
+
+      - name: Validate all declared platforms
+        run: python3 .github/scripts/validate.py platforms

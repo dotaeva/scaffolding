@@ -25,8 +25,8 @@ private final class GuardedTabCoordinator: TabCoordinatable {
     var hookTabs: [Destinations.Meta] = []
     var hookReselections: [Bool] = []
 
-    init() {
-        self.tabItems = TabItems<GuardedTabCoordinator>(tabs: [.home, .profile, .settings])
+    init(tabs: [Destinations] = [.home, .profile, .settings], selectedIndex: Int? = nil) {
+        self.tabItems = TabItems<GuardedTabCoordinator>(tabs: tabs, selectedIndex: selectedIndex)
     }
 
     func home() -> some View { EmptyView() }
@@ -82,6 +82,40 @@ private final class GuardedTabCoordinator: TabCoordinatable {
 @MainActor
 @Suite("TabCoordinatable.shouldSelect")
 struct TabSelectionInterceptTests {
+
+    enum InvalidSelection: CaseIterable {
+        case first, last, id, index
+    }
+
+    @Test("Invalid selections preserve initial and programmatic selection before and after setup",
+          arguments: InvalidSelection.allCases, [false, true])
+    func invalidSelections(selection: InvalidSelection, resolved: Bool) {
+        for programmatic in [false, true] {
+            let tabs = GuardedTabCoordinator(tabs: [.home, .profile], selectedIndex: programmatic ? 0 : 1)
+            if resolved { _ = tabs.anyTabItems }
+            if programmatic { tabs.selectFirstTab(.profile) }
+
+            switch selection {
+            case .first: tabs.selectFirstTab(.settings)
+            case .last: tabs.selectLastTab(.settings)
+            case .id: tabs.select(id: UUID())
+            case .index: tabs.select(index: 42)
+            }
+
+            #expect(tabs.tabItems.isSetup == resolved)
+            #expect(tabs.selectedTabIndex == 1)
+            #expect(tabs.hookTabs.isEmpty)
+        }
+    }
+
+    @Test("Valid pending selections retain first/last semantics without resolving tabs")
+    func validPendingSelections() {
+        let tabs = GuardedTabCoordinator(tabs: [.home, .profile, .home])
+        tabs.selectFirstTab(.profile)
+        tabs.selectLastTab(.home)
+        #expect(!tabs.tabItems.isSetup)
+        #expect(tabs.selectedTabIndex == 2)
+    }
 
     @Test("Allowed UI selection switches the tab and consults the hook")
     func allowedSelection() {

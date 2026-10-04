@@ -6,21 +6,41 @@ public extension Coordinatable {
     var isPresentingModal: Bool { !ownModalDestinations.isEmpty }
 
     @discardableResult
-    func present(_ destination: Destinations, as type: ModalPresentationType = .sheet, policy: RoutePolicy = .always) -> Self {
+    func present(
+        _ destination: Destinations,
+        as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always
+    ) -> Self {
         _ = makeModal(destination, as: type, policy: policy)
         return self
     }
 
-    func present<T: Coordinatable>(_ destination: Destinations, as type: ModalPresentationType = .sheet, policy: RoutePolicy = .always, expecting coordinatorType: T.Type) -> T? {
+    func present<T: Coordinatable>(
+        _ destination: Destinations,
+        as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always,
+        expecting coordinatorType: T.Type
+    ) -> T? {
         makeModal(destination, as: type, policy: policy)?.coordinatable as? T
     }
 
-    func present<Result>(_ destination: Destinations, as type: ModalPresentationType = .sheet, policy: RoutePolicy = .always, awaiting resultType: Result.Type) async -> Result? {
+    func present<Result>(
+        _ destination: Destinations,
+        as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always,
+        awaiting resultType: Result.Type
+    ) async -> Result? {
         guard !Task.isCancelled, let destination = makeModal(destination, as: type, policy: policy) else { return nil }
         return await destination.resolution.resultWaiter(for: resultType)()
     }
 
-    func present<T: Coordinatable, Result>(_ destination: Destinations, as type: ModalPresentationType = .sheet, policy: RoutePolicy = .always, expecting coordinatorType: T.Type, awaiting resultType: Result.Type) -> (coordinator: T?, result: @MainActor () async -> Result?) {
+    func present<T: Coordinatable, Result>(
+        _ destination: Destinations,
+        as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always,
+        expecting coordinatorType: T.Type,
+        awaiting resultType: Result.Type
+    ) -> (coordinator: T?, result: @MainActor () async -> Result?) {
         guard !Task.isCancelled, let destination = makeModal(destination, as: type, policy: policy) else { return (nil, { nil }) }
         return (destination.coordinatable as? T, destination.resolution.resultWaiter(for: resultType))
     }
@@ -61,6 +81,71 @@ public extension Coordinatable {
     }
 }
 
+// MARK: - Deprecated presentation compatibility
+
+@MainActor
+public extension Coordinatable {
+    /// Deprecated. Use ``Coordinatable/present(_:as:policy:awaiting:)`` instead.
+    ///
+    /// Pass `Void.self` and put the `onDismiss` code after the `await`.
+    @available(*, deprecated, message: "Will be removed in a future update. Use await present with awaiting: instead; pass Void.self to wait without a result.")
+    @discardableResult
+    func present(
+        _ destination: Destinations,
+        as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always,
+        onDismiss: @escaping @MainActor () -> Void
+    ) -> Self {
+        _ = makeModal(destination, as: type, policy: policy, onDismiss: onDismiss)
+        return self
+    }
+
+    /// Deprecated. Use ``Coordinatable/present(_:as:policy:expecting:)`` instead.
+    ///
+    /// Add `awaiting:` when the call also relied on dismissal.
+    @discardableResult
+    @available(*, deprecated, message: "Will be removed in a future update. Use expecting: for child access; combine it with awaiting: for dismissal/results.")
+    func present<T: Coordinatable>(
+        _ destination: Destinations,
+        as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always,
+        onDismiss: @escaping @MainActor () -> Void = { },
+        _ action: @escaping @MainActor (T) -> Void
+    ) -> Self {
+        guard let dest = makeModal(destination, as: type, policy: policy, onDismiss: onDismiss) else { return self }
+        if let coordinator = dest.coordinatable as? T {
+            action(coordinator)
+        }
+        return self
+    }
+
+    /// Deprecated. Use ``Coordinatable/present(_:as:policy:expecting:awaiting:)`` instead.
+    ///
+    /// Pass `Void.self` and put the `onDismiss` code after `await result()`.
+    @available(*, deprecated, message: "Will be removed in a future update. Use expecting: with awaiting: to get the child immediately and await its result.")
+    func present<T: Coordinatable>(
+        _ destination: Destinations,
+        as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always,
+        onDismiss: @escaping @MainActor () -> Void,
+        expecting coordinatorType: T.Type
+    ) -> T? {
+        makeModal(destination, as: type, policy: policy, onDismiss: onDismiss)?.coordinatable as? T
+    }
+
+    /// Deprecated. Use ``Coordinatable/present(_:as:policy:awaiting:)`` instead.
+    ///
+    /// Pass `Void.self` to wait for dismissal only.
+    @available(*, deprecated, message: "Will be removed in a future update. Use await present with awaiting: Void.self to wait for dismissal, or awaiting: Result.self to receive a result.")
+    func presentAndWait(
+        _ destination: Destinations,
+        as type: ModalPresentationType = .sheet,
+        policy: RoutePolicy = .always
+    ) async {
+        _ = await present(destination, as: type, policy: policy, awaiting: Void.self)
+    }
+}
+
 @MainActor
 extension Coordinatable {
     var ownModalDestinations: [Destination] {
@@ -89,20 +174,43 @@ extension Coordinatable {
         return ownModalDestinations
     }
 
-    func makeModal(_ route: Destinations, as type: ModalPresentationType, policy: RoutePolicy) -> Destination? {
-        guard route.isAvailable else { return nil }
-        if case .distinct = policy,
-           ownModalDestinations.contains(where: { ($0.meta as? Destinations.Meta) == route.meta }) { return nil }
+    func makeModal(
+        _ route: Destinations,
+        as type: ModalPresentationType,
+        policy: RoutePolicy,
+        onDismiss: @escaping @MainActor () -> Void = {}
+    ) -> Destination? {
+        guard !modalPolicySkips(route, policy: policy) else { return nil }
+        return performPresent(route, as: type, onDismiss: onDismiss)
+    }
+
+    func modalPolicySkips(_ route: Destinations, policy: RoutePolicy) -> Bool {
+        guard route.isAvailable else { return true }
+        guard case .distinct = policy else { return false }
+        return ownModalDestinations.contains { ($0.meta as? Destinations.Meta) == route.meta }
+    }
+
+    /// Shared by ordinary, legacy, and restored presentations.
+    /// Callers check availability and policy before constructing a destination.
+    @discardableResult
+    func performPresent(
+        _ route: Destinations,
+        as type: ModalPresentationType,
+        onDismiss: @escaping @MainActor () -> Void
+    ) -> Destination {
+        // Resolve initial state before running the requested route factory.
+        _ = ownModalDestinations
         var destination = route.resolvedValue(for: self)
+        destination.setOnDismiss(onDismiss)
         destination.setPushType(type.presentationType)
         destination.setRouteType(.from(presentationType: type.presentationType))
         destination.setModalConfiguration(type.configuration)
         destination.coordinatable?.attach(to: self, navigationLayer: false, presentation: type.presentationType)
         withNavigationAnimation {
-            if let flow = self as? any FlowCoordinatable { flow._resolvedStack.destinations.append(destination) }
-            else if let root = self as? any RootCoordinatable { root._resolvedRoot.modals.append(destination) }
-            else if let tabs = self as? any TabCoordinatable { tabs._resolvedTabItems.modals.append(destination) }
-            else if let split = self as? any SplitCoordinatable { split._resolvedSplitColumns.modals.append(destination) }
+            if let flow = self as? any FlowCoordinatable { flow._stack.destinations.append(destination) }
+            else if let root = self as? any RootCoordinatable { root._root.modals.append(destination) }
+            else if let tabs = self as? any TabCoordinatable { tabs._tabItems.modals.append(destination) }
+            else if let split = self as? any SplitCoordinatable { split._columns.modals.append(destination) }
         }
         return destination
     }

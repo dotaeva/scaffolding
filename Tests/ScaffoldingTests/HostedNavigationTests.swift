@@ -37,6 +37,19 @@ private struct HostedStatefulView: View {
     }
 }
 
+private struct HostedRootStateView: View {
+    let record: Int
+    let appearances: HostedAppearances
+    @State private var token = UUID()
+
+    var body: some View {
+        Text("Record \(record)")
+            .onChange(of: record, initial: true) {
+                appearances.tokens["record-\(record)"] = token
+            }
+    }
+}
+
 @MainActor @Observable @Scaffoldable
 final class HostedTabs: TabCoordinatable {
     var tabItems = TabItems<HostedTabs>(tabs: [.form, .other])
@@ -56,6 +69,7 @@ final class HostedFlow: FlowCoordinatable {
     func detail() -> some View { HostedStatefulView(name: "detail", appearances: appearances) }
     func modal(name: String) -> some View { HostedStatefulView(name: name, appearances: appearances) }
     func child(_ child: any Coordinatable) -> any Coordinatable { child }
+    func statefulRoot(record: Int) -> some View { HostedRootStateView(record: record, appearances: appearances) }
 }
 
 @MainActor
@@ -96,8 +110,86 @@ private final class HostedWindow {
 #endif
 }
 
+@MainActor @Observable
+private final class HostedChromeReadings {
+    var owners: [ObjectIdentifier?] = []
+    var ancestors: [ObjectIdentifier?] = []
+}
+
+private struct HostedCoordinatorChrome: View {
+    @Environment(HostedCustomizedFlow.self) private var owner: HostedCustomizedFlow?
+    @Environment(HostedFlow.self) private var ancestor: HostedFlow?
+    let readings: HostedChromeReadings
+
+    var body: some View {
+        Text("Chrome")
+            .onAppear {
+                readings.owners.append(owner.map(ObjectIdentifier.init))
+                readings.ancestors.append(ancestor.map(ObjectIdentifier.init))
+            }
+    }
+}
+
+@MainActor @Observable @Scaffoldable
+private final class HostedCustomizedFlow: FlowCoordinatable {
+    var stack = FlowStack<HostedCustomizedFlow>(root: .home)
+    let readings = HostedChromeReadings()
+    func home() -> some View { Text("Home") }
+    func detail() -> some View { Text("Detail") }
+}
+
+private extension HostedCustomizedFlow {
+    func customize(_ view: AnyView) -> some View {
+        view.overlay { HostedCoordinatorChrome(readings: readings) }
+    }
+}
+
 @MainActor @Suite("Hosted navigation", .serialized, .timeLimit(.minutes(1)))
 struct HostedNavigationTests {
+    @Test func sharedStackCustomizationReceivesOwnerAndAncestors() async {
+        let outer = HostedFlow()
+        let child = HostedCustomizedFlow()
+        outer.route(to: .child(child))
+        let host = HostedWindow(outer.view)
+        defer { host.close() }
+        guard await waitUntil({ !child.readings.owners.isEmpty }, timeout: .seconds(3)) else { return }
+        let rootReadings = child.readings.owners.count
+
+        child.route(to: .detail)
+        guard await waitUntil({ child.readings.owners.count > rootReadings }, timeout: .seconds(3)) else { return }
+
+        #expect(child.readings.owners.allSatisfy { $0 == ObjectIdentifier(child) })
+        #expect(child.readings.ancestors.allSatisfy { $0 == ObjectIdentifier(outer) })
+    }
+
+    @Test(arguments: [false, true])
+    func replacingRootResetsViewState(sharesStack: Bool) async throws {
+        let child = HostedFlow()
+        child.setRoot(.statefulRoot(record: 1))
+        let outer = HostedFlow()
+        if sharesStack { outer.route(to: .child(child)) }
+        let host = HostedWindow(sharesStack ? outer.view : child.view)
+        defer { host.close() }
+        guard await waitUntil({ child.appearances.tokens["record-1"] != nil }, timeout: .seconds(3)) else { return }
+        var previous = try #require(child.appearances.tokens["record-1"])
+
+        // Changing the payload and replacing the exact same route both create
+        // a new screen lifetime. The enclosing pushed child must stay attached.
+        for record in [2, 2] {
+            withNavigationTransaction(animation: .disabled) {
+                child.setRoot(.statefulRoot(record: record))
+            }
+            guard await waitUntil({
+                child.appearances.tokens["record-\(record)"].map { $0 != previous } == true
+            }, timeout: .seconds(3)) else { return }
+            previous = try #require(child.appearances.tokens["record-\(record)"])
+            if sharesStack {
+                #expect(child.parent === outer)
+                #expect(outer.bindingStack(for: .push).wrappedValue.count == 1)
+            }
+        }
+    }
+
     @Test func metadataUpdatesKeepStateAndUpdateNativeTabs() async throws {
         let tabs = HostedTabs()
         let host = HostedWindow(tabs.view)

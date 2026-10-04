@@ -40,6 +40,7 @@ public extension CoordinatableView {
 
         if let parent = destination.parent, parent._dataId != coordinator._dataId {
             AnyView(parent.customizeErased(AnyView(content)))
+                .environmentCoordinatable(parent)
         } else {
             AnyView(content)
         }

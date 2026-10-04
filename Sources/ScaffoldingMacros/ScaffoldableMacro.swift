@@ -32,7 +32,10 @@ public struct ScaffoldableMacro: MemberMacro {
         let codable = try parseBoolArgument(named: "codable", from: node) ?? false
 
         let functions = extractFunctions(from: classDecl)
-        let trackedFunctions = try filterTrackedFunctions(functions, coordinatableType: coordinatableType, context: context)
+        let trackedFunctions = try filterTrackedFunctions(
+            functions, coordinatableType: coordinatableType,
+            typeContext: RouteTypeContext(classDecl), context: context
+        )
 
         let destinationsEnum = try generateDestinationsEnum(
             className: className,
@@ -42,6 +45,34 @@ public struct ScaffoldableMacro: MemberMacro {
         )
 
         var members: [DeclSyntax] = [DeclSyntax(destinationsEnum)]
+
+        // Resolve payload names in the owner's scope, before Destinations'
+        // own Meta and Owner declarations can shadow the caller's types.
+        let aliases = trackedFunctions.flatMap { function in
+            function.parameters.compactMap { parameter in
+                parameter.scopedAlias.map {
+                    var declaration = "\(accessModifier)typealias \($0) = \(parameter.originalType)"
+                    if let value = parameter.defaultValue, parameter.scopedDefaultProvider != nil {
+                        let visibility = accessModifier == "public " ? "@usableFromInline " : ""
+                        declaration += """
+
+                        \(function.availabilityAttributes)\(visibility)@MainActor
+                        internal static func __default_\($0)() -> \($0) {
+                            \(value)
+                        }
+                        """
+                    }
+                    return function.wrapping(declaration)
+                }
+            }
+        }
+        if !aliases.isEmpty {
+            members.append(DeclSyntax(stringLiteral: """
+                \(accessModifier)enum __ScaffoldingRouteTypes {
+                    \(aliases.joined(separator: "\n"))
+                }
+                """))
+        }
 
         // Emit the env-injection opt-out flag when explicitly disabled.
         // The default true value is provided by Coordinatable's protocol
@@ -169,6 +200,7 @@ public struct ScaffoldableMacro: MemberMacro {
     private static func filterTrackedFunctions(
         _ functions: [ConditionalFunction],
         coordinatableType: CoordinatableType,
+        typeContext: RouteTypeContext,
         context: some MacroExpansionContext
     ) throws -> [TrackedFunction] {
         var trackedFunctions: [TrackedFunction] = []
@@ -214,12 +246,14 @@ public struct ScaffoldableMacro: MemberMacro {
                     ))
                 }
                 
-                let trackedFunction = try TrackedFunction(
-                    function: function,
-                    returnType: returnTypeInfo,
-                    branches: conditional.branches
-                )
-                trackedFunctions.append(trackedFunction)
+                for branches in typeContext.branches(for: conditional) {
+                    trackedFunctions.append(try TrackedFunction(
+                        function: function,
+                        returnType: returnTypeInfo,
+                        branches: branches,
+                        typeContext: typeContext
+                    ))
+                }
             }
         }
         
@@ -333,7 +367,7 @@ public struct ScaffoldableMacro: MemberMacro {
             // Their payloads must exist at the coordinator's deployment floor;
             // isAvailable and value(for:) still guard the route factory.
             let availability = $0.parameters.isEmpty ? $0.availabilityAttributes : ""
-            return $0.wrapping(availability + (try generateEnumCaseDecl(for: $0)).description)
+            return $0.wrapping(generateDocumentationTrivia(for: $0).description + availability + (try generateEnumCaseDecl(for: $0)).description)
         }.joined(separator: "\n")
         let defaultFactories = functions.map {
             generateDefaultFactories(for: $0, accessModifier: accessModifier)
@@ -382,14 +416,12 @@ public struct ScaffoldableMacro: MemberMacro {
     }
 
     private static func generateEnumCaseDecl(for function: TrackedFunction) throws -> EnumCaseDeclSyntax {
-        let docTrivia = generateDocumentationTrivia(for: function)
-        
         if function.parameters.isEmpty {
             let enumCaseDecl = EnumCaseDeclSyntax {
                 EnumCaseElementSyntax(name: .identifier(function.name))
             }
             
-            return enumCaseDecl.with(\.leadingTrivia, docTrivia)
+            return enumCaseDecl
         } else {
             let params = function.parameters.enumerated().map { (index, param) in
                 let isLast = index == function.parameters.count - 1
@@ -418,7 +450,7 @@ public struct ScaffoldableMacro: MemberMacro {
                 )
             }
             
-            return enumCaseDecl.with(\.leadingTrivia, docTrivia)
+            return enumCaseDecl
         }
     }
 
@@ -432,7 +464,9 @@ public struct ScaffoldableMacro: MemberMacro {
         let defaults = parameters.indices.filter { parameters[$0].defaultValue != nil }
         guard !defaults.isEmpty else { return "" }
 
-        var defaultValues = parameters.map(\.defaultValue)
+        var defaultValues = parameters.map { parameter in
+            parameter.scopedDefaultProvider.map { "\($0)()" } ?? parameter.defaultValue
+        }
         var providers: [String] = []
         if accessModifier == "public " {
             // Public defaults are serialized into clients and cannot directly
@@ -440,8 +474,9 @@ public struct ScaffoldableMacro: MemberMacro {
             // keeps that expression in the defining module. Bare source-location
             // literals must stay directly in the caller's default argument.
             for index in defaults {
+                if parameters[index].scopedDefaultProvider != nil { continue }
                 let expression = defaultValues[index]!
-                if ["#file", "#fileID", "#filePath", "#function", "#line", "#column"].contains(expression) { continue }
+                if Parameter.sourceLocationLiterals.contains(expression) { continue }
                 let name = "__scaffoldingDefault_\(function.name.replacingOccurrences(of: "`", with: ""))_\(index)"
                 defaultValues[index] = "\(name)()"
                 providers.append(function.wrapping("""
@@ -454,11 +489,16 @@ public struct ScaffoldableMacro: MemberMacro {
         }
 
         var omissions: [Set<Int>] = []
-        let hasUnlabeledDefault = defaults.contains { parameters[$0].label == nil }
-        if hasUnlabeledDefault {
+        let needsExplicitOmissions = defaults.contains {
+            parameters[$0].label == nil || parameters[$0].isSourceLocationAutoclosure
+        }
+        if needsExplicitOmissions {
             // Explicit overloads preserve Swift's left-to-right matching of
             // unlabeled arguments. Deduplicate equivalent visible signatures,
             // preferring to supply earlier parameters and omit later ones.
+            // Source-location autoclosures also need separate omissions: an
+            // omitted argument keeps its literal default, while a supplied
+            // argument remains a stored closure like the enum-case payload.
             func collect(_ offset: Int, omitted: Set<Int>) {
                 guard offset < defaults.count else {
                     if !omitted.isEmpty { omissions.append(omitted) }
@@ -488,16 +528,18 @@ public struct ScaffoldableMacro: MemberMacro {
                     label = "__scaffoldingDefault\(index)"
                     while labels.contains(label) { label += "_" }
                 }
-                let usesDefault = omitted.contains(index) || (!hasUnlabeledDefault && index > firstOmitted)
+                let usesDefault = omitted.contains(index) || (!needsExplicitOmissions && index > firstOmitted)
                 let value = usesDefault ? defaultValues[index].map { " = \($0)" } ?? "" : ""
-                let type = (parameter.isFunction ? "@escaping " : "") + parameter.type
+                let autoclosure = omitted.contains(index) && parameter.isSourceLocationAutoclosure
+                    ? "@autoclosure " : ""
+                let type = autoclosure + (parameter.isFunction ? "@escaping " : "") + parameter.type
                 return "\(label) __scaffoldingArgument\(index): \(type)\(value)"
             }.joined(separator: ", ")
             let values = parameters.enumerated().map { index, parameter in
                 (parameter.label.map { $0.replacingOccurrences(of: "`", with: "") + ": " } ?? "") + "__scaffoldingArgument\(index)"
             }.joined(separator: ", ")
             return function.wrapping("""
-            \(function.availabilityAttributes)@MainActor
+            \(generateDocumentationTrivia(for: function))\(function.availabilityAttributes)@MainActor
             \(accessModifier)static func \(function.name)(\(arguments)) -> Self {
                 .\(function.name)(\(values))
             }
@@ -506,85 +548,22 @@ public struct ScaffoldableMacro: MemberMacro {
         return (providers + factories).joined(separator: "\n")
     }
     
+    /// Keep the author's DocC prose on both the case and its default factories.
+    /// Ordinary implementation comments and function bodies are not API docs.
     private static func generateDocumentationTrivia(for function: TrackedFunction) -> Trivia {
-        let returnTypeString = getActualReturnTypeString(from: function.originalFunction)
-        let functionBodyLines = extractFunctionBodyLines(from: function.originalFunction)
-        
-        var triviaPieces: [TriviaPiece] = [
-            .docLineComment("/// ```swift"),
-            .newlines(1),
-            .docLineComment("/// \(returnTypeString)"),
-            .newlines(1),
-            .docLineComment("/// ```"),
-            .newlines(1),
-            .docLineComment("///"),
-            .newlines(1),
-            .docLineComment("/// Function body"),
-            .newlines(1),
-            .docLineComment("/// ```swift"),
-            .newlines(1)
-        ]
-        
-        for line in functionBodyLines {
-            triviaPieces.append(.docLineComment("/// \(line)"))
-            triviaPieces.append(.newlines(1))
-        }
-        
-        triviaPieces.append(.docLineComment("/// ```"))
-        triviaPieces.append(.newlines(1))
-        
-        return Trivia(pieces: triviaPieces)
-    }
-    
-    private static func extractFunctionBodyLines(from function: FunctionDeclSyntax) -> [String] {
-        guard let body = function.body else {
-            return ["{ }"]
-        }
-        
-        // Extract the statements from the function body
-        let statements = body.statements
-        
-        if statements.count == 1, let returnStmt = statements.first?.item.as(ReturnStmtSyntax.self) {
-            // Single return statement - extract just the expression
-            if let expression = returnStmt.expression {
-                let expressionString = expression.description
-                return preserveFormattingLines(expressionString)
+        var pieces: [TriviaPiece] = []
+        for piece in function.originalFunction.leadingTrivia {
+            switch piece {
+            case .docLineComment, .docBlockComment:
+                pieces.append(piece)
+                pieces.append(.newlines(1))
+            default:
+                break
             }
-        } else if statements.count == 1 {
-            // Single expression statement (implicit return)
-            let statement = statements.first!.item
-            let statementString = statement.description
-            return preserveFormattingLines(statementString)
-        } else {
-            // Multiple statements - return the whole body
-            let bodyContent = statements.map { stmt in
-                stmt.description
-            }.joined(separator: "\n")
-            return preserveFormattingLines(bodyContent)
         }
-        
-        return ["{ }"]
+        return Trivia(pieces: pieces)
     }
-    
-    private static func preserveFormattingLines(_ text: String) -> [String] {
-        let lines = text.components(separatedBy: .newlines)
-        
-        let trimmedLines = lines.drop { $0.trimmingCharacters(in: .whitespaces).isEmpty }
-            .reversed()
-            .drop { $0.trimmingCharacters(in: .whitespaces).isEmpty }
-            .reversed()
-        
-        return Array(trimmedLines)
-    }
-    
-    private static func getActualReturnTypeString(from function: FunctionDeclSyntax) -> String {
-        guard let returnClause = function.signature.returnClause else {
-            return "Void"
-        }
-        
-        return returnClause.type.trimmedDescription.split(whereSeparator: { $0.isWhitespace }).joined(separator: " ")
-    }
-    
+
     private static func generateParameterExtraction(for function: TrackedFunction) -> String {
         if function.parameters.isEmpty {
             return ""
@@ -696,13 +675,13 @@ struct TrackedFunction {
     let originalFunction: FunctionDeclSyntax
     let branches: [ConditionalBranch]
     
-    init(function: FunctionDeclSyntax, returnType: ReturnTypeInfo, branches: [ConditionalBranch]) throws {
+    init(function: FunctionDeclSyntax, returnType: ReturnTypeInfo, branches: [ConditionalBranch], typeContext: RouteTypeContext) throws {
         self.branches = branches
         self.name = "`" + function.name.text.replacingOccurrences(of: "`", with: "") + "`"
         self.returnType = returnType
         self.originalFunction = function
-        self.parameters = try function.signature.parameterClause.parameters.map { param in
-            try Parameter(from: param)
+        self.parameters = try function.signature.parameterClause.parameters.enumerated().map { index, param in
+            try Parameter(from: param, typeContext: typeContext, branches: branches, alias: "\(function.name.text.replacingOccurrences(of: "`", with: ""))_\(index)")
         }
     }
 }
@@ -762,14 +741,126 @@ extension TrackedFunction {
     }
 }
 
+/// The syntax visible to the member macro. Alias lookup deliberately stops at
+/// the class boundary; aliases from other scopes can be marked @escaping at
+/// the route declaration, just as with imported closure aliases.
+struct RouteTypeContext {
+    let className: String
+    private struct Alias {
+        let type: TypeSyntax
+        let branches: [ConditionalBranch]
+    }
+    private let aliases: [String: [Alias]]
+    private let branchOptions: [SyntaxIdentifier: [ConditionalBranch]]
+
+    init(_ declaration: ClassDeclSyntax) {
+        className = declaration.name.trimmedDescription
+        var aliases: [String: [Alias]] = [:]
+        var branchOptions: [SyntaxIdentifier: [ConditionalBranch]] = [:]
+        func collect(_ members: MemberBlockItemListSyntax, branches: [ConditionalBranch]) {
+            for member in members {
+                if let alias = member.decl.as(TypeAliasDeclSyntax.self) {
+                    aliases[alias.name.text, default: []].append(Alias(type: alias.initializer.value, branches: branches))
+                } else if let conditional = member.decl.as(IfConfigDeclSyntax.self) {
+                    var directives: [String] = []
+                    for (index, clause) in conditional.clauses.enumerated() {
+                        directives.append(clause.poundKeyword.text + (clause.condition.map { " " + $0.trimmedDescription } ?? ""))
+                        let branch = ConditionalBranch(id: conditional.id, index: index, directives: directives)
+                        branchOptions[conditional.id, default: []].append(branch)
+                        if case let .decls(members) = clause.elements {
+                            collect(members, branches: branches + [branch])
+                        }
+                    }
+                    // Without a local alias in this branch, Swift may resolve
+                    // the name in an outer scope. Do not drop the route there.
+                    if conditional.clauses.last?.poundKeyword.text != "#else" {
+                        branchOptions[conditional.id, default: []].append(ConditionalBranch(
+                            id: conditional.id, index: conditional.clauses.count,
+                            directives: directives + ["#else"]
+                        ))
+                    }
+                }
+            }
+        }
+        collect(declaration.memberBlock.members, branches: [])
+        self.aliases = aliases
+        self.branchOptions = branchOptions
+    }
+
+    /// A default factory may need @escaping on one platform and a value
+    /// parameter on another. Keep those declarations under the alias's actual
+    /// branches instead of selecting whichever alias appears first in source.
+    func branches(for function: ConditionalFunction) -> [[ConditionalBranch]] {
+        function.function.signature.parameterClause.parameters.reduce([function.branches]) { variants, parameter in
+            variants.flatMap { functionTypes(parameter.type, branches: $0).map(\.branches) }
+        }
+    }
+
+    func isFunction(_ type: TypeSyntax, branches: [ConditionalBranch]) -> Bool {
+        functionTypes(type, branches: branches).first?.isFunction ?? false
+    }
+
+    private func functionTypes(_ type: TypeSyntax, branches: [ConditionalBranch], visited: Set<String> = []) -> [(branches: [ConditionalBranch], isFunction: Bool)] {
+        if type.is(FunctionTypeSyntax.self) { return [(branches, true)] }
+        if let attributed = type.as(AttributedTypeSyntax.self) {
+            return functionTypes(attributed.baseType, branches: branches, visited: visited)
+        }
+        if let tuple = type.as(TupleTypeSyntax.self), tuple.elements.count == 1,
+           let element = tuple.elements.first, element.firstName == nil {
+            return functionTypes(element.type, branches: branches, visited: visited)
+        }
+        let name: String?
+        if let identifier = type.as(IdentifierTypeSyntax.self) {
+            name = identifier.name.text
+        } else if let member = type.as(MemberTypeSyntax.self),
+                  [className, "Self"].contains(member.baseType.trimmedDescription) {
+            name = member.name.text
+        } else {
+            name = nil
+        }
+        guard let name, !visited.contains(name), let candidates = aliases[name] else { return [(branches, false)] }
+        let compatible = candidates.filter { alias in
+            !alias.branches.contains(where: { branch in
+                branches.contains { $0.id == branch.id && $0.index != branch.index }
+            })
+        }
+        if let unresolved = compatible.flatMap(\.branches).first(where: { branch in
+            !branches.contains { $0.id == branch.id }
+        }), let options = branchOptions[unresolved.id] {
+            return options.flatMap { functionTypes(type, branches: branches + [$0], visited: visited) }
+        }
+        guard let alias = compatible.first else { return [(branches, false)] }
+        return functionTypes(alias.type, branches: branches, visited: visited.union([name]))
+    }
+
+    func needsScopedAlias(_ syntax: Syntax) -> Bool {
+        if let identifier = syntax.as(IdentifierTypeSyntax.self),
+           ["Meta", "Owner"].contains(identifier.name.text) { return true }
+        if let reference = syntax.as(DeclReferenceExprSyntax.self),
+           ["Meta", "Owner"].contains(reference.baseName.text) { return true }
+        return syntax.children(viewMode: .sourceAccurate).contains(where: needsScopedAlias)
+    }
+}
+
 struct Parameter {
+    static let sourceLocationLiterals: Set<String> = ["#file", "#fileID", "#filePath", "#function", "#line", "#column"]
+
     let label: String?
     let type: String
+    let originalType: String
+    let scopedAlias: String?
     let defaultValue: String?
     let isAutoclosure: Bool
     let isFunction: Bool
+    let isSourceLocationAutoclosure: Bool
+
+    var scopedDefaultProvider: String? {
+        guard let scopedAlias, let defaultValue,
+              !Self.sourceLocationLiterals.contains(defaultValue) else { return nil }
+        return String(type.dropLast(scopedAlias.count)) + "__default_" + scopedAlias
+    }
     
-    init(from param: FunctionParameterSyntax) throws {
+    init(from param: FunctionParameterSyntax, typeContext: RouteTypeContext, branches: [ConditionalBranch], alias: String) throws {
         // Handle parameter labels
         if param.firstName.text != "_" {
             self.label = "`" + param.firstName.text.replacingOccurrences(of: "`", with: "") + "`"
@@ -780,6 +871,11 @@ struct Parameter {
         var storedType = param.type
         var hasEscapingAttribute = false
         if var attributed = storedType.as(AttributedTypeSyntax.self) {
+            // `sending` constrains the factory call, not the stored payload.
+            // Keep it on the user's method so Swift still checks the transfer
+            // when the generated bridge calls that method. Nested function
+            // parameter/result annotations remain part of the payload type.
+            attributed.specifiers = attributed.specifiers.filter { $0.trimmedDescription != "sending" }
             self.isAutoclosure = attributed.attributes.contains {
                 $0.as(AttributeSyntax.self)?.attributeName.trimmedDescription == "autoclosure"
             }
@@ -794,11 +890,15 @@ struct Parameter {
         } else {
             self.isAutoclosure = false
         }
-        self.type = storedType.trimmedDescription
-        self.isFunction = hasEscapingAttribute || isAutoclosure ||
-            (storedType.as(AttributedTypeSyntax.self)?.baseType ?? storedType).is(FunctionTypeSyntax.self)
+        self.originalType = storedType.trimmedDescription
+        let hasShadowedDefault = param.defaultValue.map { typeContext.needsScopedAlias(Syntax($0.value)) } == true
+        self.scopedAlias = typeContext.needsScopedAlias(Syntax(storedType)) || hasShadowedDefault ? alias : nil
+        self.type = scopedAlias.map { "\(typeContext.className).__ScaffoldingRouteTypes.\($0)" } ?? originalType
+        self.isFunction = hasEscapingAttribute || isAutoclosure || typeContext.isFunction(storedType, branches: branches)
+        self.isSourceLocationAutoclosure = isAutoclosure &&
+            param.defaultValue.map { Self.sourceLocationLiterals.contains($0.value.trimmedDescription) } == true
         if let value = param.defaultValue?.value.trimmedDescription {
-            self.defaultValue = isAutoclosure ? "{ \(value) }" : value
+            self.defaultValue = isAutoclosure && !isSourceLocationAutoclosure ? "{ \(value) }" : value
         } else {
             self.defaultValue = nil
         }

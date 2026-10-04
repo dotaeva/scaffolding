@@ -27,7 +27,7 @@
 /// <doc:StateRestoration>. Every route parameter must then be `Codable`.
 ///
 /// Both options take a literal `true` or `false`. See <doc:DefiningRoutes>.
-@attached(member, names: named(Destinations), named(_injectsCoordinator))
+@attached(member, names: named(Destinations), named(_injectsCoordinator), named(__ScaffoldingRouteTypes))
 public macro Scaffoldable(injectsCoordinator: Bool = true, codable: Bool = false) = #externalMacro(module: "ScaffoldingMacros", type: "ScaffoldableMacro")
 
 /// Keeps a class-body function out of the generated `Destinations` enum.

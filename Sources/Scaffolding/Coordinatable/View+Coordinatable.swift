@@ -11,7 +11,7 @@ import SwiftUI
 extension View {
     /// Applies presenter-side sheet configuration to presented content.
     @ViewBuilder
-    func applySheetConfiguration(_ configuration: SheetConfiguration?) -> some View {
+    func applySheetConfiguration(_ configuration: LegacySheetConfiguration?) -> some View {
         if let configuration {
             let base = self
                 .presentationDragIndicator(configuration.dragIndicator)
@@ -67,7 +67,7 @@ extension View {
         ) { destination in
             modalContent(destination)
                 .id(destination.id)
-                .applySheetConfiguration(destination.modalConfiguration)
+                .applySheetConfiguration(destination.sheetConfiguration)
         }
 
 #if os(macOS)
